@@ -1,6 +1,6 @@
 {
- "version": "1.2.3",
- "notes": "Sửa phát âm thanh tự chọn: tự thử định dạng khác nếu không giải mã được, nút Nghe thử phát qua màn hình hiển thị và báo lỗi cụ thể",
+ "version": "1.2.4",
+ "notes": "Dùng Flash_VFX và Stamp_VFX làm âm thanh chụp ảnh và đóng dấu mặc định (đã tăng âm lượng)",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
@@ -286,12 +286,12 @@
    "size": 52964
   },
   "sounds/shutter.wav": {
-   "sha256": "42693d6fd0b0fa612948e79b861d708506161572f47207b48a673591a73de093",
-   "size": 167624
+   "sha256": "32e89abe619b630c4718ca246cd6dc9adeded0a5ffdc1ce1c8d238de166ccb35",
+   "size": 115278
   },
   "sounds/stamp.wav": {
-   "sha256": "9d01933328e9302e8f8e4ec048a3f8128fbe46ef3715931b253d923f2a2e2fbd",
-   "size": 39734
+   "sha256": "fc9d4a26426366e0bdfc82d3101feb995722aebcfd5df66c94a843cead931481",
+   "size": 41550
   },
   "sounds/whoosh.wav": {
    "sha256": "8c21fa8c6f7a691e74bd3048ca331f6727e7e5850cec80ede1bcbbdc1aadb587",

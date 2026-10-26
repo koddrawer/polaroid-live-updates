@@ -1,21 +1,33 @@
 {
- "version": "1.0.0",
- "notes": "Bản đầu tiên",
+ "version": "1.1.0",
+ "notes": "LED dễ đọc hơn; zoom khi in ảnh 1 xu, ảnh bay vào 5 ô trên bàn; chỉnh thời gian chụp/in; nhạc nền; hình nền ảnh theo loại donate; cảnh 3D mới",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
  "files": {
   "control.css": {
-   "sha256": "9ca75d7942d652af4a229faaa1144e7fc09272d6ee6d249fddfe5e76055c063f",
-   "size": 4489
+   "sha256": "7628674994640e3bb213b92ec704221a3c5fb82fed2399abe5fe5dd42472e551",
+   "size": 5181
   },
   "control.html": {
-   "sha256": "b87a6bff59bde3088faada5ef7a6df06fed32777a43b3d3cad5981e43d7bef5d",
-   "size": 8779
+   "sha256": "64b5fb0f0f6712bddbb42274342bae908cf5775784d9f24cc1ea4d5a7ebd31da",
+   "size": 11374
   },
   "display.html": {
    "sha256": "72822fa3b626f0758331bf68914654e88f5ecf92c3133afeafe38b53739d9316",
    "size": 1208
+  },
+  "fonts/BarlowCondensed-Bold.ttf": {
+   "sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65",
+   "size": 109912
+  },
+  "fonts/BarlowCondensed-ExtraBold.ttf": {
+   "sha256": "724c9c25952d5f4a2d87185d9767aa006144c5f0d944dc05bf7d5d603551c260",
+   "size": 110296
+  },
+  "fonts/BeVietnamPro-ExtraBold.ttf": {
+   "sha256": "44dbfa01553d227bec76ba6446c5618870a76a4a3297f41630dde859d0650d02",
+   "size": 139680
   },
   "fonts/Caveat.ttf": {
    "sha256": "0bdb6b660482d31531b3945849fba5916b3ef8695da7024a9e6b9ee3c4157988",
@@ -70,152 +82,176 @@
    "size": 3838
   },
   "js/boards.js": {
-   "sha256": "7b772ca2a86c5d61e8adccde75daed05919ec67397648875683a28e0b68f9d31",
-   "size": 8719
+   "sha256": "886e0ede0e9ea7f687815c757a51103cc4cbad77622885e8809b9070cf8ef5c5",
+   "size": 10694
   },
   "js/control.js": {
-   "sha256": "d823ff5ebf91d058aafdba9ad643b2498506a7e770721c97fa2a3f2dc5086b54",
-   "size": 14883
+   "sha256": "f2c6c200a6526dcddc8d3b6c67e2a77aba0bd625a3a4c7534e1f1325d91c2b16",
+   "size": 21537
   },
   "js/defaults.js": {
-   "sha256": "e5e8e862fb90534c12f735ec30ec5111f8afaf16107146af7f2847df7e0c0043",
-   "size": 2834
+   "sha256": "65ea3b86e47a9f48ee169243e1c26c6c169419b0bcb4bfed628a145abe1c33f0",
+   "size": 4712
   },
   "js/display.js": {
-   "sha256": "de39639702164a6a3c6bf43e14f62ded2218425e4cc7c78b7f8f24384dbd3cb4",
-   "size": 30018
+   "sha256": "9323f50b2e1bad6710e53a3a421f4d1320b1d4add0002c4f32de3830604e12c0",
+   "size": 36064
   },
   "js/led.js": {
-   "sha256": "8ea3c8079d4f2ed7c3aa1c48ca0a03078f68c7d6f42cb7856b287f821d239bf1",
-   "size": 3706
+   "sha256": "d2c3c2f5234208e4622d17597b3b9784b894e9a7eb56774d583ea2b56a61bf67",
+   "size": 4012
   },
   "js/pipeline.js": {
-   "sha256": "0a4efd8e91a1f2c7e4d7f0db4b660a8689422de818e37ff4379b64dac712aa3a",
-   "size": 6581
+   "sha256": "7cf4feea7789982d5804d8040af4ee55ad6a6e2747f0a9ca8769e37c41a39367",
+   "size": 6831
   },
   "js/print.js": {
-   "sha256": "5e47a64690c17082db79dd9b90ad852dd234da1cc237c9ac426716a7e3e316f7",
-   "size": 6415
+   "sha256": "9bd84fc863f838095555bebdb929ea6d3de13d0aec58a939383772d25ee66aa4",
+   "size": 6731
+  },
+  "papers/black.jpg": {
+   "sha256": "58f9f7329a0a0fcc65dc901d317976ccea26c373eaf7d4389a489e25419072a8",
+   "size": 53635
+  },
+  "papers/gold.jpg": {
+   "sha256": "e8428b11ad0eb30344885f79b64433f185cf54e76eb457adaee5320a4448d4ce",
+   "size": 46750
+  },
+  "papers/kraft.jpg": {
+   "sha256": "76f94644a41309063866280dbe4880ae28e770fb7509269e151e546588e9db4a",
+   "size": 45078
+  },
+  "papers/pink.jpg": {
+   "sha256": "e1198c2973b64e336f00f4e31a570590cb50bfb8055efa3ff961a26736d61737",
+   "size": 51342
+  },
+  "papers/vintage.jpg": {
+   "sha256": "b6dac716a9a4eee682e9fb74f36eba6eaf80e8773a20ab1a917f54f64b9031f8",
+   "size": 27243
+  },
+  "papers/wood.jpg": {
+   "sha256": "a6f6f8217b505da970ce022b02a814f9125c7d3510bc4912990a33d78b2e0b4f",
+   "size": 58442
   },
   "scene/hero.glb": {
    "sha256": "9e792be9727f5d8efd318dc075d307f0ff258db92fc3469e4334e9fd10112817",
    "size": 1769592
   },
   "scene/plate.jpg": {
-   "sha256": "112d4833b50033d5a5ef0ed6ab0ca816422607165c94f8e5e32910f3d51be3b8",
-   "size": 325050
+   "sha256": "a516e12ea8f2f5f220529bd17755f864d3b0f9caca88f07ac667076e73261d90",
+   "size": 319386
   },
   "scene/scene.json": {
-   "sha256": "5a7e8825091919087b3473ace6300e2d2bc8785c61cab6172f6a06b2401bfd05",
-   "size": 19110
+   "sha256": "cce8582472a6d9b8ef10b344c2557e5a9dff8a150c330d391b4e450923691a58",
+   "size": 20839
   },
   "scene/sprites/Clock_Hand_Hour.png": {
-   "sha256": "5de14de4b934c5f7d5f28dbcb3878f57315d40f3f00b18a40608a42fa5f6c61b",
-   "size": 1096
+   "sha256": "86d89ad883599b2d504ebd571d1b7ea3a73d17c72b58d1faef21e74a55ce0596",
+   "size": 1085
   },
   "scene/sprites/Clock_Hand_Hour_001.png": {
-   "sha256": "8ada8dce01f464c430d8d6ccf56e468e4cbf7ab46c397a2dbf73a4b4bb24ca23",
-   "size": 1257
+   "sha256": "d2f906fc2f9b60b2790df69ceeee489d96c11158763f308669da21a3c756dd11",
+   "size": 1156
   },
   "scene/sprites/Clock_Hand_Minute.png": {
-   "sha256": "732230adff0340210d2904faf23b65d6893a16946685562d46c42d0143a19b4b",
-   "size": 1177
+   "sha256": "60a4424d619f79b495a58ffc7b51a01d652f6be115a5da78ae2e0222a05458d8",
+   "size": 1139
   },
   "scene/sprites/Clock_Hand_Minute_001.png": {
-   "sha256": "6eabadc24134a3829534d4bb2b3eb6177a6290597a775f77d92e7b43d7657ab1",
-   "size": 1357
+   "sha256": "71ebc965cdfd0ee0c5c7dbe333967e03a5aa90e7d0825e3f44e2a42b1eda2560",
+   "size": 1222
   },
   "scene/sprites/Clock_Hand_Second.png": {
-   "sha256": "ffcf00a723e4b51a67fa5db339409efa90b9775ee908521b116f2811e6db5f86",
-   "size": 1106
+   "sha256": "2519b2377ab3cb8b79a3d766249f4e4a0d773837eaed8bae0f8ef81b81805ca6",
+   "size": 1088
   },
   "scene/sprites/Clock_Hand_Second_001.png": {
-   "sha256": "cc22ef4bf2862ff91a39da1a978c3117d2603697e16af52319a85b5633d6ef96",
-   "size": 1152
+   "sha256": "897e99634fc70a9b4c453824adc28a15439c529dfc0b5243d503f81fec499d60",
+   "size": 1108
   },
   "scene/sprites/Gear_B1.png": {
-   "sha256": "92c88fa3bacb5e896f984c09d596ba442598f626412041eddba5cc9312569996",
-   "size": 14609
+   "sha256": "5fbca7ad79f2762202b0186e276298d0b90618221e579b729cf7ace596a71f57",
+   "size": 14149
   },
   "scene/sprites/Gear_B2.png": {
-   "sha256": "8925c53c7c79ae4ee255788386535171a0af9861b22fe98e338cc0d497a73421",
-   "size": 6397
+   "sha256": "05c2090494d03699fd9ac518f2f60dfe5ada983fda38628cab8e10c653cfea45",
+   "size": 6099
   },
   "scene/sprites/Gear_B3.png": {
-   "sha256": "8cef7ad411fbbae17cc6aae179276298fb943c490bfe08e44c56b95ff769664c",
-   "size": 6407
+   "sha256": "38a027f737ef1b71973b65b11bc273adfd5c6c157675b5caec5a8659748dd520",
+   "size": 6171
   },
   "scene/sprites/Gear_B4.png": {
-   "sha256": "bae2d5fc8d82c20630ba125b425fc04d31e390c846dffa87a886359a1122ca78",
-   "size": 9002
+   "sha256": "bf16ca67dc6e393dba27036731d82ed5b91d1a59f02979c537f5695334ce22fa",
+   "size": 8934
   },
   "scene/sprites/Gear_B5.png": {
-   "sha256": "d100ac08a03b5540ce69e2d5aeda330f07ee5c71717f733f4c99bf70f9a8684c",
-   "size": 5281
+   "sha256": "dff2f7f19fe870c1fb82626e2093426b74658b25f5adaf20aa311115b43d4df4",
+   "size": 5063
   },
   "scene/sprites/Gear_BotCenter.png": {
-   "sha256": "01d7822b0195438e770265a83ab621144b833424df8c6a07fc8b67f77b4e8567",
-   "size": 11856
+   "sha256": "cf6f46f65bda18f3cb84c7ab7750e04948f308a48110107e54d1957837766073",
+   "size": 11376
   },
   "scene/sprites/Gear_BotCenter2.png": {
-   "sha256": "31f10a320df43415004457ccc13603ed78da9048a0a6f1d27b039de5605ddc00",
-   "size": 5108
+   "sha256": "40beb2b83f91897afa7660e7f7ab429478fd5cd2ecaed5661f4cc92f0dc21ed9",
+   "size": 4884
   },
   "scene/sprites/Gear_BotRight.png": {
-   "sha256": "85e39c50a3e8b428fbede47feb5d016588a53033dc4a9cd3d02cbab5832c84ff",
-   "size": 8866
+   "sha256": "4ce21ee0833dd533029d179e0817259010a645eaf2b61da6fc898e3abd2f1759",
+   "size": 8551
   },
   "scene/sprites/Gear_BotRight2.png": {
-   "sha256": "2ad2c93940af9989bae844d38f141ff8242214d23487425493ab4ffb169d9dce",
-   "size": 4961
+   "sha256": "60e58610f60c8688713a434e6b310834a8214c60586b47a50800f5ec472b26e6",
+   "size": 4855
   },
   "scene/sprites/Gear_F1.png": {
-   "sha256": "ce26aecb8350524fce5053a49123e2695285a451a11adafb03ccce5ab7ea0c44",
-   "size": 6482
+   "sha256": "23b694e75146fb67e941660262df96c2c2867a9a0da684db98ab90955406e691",
+   "size": 6289
   },
   "scene/sprites/Gear_F2.png": {
-   "sha256": "cc5a8428458b069d9161cc23c9b773bae08de3e1b9684f6b41996c24297da8d6",
-   "size": 5447
+   "sha256": "d64d0b658b3681ffa8919ab6492fa8109b2784281767ced46db43170876331ab",
+   "size": 5266
   },
   "scene/sprites/Gear_F3.png": {
-   "sha256": "30ba987dae3aa7b3d8b00db8c7ae4f8e9dcbef46485ef28e941687333ffb4664",
-   "size": 9254
+   "sha256": "c4c024a57fc03abec2fe4ae7b10db080695f9540a7d81a4c9fd006ea07a33c17",
+   "size": 8921
   },
   "scene/sprites/Gear_F4.png": {
-   "sha256": "a9a84065cff7b94374e91938e333f603132b9551a2878b380085d61cdd2b61d6",
-   "size": 5264
+   "sha256": "b9064b3c3dec02e02ecbdcc9c0495af4c473d163b0b52cf56a0d3cd5ec447061",
+   "size": 5106
   },
   "scene/sprites/Gear_F5.png": {
-   "sha256": "c1e9fa94cf1c7a8eabdf45036261ce290fb910e93df134aa5f767966879ad3d6",
-   "size": 7788
+   "sha256": "1dc66a97796bef156c4e3e37e7e70e12508aa04586c6fef9e4e159b59e19dd07",
+   "size": 7571
   },
   "scene/sprites/Gear_F6.png": {
-   "sha256": "60a44ef6bf4fedc9e0a057989f88c26aadac4a02f5bd55eee9eeecdb5a1a5158",
-   "size": 5251
+   "sha256": "6e59011b24af7df107dba24da157f00a6adc8b6887f3316e14321563325af482",
+   "size": 5042
   },
   "scene/sprites/Gear_Left.png": {
-   "sha256": "facfb332230b3ac2dc5bbb34a47ea3c897d6de9ade79f3396dfc43e220501efd",
-   "size": 12190
+   "sha256": "7b5e3e9fe776ee03d9b01a3ddcc9de80fe11d805b06e0159ce58e85adb6bfab7",
+   "size": 11697
   },
   "scene/sprites/Gear_LeftSmall.png": {
-   "sha256": "79c098cf99df09235b2bd2fbe904634a7dbc105effcadc0f7ce36e5bcbb23ddd",
-   "size": 5374
+   "sha256": "3534c06b066c7436466bcfc7f2463ae21e9b13ea480c970c34888e24ed10a04a",
+   "size": 5089
   },
   "scene/sprites/Gear_Right.png": {
-   "sha256": "4e233b9bbda60eeb93466d7a83ca2b03c03a650718faa74314ef889b2b7d4cde",
-   "size": 10885
+   "sha256": "43b315f638375a156aa752af3b04d1caf7ff100a7ad9a2ae96ff4db65ba4619c",
+   "size": 10672
   },
   "scene/sprites/Gear_T1.png": {
-   "sha256": "094ae19af923d53cb5ae0362c5aed1e3c453cae097611a03799758f7b95fe87a",
-   "size": 10379
+   "sha256": "8bf7a542f1271deb59e69693eb4e31e600f14fd2d1e336d495499438cd5b2456",
+   "size": 10128
   },
   "scene/sprites/Gear_TopLeft.png": {
-   "sha256": "85b02ef808c5c96d2e87810f28d73d773ca79ec307275d6799087b88bb53e17a",
-   "size": 6410
+   "sha256": "348f801d98548018b995b8aeb6e93867623a20831e55001ffef6d30cfcdd3576",
+   "size": 6098
   },
   "scene/sprites/Gear_TopRight.png": {
-   "sha256": "f20be68486cac7c49ac9e0ce341f06eea36c239b1c4d4b74fcfb1860b278f6de",
-   "size": 6358
+   "sha256": "46816efcc3a937d37b3c98d02b17c8b772d43c67f3fe05e350e5c515511a8803",
+   "size": 6035
   },
   "sounds/chime.wav": {
    "sha256": "e4ce22e5efcf39d2855605909e62267aa4afe4ae9a13d6b07970e4d026f03399",

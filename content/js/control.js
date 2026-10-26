@@ -1,5 +1,5 @@
 // Polaroid Live — control panel
-import { DEFAULTS, BUILTIN_ICONS, BUNDLED_FONTS, merge } from './defaults.js';
+import { DEFAULTS, BUILTIN_ICONS, BUNDLED_FONTS, LED_FONTS, PAPERS, merge } from './defaults.js';
 import { drawPrint } from './print.js';
 
 const api = window.api;
@@ -43,6 +43,7 @@ function addLog(ev) {
 api.onStatus(setStatus);
 api.onLive((ev) => { if (ev.type !== 'chat' && ev.type !== 'gift-streak') addLog(ev); });
 api.onReport((r) => {
+  if (r.music) { musicNow = r.music; renderMusicNow(); return; }
   $('queueInfo').textContent = `Hàng chờ chụp ảnh: ${r.queue}${r.busy ? ' (đang chụp)' : ''} · Ảnh đang trưng bày: ${r.gallery}`;
   $('perf').textContent = `FPS hiện tại: ${r.fps}`;
 });
@@ -174,10 +175,80 @@ $('btnFontFile').addEventListener('click', async () => {
 async function renderPreview() {
   const p = S.photo;
   await loadFont(p.font, p.fontUrl);
-  const cv = await drawPrint({ name: $('testName')?.value || 'Hoàng Anh', avatarUrl: null, caption: (p.captionTemplate || '{name}').replace('{name}', $('testName')?.value || 'Hoàng Anh'), font: p.font, color: p.captionColor, sizePct: p.captionSize });
+  const pp = merge(DEFAULTS.photo.paper.small, p.paper?.small || {});
+  const cv = await drawPrint({ name: $('testName')?.value || 'Hoàng Anh', avatarUrl: null, caption: (p.captionTemplate || '{name}').replace('{name}', $('testName')?.value || 'Hoàng Anh'), font: p.font, color: pp.caption || p.captionColor, sizePct: p.captionSize, paperUrl: pp.url });
   const g = $('printPreview').getContext('2d'); g.fillStyle = '#2a2118'; g.fillRect(0, 0, 300, 360);
   g.drawImage(cv, 20, 6, 260, 260 * cv.height / cv.width);
 }
+
+
+// ---------- per-tier settings (zoom, show, paper background) ----------
+const TIER_NAMES = { table: 'Ảnh đặt bàn', small: 'Khung nhỏ', big: 'Khung to' };
+function renderTiers() {
+  const box = $('tierList'); box.innerHTML = '';
+  for (const kind of ['table', 'small', 'big']) {
+    const fx = merge(DEFAULTS.photo.tierFx[kind], S.photo.tierFx?.[kind] || {});
+    const paper = merge(DEFAULTS.photo.paper[kind], S.photo.paper?.[kind] || {});
+    const div = document.createElement('div'); div.className = 'tier';
+    const sw = document.createElement('img'); sw.className = 'swatch'; sw.alt = ''; if (paper.url) sw.src = paper.url;
+    const body = document.createElement('div'); body.className = 'body';
+    const title = document.createElement('div'); title.className = 'title'; title.textContent = `${TIER_NAMES[kind]} (từ ${S.photo.tiers[kind]} xu)`;
+    const sel = document.createElement('select'); sel.id = 'paper_' + kind; sel.setAttribute('aria-label', 'Hình nền ' + TIER_NAMES[kind]);
+    for (const pp of PAPERS) { const o = document.createElement('option'); o.value = pp.url || ''; o.textContent = pp.name; sel.append(o); }
+    const custom = PAPERS.some(pp => (pp.url || '') === (paper.url || '')) ? null : paper.url;
+    if (custom) { const o = document.createElement('option'); o.value = custom; o.textContent = 'Ảnh của bạn'; sel.append(o); }
+    sel.value = paper.url || '';
+    sel.onchange = () => { const pp = PAPERS.find(x => (x.url || '') === sel.value); savePaper(kind, { url: sel.value || null, caption: pp ? pp.caption : paper.caption }); };
+    const up = Object.assign(document.createElement('button'), { textContent: 'Ảnh nền của bạn…' });
+    up.onclick = async () => { const f = await api.pickFile('image'); if (f) savePaper(kind, { url: f.url, caption: paper.caption }); };
+    const col = document.createElement('input'); col.type = 'color'; col.value = paper.caption || '#2a2420'; col.id = 'cap_' + kind; col.setAttribute('aria-label', 'Màu chữ');
+    col.oninput = debounce(() => savePaper(kind, { url: paper.url, caption: col.value }, false), 250);
+    const r1 = document.createElement('div'); r1.className = 'row'; r1.append(sel, up);
+    const r2 = document.createElement('div'); r2.className = 'row';
+    const lc = document.createElement('label'); lc.htmlFor = col.id; lc.textContent = 'Màu chữ';
+    const z = document.createElement('label'); z.className = 'check'; const zc = document.createElement('input'); zc.type = 'checkbox'; zc.checked = !!fx.zoom; z.append(zc, ' Phóng to khi in');
+    const sh = document.createElement('label'); sh.className = 'check'; const sc = document.createElement('input'); sc.type = 'checkbox'; sc.checked = !!fx.show; sh.append(sc, ' Hiện giữa màn hình');
+    zc.onchange = () => save({ photo: { tierFx: { [kind]: { zoom: zc.checked } } } });
+    sc.onchange = () => save({ photo: { tierFx: { [kind]: { show: sc.checked } } } });
+    r2.append(lc, col, z, sh);
+    body.append(title, r1, r2);
+    div.append(sw, body); box.append(div);
+  }
+}
+async function savePaper(kind, val, rerender = true) {
+  await save({ photo: { paper: { [kind]: val } } });
+  if (rerender) renderTiers();
+  renderPreview();
+}
+
+// ---------- music ----------
+let musicNow = null;
+function renderMusic() {
+  const ol = $('musList'); ol.innerHTML = '';
+  (S.music.tracks || []).forEach((t, i) => {
+    const li = document.createElement('li'); if (musicNow && musicNow.idx === i && musicNow.playing) li.className = 'now';
+    const play = Object.assign(document.createElement('button'), { textContent: '▶', title: 'Phát bài này' });
+    play.onclick = () => api.command({ type: 'music', action: 'track', index: i });
+    const name = document.createElement('span'); name.textContent = t.name;
+    const ctl = document.createElement('div'); ctl.className = 'ctl';
+    const del = Object.assign(document.createElement('button'), { textContent: '✕', title: 'Xoá' });
+    del.onclick = () => { const tr = [...S.music.tracks]; tr.splice(i, 1); save({ music: { tracks: tr } }).then(renderMusic); };
+    ctl.append(del); li.append(play, name, ctl); ol.append(li);
+  });
+}
+function renderMusicNow() {
+  $('musNow').textContent = musicNow?.playing ? '♪ ' + (musicNow.name || '') : 'Đang dừng';
+  renderMusic();
+}
+$('musAdd').onclick = async () => {
+  const f = await api.pickFile('sound'); if (!f) return;
+  const tr = [...(S.music.tracks || []), { url: f.url, name: f.name.replace(/\.(mp3|wav|ogg)$/i, '') }];
+  await save({ music: { tracks: tr, enabled: true } }); $('musOn').checked = true; renderMusic();
+};
+$('musPlay').onclick = () => { if (!S.music.enabled) { save({ music: { enabled: true } }); $('musOn').checked = true; } api.command({ type: 'music', action: 'play' }); };
+$('musPause').onclick = () => api.command({ type: 'music', action: 'pause' });
+$('musNext').onclick = () => api.command({ type: 'music', action: 'next' });
+$('musPrev').onclick = () => api.command({ type: 'music', action: 'prev' });
 
 // ---------- test buttons ----------
 document.querySelectorAll('[data-test]').forEach(b => b.addEventListener('click', () => api.command({ type: 'test', kind: b.dataset.test, name: $('testName').value.trim() || 'Khách' })));
@@ -200,6 +271,11 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   bindCheck('l1Scroll', () => S.topBoard.line1Scroll, v => ({ topBoard: { line1Scroll: v } }));
   bindNum('itemSec', () => S.topBoard.itemSeconds, v => ({ topBoard: { itemSeconds: v } }));
   renderItems();
+  const lf = $('ledFont'); LED_FONTS.forEach(f => { const o = document.createElement('option'); o.value = f.family; o.textContent = f.label; lf.append(o); });
+  lf.value = S.topBoard.ledFont; lf.onchange = () => save({ topBoard: { ledFont: lf.value } });
+  $('ledWeight').value = String(S.topBoard.ledWeight); $('ledWeight').onchange = () => save({ topBoard: { ledWeight: Number($('ledWeight').value) } });
+  bindNum('scrollSpeed', () => S.topBoard.scrollSpeed, v => ({ topBoard: { scrollSpeed: v } }));
+  bindNum('ledBright', () => S.topBoard.ledBrightness, v => ({ topBoard: { ledBrightness: v } }));
   bindText('joinTpl', () => S.bottomBoard.joinTemplate, v => ({ bottomBoard: { joinTemplate: v } }));
   bindText('giftTpl', () => S.bottomBoard.giftTemplate, v => ({ bottomBoard: { giftTemplate: v } }));
   bindText('followTpl', () => S.bottomBoard.followTemplate, v => ({ bottomBoard: { followTemplate: v } }));
@@ -217,6 +293,16 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   bindNum('tSmall', () => S.photo.tiers.small, v => ({ photo: { tiers: { small: v } } }));
   bindNum('tBig', () => S.photo.tiers.big, v => ({ photo: { tiers: { big: v } } }));
   bindNum('holdSec', () => S.photo.holdSeconds, v => ({ photo: { holdSeconds: v } }));
+  for (const [id, key] of [['tmApproach', 'approach'], ['tmShutter', 'shutter'], ['tmPrint', 'print'], ['tmDevelop', 'develop'], ['tmFly', 'fly']])
+    bindNum(id, () => S.photo.timing[key], v => ({ photo: { timing: { [key]: v } } }));
+  bindText('zoomAmt', () => Math.round(S.photo.zoomAmount * 10), v => ({ photo: { zoomAmount: Number(v) / 10 } }), 200);
+  renderTiers();
+  ['tTable', 'tSmall', 'tBig'].forEach(id => $(id).addEventListener('change', () => setTimeout(renderTiers, 300)));
+  bindCheck('musOn', () => S.music.enabled, v => ({ music: { enabled: v } }));
+  bindCheck('musShuffle', () => S.music.shuffle, v => ({ music: { shuffle: v } }));
+  bindCheck('musDuck', () => S.music.duck, v => ({ music: { duck: v } }));
+  bindText('musVol', () => S.music.volume, v => ({ music: { volume: Number(v) } }), 120);
+  renderMusic(); renderMusicNow();
   bindCheck('countByCoins', () => S.photo.countByCoins, v => ({ photo: { countByCoins: v } }));
   bindText('vol', () => S.photo.volume, v => ({ photo: { volume: Number(v) } }), 150);
   bindCheck('flashOn', () => S.photo.flash, v => ({ photo: { flash: v } }));

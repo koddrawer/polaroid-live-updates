@@ -27,11 +27,12 @@ void main(){ vec3 c = texture2D(tDiffuse, vUv).rgb; float l = max(c.r, max(c.g, 
   gl_FragColor = vec4(c * smoothstep(threshold, threshold + 0.6, l), 1.0); }`;
 const COMP_FS = `
 uniform sampler2D tBg; uniform sampler2D tBlur; uniform sampler2D tBloom;
-uniform float blur; uniform float bloom; uniform float dim; varying vec2 vUv;
+uniform float blur; uniform float bloom; uniform float dim; uniform vec4 crop; varying vec2 vUv;
 void main(){
-  vec3 c = mix(texture2D(tBg, vUv).rgb, texture2D(tBlur, vUv).rgb, blur);
+  vec2 uv = crop.xy + vUv * crop.zw;   // zoom: show a sub-rectangle of the background
+  vec3 c = mix(texture2D(tBg, uv).rgb, texture2D(tBlur, uv).rgb, blur);
   c *= dim;
-  c += texture2D(tBloom, vUv).rgb * bloom;
+  c += texture2D(tBloom, uv).rgb * bloom;
   gl_FragColor = vec4(c, 1.0);
 }`;
 const OUT_FS = `
@@ -55,13 +56,13 @@ export class Pipeline {
     this.quality = 'medium';
     const mk = (fs, uniforms) => quad(new THREE.ShaderMaterial({ vertexShader: QUAD_VS, fragmentShader: fs, uniforms, depthTest: false, depthWrite: false }));
     this.blurQ = mk(BLUR_FS, { tDiffuse: { value: null }, dir: { value: new THREE.Vector2(1, 0) }, texel: { value: new THREE.Vector2() } });
-    this.brightQ = mk(BRIGHT_FS, { tDiffuse: { value: null }, threshold: { value: 1.25 } });
-    this.compQ = mk(COMP_FS, { tBg: { value: null }, tBlur: { value: null }, tBloom: { value: null }, blur: { value: 0 }, bloom: { value: 0.9 }, dim: { value: 1 } });
+    this.brightQ = mk(BRIGHT_FS, { tDiffuse: { value: null }, threshold: { value: 2.3 } });
+    this.compQ = mk(COMP_FS, { tBg: { value: null }, tBlur: { value: null }, tBloom: { value: null }, blur: { value: 0 }, bloom: { value: 0.9 }, dim: { value: 1 }, crop: { value: new THREE.Vector4(0, 0, 1, 1) } });
     this.outQ = mk(OUT_FS, { tDiffuse: { value: null }, flash: { value: 0 }, vignette: { value: 0.35 } });
     this.cam = new THREE.Camera();
     this.black = new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1); this.black.needsUpdate = true;
     this.targets = null;
-    this.blur = 0; this.flash = 0; this.dim = 1;
+    this.blur = 0; this.flash = 0; this.dim = 1; this.crop = new THREE.Vector4(0, 0, 1, 1);
   }
   setQuality(q) { this.quality = q; this.dispose(); }
   dispose() { if (this.targets) Object.values(this.targets).forEach(t => t.dispose()); this.targets = null; }
@@ -93,7 +94,7 @@ export class Pipeline {
     }
     return b.texture;
   }
-  render({ bgScene, heroScene, camera, viewport }) {
+  render({ bgScene, heroScene, camera, heroCamera, viewport }) {
     const r = this.r;
     const { w, h } = viewport;
     this.ensure(w, h);
@@ -119,11 +120,11 @@ export class Pipeline {
     // 4. composite + hero
     const cu = this.compQ.mesh.material.uniforms;
     cu.tBg.value = t.bg.texture; cu.tBlur.value = blurTex; cu.blur.value = Math.min(1, this.blur * 1.4);
-    cu.tBloom.value = bloomTex; cu.bloom.value = this.quality === 'low' ? 0 : 0.45; cu.dim.value = this.dim;
+    cu.tBloom.value = bloomTex; cu.bloom.value = this.quality === 'low' ? 0 : 0.35; cu.dim.value = this.dim; cu.crop.value.copy(this.crop);
     r.setRenderTarget(t.comp); r.clear(true, true, true);
     r.render(this.compQ.scene, this.cam);
     r.clearDepth();
-    r.render(heroScene, camera);
+    r.render(heroScene, heroCamera || camera);
     // 5. output
     const ou = this.outQ.mesh.material.uniforms;
     ou.tDiffuse.value = t.comp.texture; ou.flash.value = this.flash;

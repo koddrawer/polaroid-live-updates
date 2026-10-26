@@ -18,18 +18,36 @@ export const BUNDLED_FONTS = [
   { family: 'Oswald', url: 'app://content/fonts/Oswald.ttf' },
 ];
 
+// fonts for the LED boards (bold, Vietnamese-capable)
+export const LED_FONTS = [
+  { family: 'Barlow Condensed', label: 'Barlow Condensed (gọn, dễ đọc)', faces: [{ url: 'app://content/fonts/BarlowCondensed-Bold.ttf', weight: '700' }, { url: 'app://content/fonts/BarlowCondensed-ExtraBold.ttf', weight: '800' }] },
+  { family: 'Be Vietnam Pro', label: 'Be Vietnam Pro (rộng, rất rõ)', faces: [{ url: 'app://content/fonts/BeVietnamPro-ExtraBold.ttf', weight: '800' }] },
+  { family: 'Oswald', label: 'Oswald', faces: [{ url: 'app://content/fonts/Oswald.ttf', weight: '200 700' }] },
+];
+
+export const PAPERS = [
+  { id: 'white', name: 'Trắng (mặc định)', url: null, caption: '#2a2420' },
+  { id: 'vintage', name: 'Giấy cổ', url: 'app://content/papers/vintage.jpg', caption: '#3a2a18' },
+  { id: 'kraft', name: 'Giấy kraft', url: 'app://content/papers/kraft.jpg', caption: '#2a1a0c' },
+  { id: 'gold', name: 'Vàng ánh kim', url: 'app://content/papers/gold.jpg', caption: '#3a2408' },
+  { id: 'black', name: 'Đen', url: 'app://content/papers/black.jpg', caption: '#f3e9d2' },
+  { id: 'pink', name: 'Hồng chấm bi', url: 'app://content/papers/pink.jpg', caption: '#7a2140' },
+  { id: 'wood', name: 'Gỗ', url: 'app://content/papers/wood.jpg', caption: '#fff3dc' },
+];
+
 export const DEFAULTS = {
   tiktok: { username: '', signApiKey: '', autoConnect: false },
   display: { width: 540, height: 960, frame: true, alwaysOnTop: false, quality: 'medium', fps: 60, showFps: false, zoom: 100 },
   topBoard: {
-    line1: 'POLAROID LIVE ✦ CHỤP ẢNH CHO BẠN',
+    line1: 'POLAROID LIVE',
     line1Color: '#ffb347',
     line1Scroll: false,
     itemSeconds: 4,
+    ledFont: 'Barlow Condensed', ledWeight: 700, scrollSpeed: 26, ledBrightness: 100,
     items: [
-      { text: '1 xu - Chụp ảnh đặt lên bàn', icon: 'app://content/icons/rose.png', color: '#ffb347' },
-      { text: '5 xu - Treo khung nhỏ', icon: 'app://content/icons/frame.png', color: '#ffd27a' },
-      { text: '10 xu - Treo khung to', icon: 'app://content/icons/crown.png', color: '#ffe08a' },
+      { text: '1 xu: Ảnh đặt bàn', icon: 'app://content/icons/rose.png', color: '#ffb347' },
+      { text: '5 xu: Khung nhỏ', icon: 'app://content/icons/frame.png', color: '#ffd27a' },
+      { text: '10 xu: Khung to', icon: 'app://content/icons/crown.png', color: '#ffe08a' },
     ],
   },
   bottomBoard: {
@@ -47,7 +65,20 @@ export const DEFAULTS = {
     captionColor: '#2a2420', captionSize: 100, captionTemplate: '{name}',
     tiers: { table: 1, small: 5, big: 10 },
     holdSeconds: 2.5, countByCoins: true, volume: 80, flash: true,
+    timing: { approach: 1.15, shutter: 0.35, print: 1.6, develop: 4.0, fly: 1.25 },
+    zoomAmount: 2.2,
+    tierFx: {
+      table: { zoom: true, show: false },
+      small: { zoom: false, show: true },
+      big: { zoom: true, show: true },
+    },
+    paper: {
+      table: { url: null, caption: '#2a2420' },
+      small: { url: 'app://content/papers/vintage.jpg', caption: '#3a2a18' },
+      big: { url: 'app://content/papers/gold.jpg', caption: '#3a2408' },
+    },
   },
+  music: { enabled: false, volume: 35, shuffle: true, duck: true, tracks: [] },
   customFonts: [],
 };
 

@@ -56,3 +56,15 @@ details summary{cursor:pointer;color:var(--muted)}
 .pgrid img{width:40px;height:40px;object-fit:contain}
 .pgrid .c{color:var(--brass);font-variant-numeric:tabular-nums}
 .wrap{flex-wrap:wrap}
+
+.tiers{display:flex;flex-direction:column;gap:8px}
+.tier{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:8px;display:grid;grid-template-columns:64px 1fr;gap:8px;align-items:start}
+.tier img.swatch{width:64px;height:78px;object-fit:cover;border:1px solid var(--line);border-radius:3px;background:#efe9de}
+.tier .body{display:flex;flex-direction:column;gap:6px;min-width:0}
+.tier .title{font-weight:700;color:var(--ink)}
+#musList li{grid-template-columns:28px 1fr auto}
+#musList li.now{border-color:var(--brass)}
+.field{min-width:0}
+.grid3 input,.grid3 select{width:100%;min-width:0}
+.grid3{grid-template-columns:repeat(3,minmax(0,1fr))}
+main{overflow-x:hidden}

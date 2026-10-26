@@ -38,10 +38,15 @@ function noiseCanvas() {
 }
 
 // returns a canvas of the finished print
-export async function drawPrint({ name, avatarUrl, caption, font, color, sizePct }) {
+export async function drawPrint({ name, avatarUrl, caption, font, color, sizePct, paperUrl }) {
   const c = document.createElement('canvas'); c.width = PRINT_W; c.height = PRINT_H;
   const g = c.getContext('2d');
   g.drawImage(noiseCanvas(), 0, 0);
+  const paper = paperUrl ? await loadImage(paperUrl) : null;
+  if (paper) { // cover-fit the chosen background
+    const pw = paper.naturalWidth, ph = paper.naturalHeight, k = Math.max(PRINT_W / pw, PRINT_H / ph);
+    g.drawImage(paper, (PRINT_W - pw * k) / 2, (PRINT_H - ph * k) / 2, pw * k, ph * k);
+  }
   // photo area
   const img = await loadImage(avatarUrl);
   const src = img || placeholder(name);

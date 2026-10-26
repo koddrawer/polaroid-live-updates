@@ -20,6 +20,7 @@
   <button role="tab" data-tab="top">LED trên</button>
   <button role="tab" data-tab="bottom">LED dưới</button>
   <button role="tab" data-tab="photo">Ảnh</button>
+  <button role="tab" data-tab="music">Nhạc</button>
   <button role="tab" data-tab="view">Hiển thị</button>
   <button role="tab" data-tab="test">Thử</button>
 </nav>
@@ -49,6 +50,14 @@
   <h2>Dòng trên</h2>
   <div class="field"><label for="l1Text">Nội dung</label><input id="l1Text" type="text"></div>
   <div class="field row"><label for="l1Color">Màu</label><input id="l1Color" type="color"><label class="check"><input id="l1Scroll" type="checkbox"> Luôn chạy chữ</label></div>
+  <h2>Chữ LED</h2>
+  <div class="field"><label for="ledFont">Font LED</label><select id="ledFont"></select></div>
+  <div class="grid3">
+    <div class="field"><label for="ledWeight">Độ đậm</label><select id="ledWeight"><option value="700">Đậm</option><option value="800">Rất đậm</option></select></div>
+    <div class="field"><label for="scrollSpeed">Tốc độ chạy chữ</label><input id="scrollSpeed" type="number" min="8" max="80"></div>
+    <div class="field"><label for="ledBright">Độ sáng LED %</label><input id="ledBright" type="number" min="40" max="200" step="10"></div>
+  </div>
+  <p class="muted">Chữ tự thu nhỏ cho vừa bảng; chỉ chạy chữ khi quá dài.</p>
   <h2>Dòng quà (thay phiên lần lượt)</h2>
   <p class="muted">Mỗi dòng: icon quà + nội dung. Bấm vào ô icon để chọn quà TikTok, icon có sẵn hoặc ảnh của bạn.</p>
   <ol id="itemList" class="items"></ol>
@@ -84,10 +93,31 @@
     <div class="field"><label for="tSmall">Khung nhỏ từ</label><input id="tSmall" type="number" min="1"></div>
     <div class="field"><label for="tBig">Khung to từ</label><input id="tBig" type="number" min="1"></div>
   </div>
-  <div class="field row"><label for="holdSec">Ảnh hiện trên màn hình</label><input id="holdSec" type="number" min="0.5" max="15" step="0.5" style="width:70px"><span>giây</span>
-    <label class="check"><input id="countByCoins" type="checkbox"> Tính theo tổng xu cả combo</label></div>
+  <label class="check"><input id="countByCoins" type="checkbox"> Tính theo tổng xu cả combo</label>
+  <h2>Thời gian (giây)</h2>
+  <div class="grid3">
+    <div class="field"><label for="tmApproach">Máy tiến lại</label><input id="tmApproach" type="number" min="0.3" max="6" step="0.1"></div>
+    <div class="field"><label for="tmShutter">Chờ trước khi chụp</label><input id="tmShutter" type="number" min="0" max="5" step="0.1"></div>
+    <div class="field"><label for="tmPrint">In ảnh (ảnh trượt ra)</label><input id="tmPrint" type="number" min="0.3" max="10" step="0.1"></div>
+    <div class="field"><label for="tmDevelop">Ảnh hiện màu</label><input id="tmDevelop" type="number" min="0.3" max="15" step="0.1"></div>
+    <div class="field"><label for="holdSec">Hiện giữa màn hình</label><input id="holdSec" type="number" min="0.5" max="15" step="0.5"></div>
+    <div class="field"><label for="tmFly">Bay về chỗ</label><input id="tmFly" type="number" min="0.3" max="6" step="0.1"></div>
+  </div>
+  <div class="field"><label for="zoomAmt">Mức phóng to khi in</label><input id="zoomAmt" type="range" min="12" max="40"></div>
+  <h2>Theo loại ảnh</h2>
+  <div id="tierList" class="tiers"></div>
   <div class="field row"><label for="vol">Âm lượng chụp</label><input id="vol" type="range" min="0" max="100"><label class="check"><input id="flashOn" type="checkbox"> Flash</label></div>
   <div class="row"><button id="btnClearTable">Dọn ảnh trên bàn</button><button id="btnClearWall">Gỡ ảnh trên tường</button></div>
+</section>
+
+<!-- ============ MUSIC ============ -->
+<section data-panel="music" hidden>
+  <h2>Nhạc nền</h2>
+  <div class="field row"><label class="check"><input id="musOn" type="checkbox"> Bật nhạc nền</label><label class="check"><input id="musShuffle" type="checkbox"> Phát ngẫu nhiên</label><label class="check"><input id="musDuck" type="checkbox"> Nhỏ nhạc khi chụp ảnh</label></div>
+  <div class="field"><label for="musVol">Âm lượng nhạc</label><input id="musVol" type="range" min="0" max="100"></div>
+  <div class="row"><button id="musPrev">⏮</button><button id="musPlay" class="primary">▶ Phát</button><button id="musPause">⏸ Dừng</button><button id="musNext">⏭</button><span id="musNow" class="muted"></span></div>
+  <ol id="musList" class="items"></ol>
+  <div class="row"><button id="musAdd">+ Thêm bài nhạc (mp3, wav, ogg)…</button></div>
 </section>
 
 <!-- ============ VIEW ============ -->

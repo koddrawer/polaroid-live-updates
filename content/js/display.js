@@ -5,7 +5,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { Pipeline } from './pipeline.js';
 import { TopBoard, BottomBoard } from './boards.js';
 import { Print, drawPrint, PRINT_ASPECT } from './print.js';
-import { DEFAULTS, BUNDLED_FONTS, merge, fill } from './defaults.js';
+import { DEFAULTS, BUNDLED_FONTS, LED_FONTS, merge, fill } from './defaults.js';
 
 const api = window.api || {};
 const $ = (id) => document.getElementById(id);
@@ -68,12 +68,13 @@ function play(name, vol = 1) {
 
 // ---------------------------------------------------------------- fonts
 const loadedFonts = new Set();
-async function ensureFont(family, url) {
-  if (!family || loadedFonts.has(family)) return;
+async function ensureFont(family, url, weight) {
+  const key = family + '|' + (url || '') + '|' + (weight || '');
+  if (!family || loadedFonts.has(key)) return;
+  loadedFonts.add(key);
   try {
-    if (url) { const f = new FontFace(family, `url("${url}")`); await f.load(); document.fonts.add(f); }
+    if (url) { const f = new FontFace(family, `url("${url}")`, weight ? { weight } : {}); await f.load(); document.fonts.add(f); }
     else await document.fonts.load(`40px "${family}"`);
-    loadedFonts.add(family);
   } catch (e) { console.warn('font', family, e); }
 }
 
@@ -213,43 +214,57 @@ async function buildScene() {
 }
 
 // ---------------------------------------------------------------- gallery (photos on wall / table)
-let galleryState = { items: [] };
+const PRINT_H = 0.38 / PRINT_ASPECT;
+function cornerPose(slot, fill = 0.95) {
+  const c = slot.corners.map(v => new THREE.Vector3(...v));
+  const center = c.reduce((a, b) => a.add(b), new THREE.Vector3()).multiplyScalar(0.25);
+  // normal from the corners, facing the camera; "up" = world up projected on the slot plane (photo always upright)
+  const zAxis = new THREE.Vector3().crossVectors(c[1].clone().sub(c[0]), c[0].clone().sub(c[3])).normalize();
+  if (zAxis.dot(camera.position.clone().sub(center)) < 0) zAxis.negate();
+  let yAxis = new THREE.Vector3(0, 1, 0).addScaledVector(zAxis, -zAxis.y);
+  if (yAxis.lengthSq() < 1e-4) yAxis = new THREE.Vector3(0, 0, -1).addScaledVector(zAxis, zAxis.z);
+  yAxis.normalize();
+  const xAxis = new THREE.Vector3().crossVectors(yAxis, zAxis).normalize();
+  const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(xAxis, yAxis, zAxis));
+  center.addScaledVector(zAxis, 0.004);
+  const h = c[0].distanceTo(c[3]);
+  return { pos: center, quat: q, scale: (h * fill) / PRINT_H };
+}
+function tableSlots() { return meta.frames?.table || []; }
 function slotPose(kind, index) {
-  if (kind === 'big' || kind === 'small') {
-    const s = kind === 'big' ? meta.frames.big[0] : meta.frames.small[index % meta.frames.small.length];
-    const c = s.corners.map(v => new THREE.Vector3(...v));
-    const center = c.reduce((a, b) => a.add(b), new THREE.Vector3()).multiplyScalar(0.25);
-    const h = c[0].distanceTo(c[3]);
-    center.z += 0.006;
-    const scale = (h * 0.95) / (0.38 / PRINT_ASPECT);
-    return { pos: center, quat: new THREE.Quaternion(), scale };
-  }
-  // table: random point inside the sampled table zone
+  if (kind === 'big') return cornerPose(meta.frames.big[0]);
+  if (kind === 'small') return cornerPose(meta.frames.small[index % meta.frames.small.length]);
+  const ts = tableSlots();
+  if (ts.length && typeof index === 'number') return cornerPose(ts[index % ts.length], 0.97);
+  // fallback (older scenes without table slots): random point on the table
   let hits = (meta.table?.hits || []).filter(h => !/^(Plane|Pipe|Cylinder)/.test(h.obj));
   if (hits.length < 3) hits = [{ p: [-0.9, 2.49, -0.6] }, { p: [0.9, 2.49, 0.9] }, { p: [0, 2.49, 0] }];
-  // keep the zone in front of the props and inside the camera view
   const xs = hits.map(h => h.p[0]), zs = hits.map(h => h.p[2]), ys = hits.map(h => h.p[1]);
-  const pick = index || {};
+  const pick = (index && typeof index === 'object') ? index : {};
   const x = pick.x ?? lerp(Math.min(...xs) * 0.75, Math.max(...xs) * 0.75, Math.random());
   const z = pick.z ?? lerp(Math.min(...zs), Math.max(...zs), 0.6 + Math.random() * 0.35);
   const yaw = pick.yaw ?? (Math.random() - 0.5) * 0.9;
-  const y = (ys.length ? ys.reduce((a, b) => a + b, 0) / ys.length : 2.5) + 0.004;
+  const y = ys.reduce((a, b) => a + b, 0) / ys.length + 0.004;
   const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2 + 0.22, 0, yaw, 'XYZ'));
   return { pos: new THREE.Vector3(x, y, z), quat: q, scale: 1.25, pick: { x, z, yaw } };
 }
 
+function paperFor(kind) {
+  const p = S.photo.paper?.[kind] || {};
+  return { url: p.url || null, caption: p.caption || S.photo.captionColor };
+}
 async function makePrint(entry) {
   const p = S.photo;
   const font = entry.font || p.font;
   await ensureFont(font, entry.fontUrl || p.fontUrl);
-  const cv = await drawPrint({ name: entry.name, avatarUrl: entry.avatar, caption: fill(p.captionTemplate || '{name}', { name: entry.name }), font, color: p.captionColor, sizePct: p.captionSize });
+  const paper = entry.paper || paperFor(entry.kind);
+  const cv = await drawPrint({ name: entry.name, avatarUrl: entry.avatar, caption: fill(p.captionTemplate || '{name}', { name: entry.name }), font,
+    color: paper.caption || p.captionColor, sizePct: p.captionSize, paperUrl: paper.url });
   return new Print(cv, 0.38);
 }
 
-let tableLayer = 0;
 function placeInGallery(print, entry, pose) {
   print.mesh.position.copy(pose.pos); print.mesh.quaternion.copy(pose.quat); print.mesh.scale.setScalar(pose.scale);
-  if (entry.kind === 'table') { print.mesh.position.y += (tableLayer++ % 40) * 0.0012; }
   print.develop = 1; print.light = 0.92;
   gallery.group.add(print.mesh);
   gallery.items.push({ entry, print });
@@ -266,15 +281,18 @@ async function restoreGallery() {
   const st = await api.loadState?.('gallery');
   if (!st?.items) return;
   for (const e of st.items) {
-    try { const pr = await makePrint(e); const pose = e.kind === 'table' ? slotPose('table', e.pick) : slotPose(e.kind, e.slot); placeInGallery(pr, e, pose); } catch (err) { console.warn(err); }
+    try {
+      if (e.kind === 'table' && tableSlots().length && typeof e.slot !== 'number') continue; // old free-placed table photos
+      const pr = await makePrint(e);
+      const pose = e.kind === 'table' ? slotPose('table', typeof e.slot === 'number' ? e.slot : e.pick) : slotPose(e.kind, e.slot);
+      placeInGallery(pr, e, pose);
+    } catch (err) { console.warn(err); }
   }
 }
-function nextSmallSlot() {
-  const n = meta.frames.small.length;
-  const used = new Set(gallery.items.filter(i => i.entry.kind === 'small').map(i => i.entry.slot));
+function nextSlot(kind, n) {
+  const used = new Set(gallery.items.filter(i => i.entry.kind === kind).map(i => i.entry.slot));
   for (let k = 0; k < n; k++) if (!used.has(k)) return { slot: k, replace: null };
-  // all full → replace the oldest
-  const oldest = gallery.items.filter(i => i.entry.kind === 'small').sort((a, b) => a.entry.t - b.entry.t)[0];
+  const oldest = gallery.items.filter(i => i.entry.kind === kind).sort((a, b) => a.entry.t - b.entry.t)[0];
   return { slot: oldest.entry.slot, replace: oldest };
 }
 
@@ -298,16 +316,31 @@ async function runQueue() {
   busy = true;
   while (queue.length) {
     const job = queue.shift();
-    try { await shoot(job); } catch (e) { console.error('shoot', e); }
+    try { await shoot(job); } catch (e) { console.error('shoot', e); resetShow(); }
     await sleep(350);
   }
   busy = false;
   if (pendingReload) location.reload();
 }
 
-const tmpV = new THREE.Vector3(), tmpQ = new THREE.Quaternion();
-const anim = { blur: 0, dim: 1, flash: 0, flashLight: 0 };
+const tmpQ = new THREE.Quaternion();
+const anim = { blur: 0, dim: 1, flash: 0, flashLight: 0, zoom: 1, zoomC: new THREE.Vector2(0.5, 0.5) };
 let activePrint = null;
+
+// zoom = crop of the screen around zoomC (0..1, y from top). Hero layer uses a view-offset camera so it matches the crop exactly.
+const heroCam = new THREE.PerspectiveCamera();
+function updateZoom() {
+  const z = Math.max(1, anim.zoom);
+  const w = 1 / z, h = 1 / z;
+  const x = Math.min(1 - w, Math.max(0, anim.zoomC.x - w / 2));
+  const y = Math.min(1 - h, Math.max(0, anim.zoomC.y - h / 2));
+  pipe.crop.set(x, 1 - y - h, w, h);
+  heroCam.copy(camera);
+  if (z > 1.0001) { const FW = 1000, FH = FW * 16 / 9; heroCam.setViewOffset(FW, FH, x * FW, y * FH, w * FW, h * FH); }
+  else heroCam.clearViewOffset();
+  heroCam.updateProjectionMatrix();
+}
+function screenOf(v) { const p = v.clone().project(camera); return new THREE.Vector2((p.x + 1) / 2, (1 - p.y) / 2); }
 
 function heroClosePose() {
   const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
@@ -322,9 +355,8 @@ function showPose() {
   const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
   const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
   const vfov = THREE.MathUtils.degToRad(camera.fov);
-  const h = 0.38 / PRINT_ASPECT;
-  const d = h / (2 * Math.tan(vfov / 2)) / 0.56; // print fills ~56% of the height
-  const pos = camera.position.clone().addScaledVector(fwd, d).addScaledVector(up, h * 0.06);
+  const d = PRINT_H / (2 * Math.tan(vfov / 2)) / 0.56;
+  const pos = camera.position.clone().addScaledVector(fwd, d).addScaledVector(up, PRINT_H * 0.06);
   const q = camera.quaternion.clone().multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, 0.035)));
   return { pos, quat: q, scale: 1 };
 }
@@ -332,8 +364,9 @@ function showPose() {
 function tween(dur, fn) {
   return new Promise((res) => {
     const t0 = performance.now();
+    const ms = Math.max(1, dur * 1000 / speed());
     const step = () => {
-      const k = Math.min(1, (performance.now() - t0) / (dur * 1000 / speed()));
+      const k = Math.min(1, (performance.now() - t0) / ms);
       fn(k);
       if (k < 1) requestAnimationFrame(step); else res();
     };
@@ -341,34 +374,43 @@ function tween(dur, fn) {
   });
 }
 const speed = () => queue.length > 6 ? 1.8 : queue.length > 2 ? 1.3 : 1;
+const T = () => merge(DEFAULTS.photo.timing, S.photo.timing || {});
 
 function slotWorld() {
   heroPivot.updateMatrixWorld(true);
+  const hq = heroPivot.getWorldQuaternion(new THREE.Quaternion());
   const p = new THREE.Vector3(...meta.hero.slot).applyMatrix4(heroPivot.matrixWorld);
-  const d = new THREE.Vector3(...meta.hero.slotDir).applyQuaternion(heroPivot.getWorldQuaternion(new THREE.Quaternion())).normalize();
-  const right = new THREE.Vector3(1, 0, 0).applyQuaternion(heroPivot.getWorldQuaternion(new THREE.Quaternion()));
+  const d = new THREE.Vector3(...meta.hero.slotDir).applyQuaternion(hq).normalize();
+  const right = new THREE.Vector3(1, 0, 0).applyQuaternion(hq);
   return { p, d, right };
 }
 function printEjectPose(s, h) {
   const { p, d, right } = slotWorld();
   const x = right.clone().negate();
   const z = new THREE.Vector3().crossVectors(x, d).normalize();
-  const m = new THREE.Matrix4().makeBasis(x, d, z);
-  const q = new THREE.Quaternion().setFromRotationMatrix(m);
+  const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x, d, z));
   const pos = p.clone().addScaledVector(d, s - h / 2).addScaledVector(z, 0.004);
   return { pos, quat: q };
+}
+function resetShow() {
+  if (activePrint) { heroScene.remove(activePrint.mesh); activePrint = null; }
+  heroPivot.position.copy(heroRest.pos); heroPivot.quaternion.copy(heroRest.quat);
+  anim.blur = 0; anim.dim = 1; anim.zoom = 1; musicDuck(false);
 }
 
 async function shoot(job) {
   const kind = job.kind;
-  const entry = { id: Date.now() + Math.random(), kind, name: job.nickname, uniqueId: job.uniqueId, avatar: job.avatarLocal || null, coins: job.coins, t: Date.now(), font: S.photo.font, fontUrl: S.photo.fontUrl };
+  const fx = merge(DEFAULTS.photo.tierFx[kind] || {}, S.photo.tierFx?.[kind] || {});
+  const tm = T();
+  const entry = { id: Date.now() + Math.random(), kind, name: job.nickname, uniqueId: job.uniqueId, avatar: job.avatarLocal || null, coins: job.coins, t: Date.now(), font: S.photo.font, fontUrl: S.photo.fontUrl, paper: paperFor(kind) };
   report();
+  musicDuck(true);
   const printP = makePrint(entry);
   const close = heroClosePose();
   const restPos = heroRest.pos.clone(), restQ = heroRest.quat.clone();
   // 1. camera comes forward, background blurs
   play('flash_charge', 0.6);
-  await tween(1.15, (k) => {
+  await tween(tm.approach, (k) => {
     const e = ease(k);
     heroPivot.position.lerpVectors(restPos, close.pos, e);
     heroPivot.quaternion.slerpQuaternions(restQ, close.quat, e);
@@ -378,72 +420,116 @@ async function shoot(job) {
   activePrint = print;
   const h = print.height;
   // 2. shutter + flash
-  await sleep(150 / speed());
+  await sleep(tm.shutter * 1000 / speed());
   play('shutter', 1);
   await sleep(40);
   if (S.photo.flash !== false) { anim.flash = 0.85; anim.flashLight = 1; }
-  // small recoil
   const recoilQ = heroPivot.quaternion.clone();
   tween(0.25, (k) => { const a = Math.sin(k * Math.PI) * 0.02; heroPivot.quaternion.copy(recoilQ).multiply(tmpQ.setFromEuler(new THREE.Euler(-a, 0, 0))); });
-  // 3. print ejects from the slot while developing
+  // 3. printing: print slides out of the slot and develops; optional zoom on the slot
   print.develop = 0;
   heroScene.add(print.mesh);
-  const devStart = performance.now();
-  const devDur = 4200;
-  const developTick = () => { if (!activePrint || activePrint !== print) return; print.develop = clamp01((performance.now() - devStart) / devDur); if (print.develop < 1) requestAnimationFrame(developTick); };
+  const devStart = performance.now(), devDur = Math.max(0.3, tm.develop) * 1000 / speed();
+  const developTick = () => { if (activePrint !== print) return; print.develop = clamp01((performance.now() - devStart) / devDur); if (print.develop < 1) requestAnimationFrame(developTick); };
   developTick();
-  await sleep(220 / speed());
-  await tween(1.35, (k) => {
+  await sleep(200 / speed());
+  const zoomTarget = fx.zoom ? Math.max(1, S.photo.zoomAmount || 2.2) : 1;
+  const z0 = anim.zoom;
+  await tween(tm.print, (k) => {
     const s = easeOut(k) * h * 0.9;
     const pose = printEjectPose(s, h);
     print.mesh.position.copy(pose.pos); print.mesh.quaternion.copy(pose.quat);
+    if (zoomTarget > 1) {
+      // aim between the slot and the emerging print
+      const { p, d } = slotWorld();
+      anim.zoomC.copy(screenOf(p.clone().addScaledVector(d, h * 0.35)));
+      anim.zoomC.y -= 0.03;
+      anim.zoom = lerp(z0, zoomTarget, ease(Math.min(1, k * 1.4)));
+    }
   });
-  await sleep(250 / speed());
-  // 4. print flies up to the screen, camera goes home
-  const from = { pos: print.mesh.position.clone(), quat: print.mesh.quaternion.clone() };
-  const show = showPose();
+  // wait for developing to finish while zoomed in (so the picture appears in close-up)
+  if (zoomTarget > 1) { while (print.develop < 0.97 && activePrint === print) await sleep(50); await sleep(300 / speed()); }
+  else await sleep(250 / speed());
+
   const heroFrom = { pos: heroPivot.position.clone(), quat: heroPivot.quaternion.clone() };
-  tween(1.4, (k) => { const e = ease(k); heroPivot.position.lerpVectors(heroFrom.pos, restPos, e); heroPivot.quaternion.slerpQuaternions(heroFrom.quat, restQ, e); });
-  await tween(0.95, (k) => {
-    const e = ease(k);
-    print.mesh.position.lerpVectors(from.pos, show.pos, e);
-    print.mesh.position.addScaledVector(new THREE.Vector3(0, 1, 0), Math.sin(e * Math.PI) * 0.18);
-    print.mesh.quaternion.slerpQuaternions(from.quat, show.quat, e);
-  });
-  // 5. hold on screen
-  const holdStart = performance.now();
-  const hold = (S.photo.holdSeconds ?? 2.5) * 1000 / speed();
-  const base = print.mesh.position.clone();
-  await tween(hold / 1000 * speed(), (k) => { print.mesh.position.copy(base); print.mesh.position.y += Math.sin(k * Math.PI * 2) * 0.01; });
+  const heroHome = () => tween(1.4, (k) => { const e = ease(k); heroPivot.position.lerpVectors(heroFrom.pos, restPos, e); heroPivot.quaternion.slerpQuaternions(heroFrom.quat, restQ, e); });
+
+  if (fx.show) {
+    // 4. zoom out, print flies up to the screen, camera goes home
+    const zf = anim.zoom;
+    const from = { pos: print.mesh.position.clone(), quat: print.mesh.quaternion.clone() };
+    const show = showPose();
+    heroHome();
+    await tween(Math.max(0.5, tm.fly * 0.8), (k) => {
+      const e = ease(k);
+      anim.zoom = lerp(zf, 1, e);
+      print.mesh.position.lerpVectors(from.pos, show.pos, e);
+      print.mesh.position.y += Math.sin(e * Math.PI) * 0.18;
+      print.mesh.quaternion.slerpQuaternions(from.quat, show.quat, e);
+    });
+    anim.zoom = 1;
+    const base = print.mesh.position.clone();
+    await tween(S.photo.holdSeconds ?? 2.5, (k) => { print.mesh.position.copy(base); print.mesh.position.y += Math.sin(k * Math.PI * 2) * 0.01; });
+  }
   print.develop = 1;
-  // 6. fly to destination
+  // 5. fly to destination
   let pose, replace = null;
-  if (kind === 'small') { const s = nextSmallSlot(); entry.slot = s.slot; replace = s.replace; pose = slotPose('small', s.slot); }
+  if (kind === 'small') { const s = nextSlot('small', meta.frames.small.length); entry.slot = s.slot; replace = s.replace; pose = slotPose('small', s.slot); }
   else if (kind === 'big') { entry.slot = 0; replace = gallery.items.find(i => i.entry.kind === 'big') || null; pose = slotPose('big', 0); }
+  else if (tableSlots().length) { const s = nextSlot('table', tableSlots().length); entry.slot = s.slot; replace = s.replace; pose = slotPose('table', s.slot); }
   else { pose = slotPose('table', null); entry.pick = pose.pick; }
   if (replace) removeGalleryItem(replace, true);
+  if (!fx.show) heroHome();
+  const zf = anim.zoom;
   const f2 = { pos: print.mesh.position.clone(), quat: print.mesh.quaternion.clone(), scale: print.mesh.scale.x };
-  const mid = f2.pos.clone().lerp(pose.pos, 0.5); mid.y += kind === 'table' ? 0.5 : 0.35; mid.z += 0.6;
-  await tween(1.25, (k) => {
+  const mid = f2.pos.clone().lerp(pose.pos, 0.5); mid.y += kind === 'table' ? 0.35 : 0.35; mid.z += 0.6;
+  await tween(tm.fly, (k) => {
     const e = ease(k);
-    // quadratic bezier
     const a = f2.pos.clone().lerp(mid, e), b = mid.clone().lerp(pose.pos, e);
     print.mesh.position.copy(a.lerp(b, e));
     print.mesh.quaternion.slerpQuaternions(f2.quat, pose.quat, e);
     print.mesh.scale.setScalar(lerp(f2.scale, pose.scale, e));
+    anim.zoom = lerp(zf, 1, ease(Math.min(1, k * 1.5)));
     anim.blur = 1 - clamp01(k * 1.6); anim.dim = lerp(0.82, 1, clamp01(k * 1.6));
     print.light = lerp(1, 0.92, e);
   });
-  // land: move from hero layer into background gallery
   heroScene.remove(print.mesh);
   activePrint = null;
   placeInGallery(print, entry, pose);
-  if (kind === 'table') {
+  if (kind === 'table' && !tableSlots().length) {
     const items = gallery.items.filter(i => i.entry.kind === 'table');
     while (items.length > 28) removeGalleryItem(items.shift(), true);
   }
   saveGallery();
-  anim.blur = 0; anim.dim = 1;
+  anim.blur = 0; anim.dim = 1; anim.zoom = 1;
+  musicDuck(false);
+}
+
+// ---------------------------------------------------------------- background music
+const music = { el: new Audio(), list: [], idx: -1, duck: 1, duckTarget: 1, playing: false };
+music.el.preload = 'auto';
+music.el.addEventListener('ended', () => musicNext());
+music.el.addEventListener('error', () => setTimeout(musicNext, 500));
+function musicVolume() { return (S.music.volume ?? 35) / 100 * music.duck; }
+function musicSet(cfg) {
+  music.list = (cfg.tracks || []).map(t => t.url);
+  if (!cfg.enabled || !music.list.length) { music.el.pause(); music.playing = false; reportMusic(); return; }
+  if (music.userPaused) return;
+  if (music.el.paused || !music.list.includes(music.el.dataset.url)) { music.idx = Math.max(-1, music.list.indexOf(music.el.dataset.url) - 1); musicNext(); }
+}
+function musicNext(prev) {
+  if (!music.list.length || !S.music.enabled) return;
+  if (S.music.shuffle && music.list.length > 1) { let i; do { i = Math.floor(Math.random() * music.list.length); } while (i === music.idx); music.idx = i; }
+  else music.idx = (music.idx + (prev ? -1 + music.list.length : 1)) % music.list.length;
+  const url = music.list[music.idx];
+  music.el.src = url; music.el.dataset.url = url;
+  music.el.volume = musicVolume();
+  music.el.play().then(() => { music.playing = true; reportMusic(); }).catch(e => console.warn('music', e));
+}
+function musicDuck(on) { music.duckTarget = on && S.music.duck !== false ? 0.25 : 1; }
+function reportMusic() {
+  const t = (S.music.tracks || [])[music.idx];
+  api.report?.({ music: { playing: music.playing && !music.el.paused, name: t?.name || '', idx: music.idx } });
 }
 
 // ---------------------------------------------------------------- live events
@@ -487,6 +573,12 @@ api.onCommand?.((cmd) => {
       onLive({ type: 'gift', nickname: name, uniqueId: name + '_' + coins, giftName: coins >= 10 ? 'Vương miện' : coins >= 5 ? 'Khung ảnh' : 'Hoa hồng',
         giftImage: coins >= 10 ? 'app://content/icons/crown.png' : coins >= 5 ? 'app://content/icons/frame.png' : 'app://content/icons/rose.png', unit: coins, repeat: 1, coins });
     }
+  } else if (cmd.type === 'music') {
+    if (cmd.action === 'next') { music.userPaused = false; musicNext(); }
+    else if (cmd.action === 'prev') musicNext(true);
+    else if (cmd.action === 'pause') { music.userPaused = true; music.el.pause(); music.playing = false; reportMusic(); }
+    else if (cmd.action === 'play') { music.userPaused = false; if (music.el.src) music.el.play().then(() => { music.playing = true; reportMusic(); }); else musicNext(); }
+    else if (cmd.action === 'track' && typeof cmd.index === 'number') { music.idx = cmd.index - 1; const sh = S.music.shuffle; S.music.shuffle = false; musicNext(); S.music.shuffle = sh; }
   } else if (cmd.type === 'clear') {
     for (const it of [...gallery.items]) if ((cmd.what === 'table' && it.entry.kind === 'table') || (cmd.what === 'wall' && it.entry.kind !== 'table')) removeGalleryItem(it, true);
     saveGallery();
@@ -505,9 +597,11 @@ function applySettings(s) {
   if (prevQ !== S.display.quality) { pipe.setQuality(S.display.quality); resize(); }
   fpsCap = Number(S.display.fps) || 60;
   $('fps').hidden = !S.display.showFps;
+  for (const f of LED_FONTS) for (const face of f.faces) ensureFont(f.family, face.url, face.weight);
   leds.top?.configure(S.topBoard);
-  leds.bottom?.configure(S.bottomBoard);
+  leds.bottom?.configure(S.bottomBoard, S.topBoard);
   ensureFont(S.photo.font, S.photo.fontUrl);
+  musicSet(S.music);
 }
 api.onSettings?.(applySettings);
 
@@ -553,7 +647,10 @@ function frame() {
   if (flashSprite) { flashSprite.material.opacity = Math.min(1, anim.flashLight * 1.4); flashSprite.scale.setScalar(0.5 + anim.flashLight * 0.9); }
   plateMat && (plateMat.uniforms.light.value = 1 + anim.flash * 0.35);
   pipe.blur = anim.blur; pipe.dim = anim.dim; pipe.flash = anim.flash * 0.75;
-  pipe.render({ bgScene, heroScene, camera, viewport });
+  music.duck += (music.duckTarget - music.duck) * Math.min(1, dt * 3);
+  if (!music.el.paused) music.el.volume = Math.min(1, musicVolume());
+  updateZoom();
+  pipe.render({ bgScene, heroScene, camera, heroCamera: heroCam, viewport });
 }
 
 // ---------------------------------------------------------------- boot
@@ -565,6 +662,7 @@ function frame() {
     resize();
     console.log('boot: fonts');
     await Promise.all(BUNDLED_FONTS.map(f => ensureFont(f.family, f.url)));
+    await Promise.all(LED_FONTS.flatMap(f => f.faces.map(face => ensureFont(f.family, face.url, face.weight))));
     console.log('boot: scene');
     for (const f of (S.customFonts || [])) await ensureFont(f.family, f.url);
     await buildScene();

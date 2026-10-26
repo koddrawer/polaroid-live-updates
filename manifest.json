@@ -1,0 +1,317 @@
+{
+ "version": "1.0.0",
+ "notes": "Bản đầu tiên",
+ "repo": "koddrawer/polaroid-live-updates",
+ "branch": "main",
+ "minShell": "1.0.0",
+ "files": {
+  "control.css": {
+   "sha256": "9ca75d7942d652af4a229faaa1144e7fc09272d6ee6d249fddfe5e76055c063f",
+   "size": 4489
+  },
+  "control.html": {
+   "sha256": "b87a6bff59bde3088faada5ef7a6df06fed32777a43b3d3cad5981e43d7bef5d",
+   "size": 8779
+  },
+  "display.html": {
+   "sha256": "72822fa3b626f0758331bf68914654e88f5ecf92c3133afeafe38b53739d9316",
+   "size": 1208
+  },
+  "fonts/Caveat.ttf": {
+   "sha256": "0bdb6b660482d31531b3945849fba5916b3ef8695da7024a9e6b9ee3c4157988",
+   "size": 403648
+  },
+  "fonts/DancingScript.ttf": {
+   "sha256": "21808625578fe8d8cd10cb684be546dca077b27cd03a53a2f1ec11dc743c924c",
+   "size": 133636
+  },
+  "fonts/Oswald.ttf": {
+   "sha256": "5b38c246e255a12f5712d640d56bcced0472466fc68983d2d0410ec0457c2817",
+   "size": 172088
+  },
+  "fonts/Pacifico-Regular.ttf": {
+   "sha256": "5b6c0d5334a7bf77dea52b975c5a0c408878c0f7115ed5b6fb151f634b7bf701",
+   "size": 329380
+  },
+  "fonts/PatrickHand-Regular.ttf": {
+   "sha256": "0f173b3e6cb6d1af25babf7f0057c5ac4ee11f9992b0469bb817e967ef4ad0fc",
+   "size": 214772
+  },
+  "icons/camera.png": {
+   "sha256": "1ec1f853ded2b511514b2311b393753e7112608dc920225bd636bc06887ec69c",
+   "size": 4095
+  },
+  "icons/coin.png": {
+   "sha256": "cc4e38949a0f7a8799a7fd04a262efba0790e9ea122beffd118ea9f88715a690",
+   "size": 6599
+  },
+  "icons/crown.png": {
+   "sha256": "2234a4838e9912053c29735c83f2edbb8a88d012210f2944a1d247c848796edc",
+   "size": 3651
+  },
+  "icons/frame.png": {
+   "sha256": "c73bf03eeeae26e392a15b2926b28f8aaf6c6762eca5bffcad10d0d2b570291a",
+   "size": 2041
+  },
+  "icons/gift.png": {
+   "sha256": "083a2cdbe029be1371c67b2fc7373709d8c6753cafad60612bf50ae6629c9737",
+   "size": 2686
+  },
+  "icons/heart.png": {
+   "sha256": "107604382f49eb696b21ec40bd539fbd076980147366993aacdb53422406aec1",
+   "size": 3215
+  },
+  "icons/rose.png": {
+   "sha256": "ebc3e4f16b57860265d23985fb0432ac82589d99aa93d4b4b5a7fbdefd97dbde",
+   "size": 6655
+  },
+  "icons/star.png": {
+   "sha256": "afbfa226ad272d79f1721aa14511079e52cd620e4ae7597fd8450ae37a648145",
+   "size": 3838
+  },
+  "js/boards.js": {
+   "sha256": "7b772ca2a86c5d61e8adccde75daed05919ec67397648875683a28e0b68f9d31",
+   "size": 8719
+  },
+  "js/control.js": {
+   "sha256": "d823ff5ebf91d058aafdba9ad643b2498506a7e770721c97fa2a3f2dc5086b54",
+   "size": 14883
+  },
+  "js/defaults.js": {
+   "sha256": "e5e8e862fb90534c12f735ec30ec5111f8afaf16107146af7f2847df7e0c0043",
+   "size": 2834
+  },
+  "js/display.js": {
+   "sha256": "de39639702164a6a3c6bf43e14f62ded2218425e4cc7c78b7f8f24384dbd3cb4",
+   "size": 30018
+  },
+  "js/led.js": {
+   "sha256": "8ea3c8079d4f2ed7c3aa1c48ca0a03078f68c7d6f42cb7856b287f821d239bf1",
+   "size": 3706
+  },
+  "js/pipeline.js": {
+   "sha256": "0a4efd8e91a1f2c7e4d7f0db4b660a8689422de818e37ff4379b64dac712aa3a",
+   "size": 6581
+  },
+  "js/print.js": {
+   "sha256": "5e47a64690c17082db79dd9b90ad852dd234da1cc237c9ac426716a7e3e316f7",
+   "size": 6415
+  },
+  "scene/hero.glb": {
+   "sha256": "9e792be9727f5d8efd318dc075d307f0ff258db92fc3469e4334e9fd10112817",
+   "size": 1769592
+  },
+  "scene/plate.jpg": {
+   "sha256": "112d4833b50033d5a5ef0ed6ab0ca816422607165c94f8e5e32910f3d51be3b8",
+   "size": 325050
+  },
+  "scene/scene.json": {
+   "sha256": "5a7e8825091919087b3473ace6300e2d2bc8785c61cab6172f6a06b2401bfd05",
+   "size": 19110
+  },
+  "scene/sprites/Clock_Hand_Hour.png": {
+   "sha256": "5de14de4b934c5f7d5f28dbcb3878f57315d40f3f00b18a40608a42fa5f6c61b",
+   "size": 1096
+  },
+  "scene/sprites/Clock_Hand_Hour_001.png": {
+   "sha256": "8ada8dce01f464c430d8d6ccf56e468e4cbf7ab46c397a2dbf73a4b4bb24ca23",
+   "size": 1257
+  },
+  "scene/sprites/Clock_Hand_Minute.png": {
+   "sha256": "732230adff0340210d2904faf23b65d6893a16946685562d46c42d0143a19b4b",
+   "size": 1177
+  },
+  "scene/sprites/Clock_Hand_Minute_001.png": {
+   "sha256": "6eabadc24134a3829534d4bb2b3eb6177a6290597a775f77d92e7b43d7657ab1",
+   "size": 1357
+  },
+  "scene/sprites/Clock_Hand_Second.png": {
+   "sha256": "ffcf00a723e4b51a67fa5db339409efa90b9775ee908521b116f2811e6db5f86",
+   "size": 1106
+  },
+  "scene/sprites/Clock_Hand_Second_001.png": {
+   "sha256": "cc22ef4bf2862ff91a39da1a978c3117d2603697e16af52319a85b5633d6ef96",
+   "size": 1152
+  },
+  "scene/sprites/Gear_B1.png": {
+   "sha256": "92c88fa3bacb5e896f984c09d596ba442598f626412041eddba5cc9312569996",
+   "size": 14609
+  },
+  "scene/sprites/Gear_B2.png": {
+   "sha256": "8925c53c7c79ae4ee255788386535171a0af9861b22fe98e338cc0d497a73421",
+   "size": 6397
+  },
+  "scene/sprites/Gear_B3.png": {
+   "sha256": "8cef7ad411fbbae17cc6aae179276298fb943c490bfe08e44c56b95ff769664c",
+   "size": 6407
+  },
+  "scene/sprites/Gear_B4.png": {
+   "sha256": "bae2d5fc8d82c20630ba125b425fc04d31e390c846dffa87a886359a1122ca78",
+   "size": 9002
+  },
+  "scene/sprites/Gear_B5.png": {
+   "sha256": "d100ac08a03b5540ce69e2d5aeda330f07ee5c71717f733f4c99bf70f9a8684c",
+   "size": 5281
+  },
+  "scene/sprites/Gear_BotCenter.png": {
+   "sha256": "01d7822b0195438e770265a83ab621144b833424df8c6a07fc8b67f77b4e8567",
+   "size": 11856
+  },
+  "scene/sprites/Gear_BotCenter2.png": {
+   "sha256": "31f10a320df43415004457ccc13603ed78da9048a0a6f1d27b039de5605ddc00",
+   "size": 5108
+  },
+  "scene/sprites/Gear_BotRight.png": {
+   "sha256": "85e39c50a3e8b428fbede47feb5d016588a53033dc4a9cd3d02cbab5832c84ff",
+   "size": 8866
+  },
+  "scene/sprites/Gear_BotRight2.png": {
+   "sha256": "2ad2c93940af9989bae844d38f141ff8242214d23487425493ab4ffb169d9dce",
+   "size": 4961
+  },
+  "scene/sprites/Gear_F1.png": {
+   "sha256": "ce26aecb8350524fce5053a49123e2695285a451a11adafb03ccce5ab7ea0c44",
+   "size": 6482
+  },
+  "scene/sprites/Gear_F2.png": {
+   "sha256": "cc5a8428458b069d9161cc23c9b773bae08de3e1b9684f6b41996c24297da8d6",
+   "size": 5447
+  },
+  "scene/sprites/Gear_F3.png": {
+   "sha256": "30ba987dae3aa7b3d8b00db8c7ae4f8e9dcbef46485ef28e941687333ffb4664",
+   "size": 9254
+  },
+  "scene/sprites/Gear_F4.png": {
+   "sha256": "a9a84065cff7b94374e91938e333f603132b9551a2878b380085d61cdd2b61d6",
+   "size": 5264
+  },
+  "scene/sprites/Gear_F5.png": {
+   "sha256": "c1e9fa94cf1c7a8eabdf45036261ce290fb910e93df134aa5f767966879ad3d6",
+   "size": 7788
+  },
+  "scene/sprites/Gear_F6.png": {
+   "sha256": "60a44ef6bf4fedc9e0a057989f88c26aadac4a02f5bd55eee9eeecdb5a1a5158",
+   "size": 5251
+  },
+  "scene/sprites/Gear_Left.png": {
+   "sha256": "facfb332230b3ac2dc5bbb34a47ea3c897d6de9ade79f3396dfc43e220501efd",
+   "size": 12190
+  },
+  "scene/sprites/Gear_LeftSmall.png": {
+   "sha256": "79c098cf99df09235b2bd2fbe904634a7dbc105effcadc0f7ce36e5bcbb23ddd",
+   "size": 5374
+  },
+  "scene/sprites/Gear_Right.png": {
+   "sha256": "4e233b9bbda60eeb93466d7a83ca2b03c03a650718faa74314ef889b2b7d4cde",
+   "size": 10885
+  },
+  "scene/sprites/Gear_T1.png": {
+   "sha256": "094ae19af923d53cb5ae0362c5aed1e3c453cae097611a03799758f7b95fe87a",
+   "size": 10379
+  },
+  "scene/sprites/Gear_TopLeft.png": {
+   "sha256": "85b02ef808c5c96d2e87810f28d73d773ca79ec307275d6799087b88bb53e17a",
+   "size": 6410
+  },
+  "scene/sprites/Gear_TopRight.png": {
+   "sha256": "f20be68486cac7c49ac9e0ce341f06eea36c239b1c4d4b74fcfb1860b278f6de",
+   "size": 6358
+  },
+  "sounds/chime.wav": {
+   "sha256": "e4ce22e5efcf39d2855605909e62267aa4afe4ae9a13d6b07970e4d026f03399",
+   "size": 61782
+  },
+  "sounds/flash_charge.wav": {
+   "sha256": "be2a76e6dd24c87f6771d1e0401c3ed50494878a909d53dede50331850831317",
+   "size": 52964
+  },
+  "sounds/shutter.wav": {
+   "sha256": "42693d6fd0b0fa612948e79b861d708506161572f47207b48a673591a73de093",
+   "size": 167624
+  },
+  "vendor/three/addons/environments/RoomEnvironment.js": {
+   "sha256": "55f466192cc84298755a424c5e040345006b2ee1455589b3b54126c2ea4123f4",
+   "size": 4960
+  },
+  "vendor/three/addons/libs/draco/draco_decoder.js": {
+   "sha256": "8625489da79a805f4f2a7d511c3e52d8b4085608a9d2a4d5f4f9de5db0aea04f",
+   "size": 512465
+  },
+  "vendor/three/addons/libs/draco/draco_decoder.wasm": {
+   "sha256": "a680d927bed9cb864ddbd63521868891af2bfbe755092761b4837487618df8ac",
+   "size": 192420
+  },
+  "vendor/three/addons/libs/draco/draco_wasm_wrapper.js": {
+   "sha256": "8bb2952d2ba7d67e1414f8df819410cb0434a666be53f671fff75f68843d76f6",
+   "size": 58456
+  },
+  "vendor/three/addons/libs/meshopt_decoder.module.js": {
+   "sha256": "d428e73a000057c6c94bfcedc3412d0c2dc14ca8800e88553aab05113ad2bf19",
+   "size": 29256
+  },
+  "vendor/three/addons/loaders/DRACOLoader.js": {
+   "sha256": "fdafdf4aa11bbc65d89adb338efd844bedf94073702f9049240ff1f1ea48ad5f",
+   "size": 19030
+  },
+  "vendor/three/addons/loaders/GLTFLoader.js": {
+   "sha256": "131c0f78c01d19368ae495caa65b3adaa10487810a36a05bb5901b769a35ac16",
+   "size": 117570
+  },
+  "vendor/three/addons/postprocessing/EffectComposer.js": {
+   "sha256": "4e079a5886152d7e529a59aef644e968ab4d32c6a33ce016b36bf29b2eac26f7",
+   "size": 8501
+  },
+  "vendor/three/addons/postprocessing/MaskPass.js": {
+   "sha256": "7cd08eee9d5d6f5578beaddbdcbe9c384f6873810af27f22ab7db3ceeb127aa3",
+   "size": 4694
+  },
+  "vendor/three/addons/postprocessing/OutputPass.js": {
+   "sha256": "02e4a261af34de71338185e9e87f0cbe5cba9115608d984363e1269dec1d2272",
+   "size": 4184
+  },
+  "vendor/three/addons/postprocessing/Pass.js": {
+   "sha256": "444b409c235ead986893c472e720da1b779a56985c7d10b279c7944b52bd61c5",
+   "size": 4218
+  },
+  "vendor/three/addons/postprocessing/RenderPass.js": {
+   "sha256": "817f6c3cdcd0fd41515d112359ea0532568eefb5aabd3b33903957ebca1b8a6a",
+   "size": 4280
+  },
+  "vendor/three/addons/postprocessing/ShaderPass.js": {
+   "sha256": "e2500a5913b26bbf5148ceaae644c6edcff06a18b01494ee37bf856353d2ab9d",
+   "size": 3228
+  },
+  "vendor/three/addons/postprocessing/UnrealBloomPass.js": {
+   "sha256": "ba8f2fcadfa6588384c9473498f974d81d120f02f0e63a0e59c265202a006b5a",
+   "size": 15397
+  },
+  "vendor/three/addons/shaders/CopyShader.js": {
+   "sha256": "a33057d5ac91c43304c186ac0e8816e62bb2ed471d3a00ff3018dfd5c0389718",
+   "size": 729
+  },
+  "vendor/three/addons/shaders/LuminosityHighPassShader.js": {
+   "sha256": "5044f780b6e6cf863947f64c36fe1587132f7fbe395ada863cd1e5f0388dcf1e",
+   "size": 1291
+  },
+  "vendor/three/addons/shaders/OutputShader.js": {
+   "sha256": "353479f77a8d7e2629d49ccac9fc2f5dbfdda5442e0adf867b00377a2fcb0cb2",
+   "size": 1876
+  },
+  "vendor/three/addons/utils/BufferGeometryUtils.js": {
+   "sha256": "9fb63427ce6641fa14fd0baff9cc4d1b5f9c3d85fd084bf2e90e803c44ec1797",
+   "size": 37712
+  },
+  "vendor/three/addons/utils/SkeletonUtils.js": {
+   "sha256": "b1632a703206c3d830de9fcbe515696770d04b71a15ee6b50afa6d2c3298c86f",
+   "size": 11535
+  },
+  "vendor/three/three.core.js": {
+   "sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6",
+   "size": 1458113
+  },
+  "vendor/three/three.module.js": {
+   "sha256": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea",
+   "size": 662772
+  }
+ }
+}

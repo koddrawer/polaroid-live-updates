@@ -1,0 +1,58 @@
+:root{
+  --bg:#15110d; --panel:#1e1812; --line:#3a2e22; --ink:#f1e4cc; --muted:#a8957a; --brass:#d4a24c; --brass-ink:#1a1209;
+  --ok:#6fbf73; --warn:#e3b341; --bad:#e5604f;
+  --ui:'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font:13px/1.45 var(--ui);display:flex;flex-direction:column}
+.top{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;border-bottom:1px solid var(--line)}
+.brand{font-weight:700;letter-spacing:.02em;color:var(--brass)}
+.muted{color:var(--muted)}
+.pill{padding:3px 10px;border-radius:99px;font-size:12px;border:1px solid var(--line)}
+.pill.connected{background:rgba(111,191,115,.15);color:var(--ok);border-color:var(--ok)}
+.pill.connecting,.pill.reconnecting{color:var(--warn);border-color:var(--warn)}
+.pill.error,.pill.offline,.pill.ended{color:var(--bad);border-color:var(--bad)}
+.tabs{display:flex;gap:2px;padding:6px 10px 0;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{background:none;border:0;color:var(--muted);padding:8px 10px;font:600 12px var(--ui);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--brass)}
+main{flex:1;overflow:auto;padding:4px 16px 24px}
+section{display:flex;flex-direction:column;gap:10px}
+h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);margin:14px 0 0}
+h3{margin:0;font-size:14px}
+.field{display:flex;flex-direction:column;gap:4px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row.between{justify-content:space-between}
+.row input[type=text]{flex:1;min-width:0}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+label{color:var(--muted);font-size:12px}
+label.check{display:flex;gap:6px;align-items:center;color:var(--ink)}
+input[type=text],input[type=password],input[type=number],select{background:#0f0c09;border:1px solid var(--line);color:var(--ink);padding:7px 8px;border-radius:4px;font:13px var(--ui)}
+input[type=color]{width:38px;height:28px;border:1px solid var(--line);background:none;padding:0;border-radius:4px}
+input[type=range]{accent-color:var(--brass);flex:1}
+button{background:#2a2118;color:var(--ink);border:1px solid var(--line);padding:7px 12px;border-radius:4px;font:600 12px var(--ui);cursor:pointer}
+button:hover{border-color:var(--brass)}
+button.primary{background:var(--brass);color:var(--brass-ink);border-color:var(--brass)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--brass);outline-offset:1px}
+details summary{cursor:pointer;color:var(--muted)}
+.log{list-style:none;margin:0;padding:0;max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:4px;background:#0f0c09}
+.log li{padding:4px 8px;border-bottom:1px solid #221a12;display:flex;gap:6px;align-items:center;font-size:12px}
+.log li img{width:18px;height:18px;border-radius:50%;object-fit:cover}
+.log .t{color:var(--muted);font-variant-numeric:tabular-nums}
+.log .gift{color:var(--brass)}
+.items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.items li{display:grid;grid-template-columns:44px 1fr auto;gap:6px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:6px}
+.items .icon{width:44px;height:44px;border:1px dashed var(--line);border-radius:4px;display:grid;place-items:center;cursor:pointer;background:#0f0c09;padding:0}
+.items .icon img{max-width:36px;max-height:36px;image-rendering:auto}
+.items .ctl{display:flex;gap:4px}
+.items .ctl button{padding:4px 7px}
+#printPreview{align-self:flex-start;border:1px solid var(--line);border-radius:4px;background:#2a2118;max-width:100%}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:16px;z-index:10}
+.sheet{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px;width:min(560px,100%);max-height:90vh;display:flex;flex-direction:column;gap:8px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:6px;overflow:auto}
+.pgrid button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;font-weight:400;font-size:11px}
+.pgrid img{width:40px;height:40px;object-fit:contain}
+.pgrid .c{color:var(--brass);font-variant-numeric:tabular-nums}
+.wrap{flex-wrap:wrap}

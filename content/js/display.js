@@ -130,7 +130,8 @@ async function buildScene() {
   // LED boards on their real 3D panels
   for (const key of ['top', 'bottom']) {
     const L = meta.leds[key]; if (!L) continue;
-    const board = key === 'top' ? new TopBoard(L) : new BottomBoard(L);
+    // top board: same LED pitch as the bottom board so every LED stays a visible dot even in a small window
+    const board = key === 'top' ? new TopBoard({ cols: 96, rows: 44 }) : new BottomBoard(L);
     const g = new THREE.BufferGeometry();
     const c = L.corners;
     g.setAttribute('position', new THREE.Float32BufferAttribute([...c[0], ...c[1], ...c[2], ...c[3]], 3));

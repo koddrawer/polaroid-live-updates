@@ -9,18 +9,17 @@ const fam = (f) => `"${f || 'Barlow Condensed'}", "Barlow Condensed", "Arial Nar
 
 // Fit text so its ink box fills areaH (and areaW unless allowOverflow). Returns metrics in LED units.
 function layout(g, text, family, weight, areaW, areaH, allowOverflow) {
-  let size = areaH * 1.25;
+  // size from this text's own ink box (accents/descenders only cost room when the text has them)
+  const probe = (text || 'H') + 'H';
+  let size = areaH;
   g.font = `${weight} ${size}px ${family}`;
-  let m = g.measureText(text || 'Ag');
-  const sample = g.measureText('ÀÁẢÃẠHgjpqỵ'); // reserve room for Vietnamese marks
-  const inkH = Math.max(1, sample.actualBoundingBoxAscent + sample.actualBoundingBoxDescent);
-  size *= areaH / inkH;
+  let m = g.measureText(probe);
+  size *= areaH / Math.max(1, m.actualBoundingBoxAscent + m.actualBoundingBoxDescent);
   g.font = `${weight} ${size}px ${family}`;
-  m = g.measureText(text);
-  let width = m.width;
-  if (!allowOverflow && width > areaW) { size *= areaW / width; g.font = `${weight} ${size}px ${family}`; m = g.measureText(text); width = m.width; }
-  const s2 = g.measureText('ÀÁẢÃẠHgjpqỵ');
-  return { size, width, font: g.font, asc: s2.actualBoundingBoxAscent, desc: s2.actualBoundingBoxDescent };
+  let width = g.measureText(text).width;
+  if (!allowOverflow && width > areaW) { size *= areaW / width; g.font = `${weight} ${size}px ${family}`; width = g.measureText(text).width; }
+  m = g.measureText(probe);
+  return { size, width, font: g.font, asc: m.actualBoundingBoxAscent, desc: m.actualBoundingBoxDescent };
 }
 function drawLine(g, text, L, x, top, areaH) {
   const inkH = L.asc + L.desc;
@@ -66,28 +65,26 @@ export class TopBoard {
     if (this.trans < 1) this.trans = Math.min(1, this.trans + dt / 0.4);
     const speed = cfg.scrollSpeed || 26;
     this.scroll1 += dt * speed;
-    // layout: line 1 = 44% of the height, divider, line 2 box
-    const l1Top = 2, l1H = Math.round(R * 0.42);
-    const divY = l1Top + l1H + 2;
-    const bx = 2, by = divY + 3, bw = C - 4, bh = R - by - 2;
+    // layout: line 1 = 42% of the height, then the line-2 box
+    const l1Top = 1, l1H = Math.round(R * 0.42);
+    const divY = l1Top + l1H;
+    const bx = 1, by = divY + 1, bw = C - 3, bh = R - by - 1;
     this.led.draw((g) => {
       // ---- line 1 (auto-fit; scroll only if it would become too small)
       const text = cfg.line1 || '';
       g.fillStyle = cfg.line1Color || '#ffb347';
       let L = layout(g, text, F, W, C - 6, l1H, false);
-      const minH = R * 0.26;
-      const tooSmall = L.size < layout(g, 'A', F, W, 1e9, minH, true).size;
+      const tooSmall = L.size < 0.72 * layout(g, text, F, W, 1e9, l1H, true).size;
       if (cfg.line1Scroll || tooSmall) {
         L = layout(g, text, F, W, 1e9, l1H, true);
         marquee(g, text, L, 0, C, l1Top, l1H, this.scroll1);
       } else drawLine(g, text, L, (C - L.width) / 2, l1Top, l1H);
-      // ---- divider
+
       g.fillStyle = cfg.line1Color || '#ffb347';
-      for (let x = 4; x < C - 4; x += 2) if (Math.abs(x - C / 2) > 5) g.fillRect(x, divY, 1, 1);
-      g.save(); g.translate(C / 2, divY + 0.5); g.rotate(Math.PI / 4); g.fillRect(-2, -2, 4, 4); g.restore();
+
       // ---- box (dotted, gentle chase)
       const cur = this.items[this.idx];
-      const per = 2 * (bw + bh), rr = 4, chase = Math.floor(t * 10);
+      const per = 2 * (bw + bh), rr = 3, chase = Math.floor(t * 10);
       g.fillStyle = cur?.color || '#ffb347';
       for (let s = 0; s < per; s += 2) {
         if ((s / 2 + chase) % 8 === 0) continue; // moving gap
@@ -99,7 +96,7 @@ export class TopBoard {
         const cx = Math.min(Math.max(x, bx + rr), bx + bw - rr), cy = Math.min(Math.max(y, by + rr), by + bh - rr);
         const dx = x - cx, dy = y - cy, d = Math.hypot(dx, dy);
         if (d > rr) { x = cx + dx / d * rr; y = cy + dy / d * rr; }
-        g.fillRect(Math.round(x) - 0.5 + 0.5, Math.round(y), 1, 1);
+        g.fillRect(Math.round(x), Math.round(y), 1, 1);
       }
       // ---- item with slide transition
       g.save(); g.beginPath(); g.rect(bx + 2, by + 2, bw - 4, bh - 4); g.clip();
@@ -111,15 +108,14 @@ export class TopBoard {
   }
   drawItem(g, it, bx, by, bw, bh, yoff, F, W, dt, active) {
     if (!it) return;
-    const pad = 4, areaH = bh - pad * 2, top = by + pad + yoff;
+    const pad = 2, areaH = bh - pad * 2 + 1, top = by + pad + yoff;
     const icon = it.icon ? this.icons.get(it.icon) : null;
     const text = it.text || '';
-    const iconW = icon ? areaH + 2 : 0, gap = icon && text ? 4 : 0;
-    const maxW = bw - 10 - iconW - gap;
+    const iconW = icon ? areaH + 1 : 0, gap = icon && text ? 2 : 0;
+    const maxW = bw - 5 - iconW - gap;
     g.fillStyle = it.color || '#ffb347';
     let L = layout(g, text, F, W, maxW, areaH * 0.92, false);
-    const minSize = layout(g, 'A', F, W, 1e9, bh * 0.42, true).size;
-    let scrolling = L.size < minSize;
+    let scrolling = L.size < 0.78 * layout(g, text, F, W, 1e9, areaH * 0.92, true).size;
     if (scrolling) L = layout(g, text, F, W, 1e9, areaH * 0.92, true);
     const total = iconW + gap + (scrolling ? maxW : L.width);
     let x = Math.round(bx + (bw - total) / 2);

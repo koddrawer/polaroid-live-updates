@@ -1,6 +1,6 @@
 {
- "version": "1.2.1",
- "notes": "Chọn riêng âm thanh chụp ảnh và âm thanh đóng dấu",
+ "version": "1.2.2",
+ "notes": "Bảng LED trên hiển thị bằng điểm LED rõ như bảng dưới, chữ to hơn",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
@@ -82,8 +82,8 @@
    "size": 3838
   },
   "js/boards.js": {
-   "sha256": "886e0ede0e9ea7f687815c757a51103cc4cbad77622885e8809b9070cf8ef5c5",
-   "size": 10694
+   "sha256": "c8e7b2a10e140c24b41752c56e78b23a448aeb541b12177ac2daa734c10806f2",
+   "size": 10369
   },
   "js/control.js": {
    "sha256": "d312a5aa1e85ca326347d43dfee38643764bc1ce4bb7f0934666a8e25e7318a9",
@@ -94,8 +94,8 @@
    "size": 5330
   },
   "js/display.js": {
-   "sha256": "b556b9251f090d363fd94a68316b4538dff729b8001943843f6672eb6c7bb59d",
-   "size": 40114
+   "sha256": "ff703a93e2a3f409847e6a5fa1aca77743b3465fcdde1d7aec5ec88c32545081",
+   "size": 40244
   },
   "js/led.js": {
    "sha256": "d2c3c2f5234208e4622d17597b3b9784b894e9a7eb56774d583ea2b56a61bf67",

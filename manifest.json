@@ -1,6 +1,6 @@
 {
- "version": "1.2.0",
- "notes": "Bỏ zoom khi in; ảnh hiện giữa màn hình cho mọi mức; con dấu sáp 3D đóng lên góc ảnh (mỗi mức một loại dấu); chỉnh tổng thời gian từ lúc chụp đến khi ảnh về chỗ; chọn âm thanh chụp ảnh riêng",
+ "version": "1.2.1",
+ "notes": "Chọn riêng âm thanh chụp ảnh và âm thanh đóng dấu",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
@@ -10,8 +10,8 @@
    "size": 5453
   },
   "control.html": {
-   "sha256": "104cac7ebbc1b2c7dcd1f6f54dbd8955ee3dba573b147f4d107f5b0d210af758",
-   "size": 11779
+   "sha256": "f6af5bb06f613c1b18c0e6fd97b96b2ef7fdcee0d26ab56d41303fa9c475ea04",
+   "size": 12081
   },
   "display.html": {
    "sha256": "72822fa3b626f0758331bf68914654e88f5ecf92c3133afeafe38b53739d9316",
@@ -86,16 +86,16 @@
    "size": 10694
   },
   "js/control.js": {
-   "sha256": "991d51ea6606730d8ef3713747a778196e265c85f4e171dd29e21639d06cbffc",
-   "size": 23188
+   "sha256": "d312a5aa1e85ca326347d43dfee38643764bc1ce4bb7f0934666a8e25e7318a9",
+   "size": 23841
   },
   "js/defaults.js": {
-   "sha256": "a1f25f5dff8a0b43758dfcaeb43c744ac87519b6fe5aa53a8fc173100e48a8aa",
-   "size": 5297
+   "sha256": "43537f9fa08b937cab1cfe4472d81e1805fa9ad8877d8bdd62ea8ad12b87a703",
+   "size": 5330
   },
   "js/display.js": {
-   "sha256": "ff236a902ae2e409f6289724cac92198d31fc28831a5ecf5f1a891e068c39666",
-   "size": 39953
+   "sha256": "b556b9251f090d363fd94a68316b4538dff729b8001943843f6672eb6c7bb59d",
+   "size": 40114
   },
   "js/led.js": {
    "sha256": "d2c3c2f5234208e4622d17597b3b9784b894e9a7eb56774d583ea2b56a61bf67",

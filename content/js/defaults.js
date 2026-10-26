@@ -81,7 +81,7 @@ export const DEFAULTS = {
       small: { url: 'app://content/seals/heart.png' },
       big: { url: 'app://content/seals/vip.png' },
     },
-    sounds: { shutter: null, shutterName: '', charge: true, stamp: true },
+    sounds: { shutter: null, shutterName: '', stampSound: null, stampName: '', charge: true, stamp: true },
     paper: {
       table: { url: null, caption: '#2a2420' },
       small: { url: 'app://content/papers/vintage.jpg', caption: '#3a2a18' },

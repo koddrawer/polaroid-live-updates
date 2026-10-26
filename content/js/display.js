@@ -445,7 +445,7 @@ async function stampPrint(print, entry, dur) {
   const sealed = await withSeal;
   await tween(tPress * 0.4, (k) => { stampModel.position.lerpVectors(hover, sw.p, k * k); });
   print.setCanvas(sealed);
-  if (S.photo.sounds?.stamp !== false) play('stamp', 0.9);
+  if (S.photo.sounds?.stamp !== false) playStamp();
   const pbase = print.mesh.position.clone();
   await tween(tPress * 0.6, (k) => {
     const sq = Math.sin(k * Math.PI);
@@ -565,19 +565,20 @@ async function loadCustomSound(url) {
   customSounds.set(url, p);
   return p;
 }
-async function playShutter() {
-  const url = S.photo.sounds?.shutter;
+async function playCustom(url, fallback, vol) {
   if (url) {
     const buf = await loadCustomSound(url);
     if (buf) {
       if (audio.ctx.state === 'suspended') audio.ctx.resume();
       const src = audio.ctx.createBufferSource(); src.buffer = buf;
-      const g = audio.ctx.createGain(); g.gain.value = (S.photo.volume ?? 80) / 100;
+      const g = audio.ctx.createGain(); g.gain.value = vol * (S.photo.volume ?? 80) / 100;
       src.connect(g); g.connect(audio.gain); src.start(); return;
     }
   }
-  play('shutter', 1);
+  play(fallback, vol);
 }
+const playShutter = () => playCustom(S.photo.sounds?.shutter, 'shutter', 1);
+const playStamp = () => playCustom(S.photo.sounds?.stampSound, 'stamp', 0.9);
 
 // ---------------------------------------------------------------- background music
 const music = { el: new Audio(), list: [], idx: -1, duck: 1, duckTarget: 1, playing: false };
@@ -676,7 +677,7 @@ function applySettings(s) {
   leds.bottom?.configure(S.bottomBoard, S.topBoard);
   ensureFont(S.photo.font, S.photo.fontUrl);
   musicSet(S.music);
-  if (S.photo.sounds?.shutter) loadCustomSound(S.photo.sounds.shutter);
+  for (const u of [S.photo.sounds?.shutter, S.photo.sounds?.stampSound]) if (u) loadCustomSound(u);
 }
 api.onSettings?.(applySettings);
 

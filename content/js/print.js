@@ -38,7 +38,7 @@ function noiseCanvas() {
 }
 
 // returns a canvas of the finished print
-export async function drawPrint({ name, avatarUrl, caption, font, color, sizePct, paperUrl }) {
+export async function drawPrint({ name, avatarUrl, caption, font, color, sizePct, paperUrl, seal }) {
   const c = document.createElement('canvas'); c.width = PRINT_W; c.height = PRINT_H;
   const g = c.getContext('2d');
   g.drawImage(noiseCanvas(), 0, 0);
@@ -76,7 +76,24 @@ export async function drawPrint({ name, avatarUrl, caption, font, color, sizePct
   if (w > maxW) { size = Math.max(14, Math.floor(size * maxW / w)); g.font = `${size}px ${fam}`; }
   g.save(); g.translate(PRINT_W / 2, areaTop + areaH * 0.52); g.rotate(-0.012);
   g.fillText(text, 0, 0); g.restore();
+  if (seal) await drawSeal(g, seal);
   return c;
+}
+
+// wax seal pressed onto the top-left corner (size = % of print width, angle in radians)
+export function sealCenter(seal) {
+  const d = PRINT_W * (seal.size || 34) / 100;
+  return { x: MARGIN * 0.6 + d * 0.42, y: MARGIN * 0.6 + d * 0.42, d };
+}
+export async function drawSeal(g, seal) {
+  const im = await loadImage(seal.url);
+  if (!im) return;
+  const { x, y, d } = sealCenter(seal);
+  g.save();
+  g.translate(x, y); g.rotate(seal.angle || 0);
+  g.shadowColor = 'rgba(0,0,0,0.45)'; g.shadowBlur = d * 0.06; g.shadowOffsetX = d * 0.02; g.shadowOffsetY = d * 0.035;
+  g.drawImage(im, -d / 2, -d / 2, d, d);
+  g.restore();
 }
 
 const PRINT_VS = `varying vec2 vUv; varying vec3 vN; varying vec3 vV;
@@ -120,6 +137,7 @@ export class Print {
     this.width = w; this.height = h;
     this.mats = [edge, back];
   }
+  setCanvas(cv) { this.tex.image = cv; this.tex.needsUpdate = true; }
   set develop(v) { this.front.uniforms.develop.value = v; }
   get develop() { return this.front.uniforms.develop.value; }
   set light(v) { this.front.uniforms.light.value = v; }

@@ -1,5 +1,5 @@
 // Polaroid Live — control panel
-import { DEFAULTS, BUILTIN_ICONS, BUNDLED_FONTS, LED_FONTS, PAPERS, merge } from './defaults.js';
+import { DEFAULTS, BUILTIN_ICONS, BUNDLED_FONTS, LED_FONTS, PAPERS, SEALS, merge } from './defaults.js';
 import { drawPrint } from './print.js';
 
 const api = window.api;
@@ -176,18 +176,19 @@ async function renderPreview() {
   const p = S.photo;
   await loadFont(p.font, p.fontUrl);
   const pp = merge(DEFAULTS.photo.paper.small, p.paper?.small || {});
-  const cv = await drawPrint({ name: $('testName')?.value || 'Hoàng Anh', avatarUrl: null, caption: (p.captionTemplate || '{name}').replace('{name}', $('testName')?.value || 'Hoàng Anh'), font: p.font, color: pp.caption || p.captionColor, sizePct: p.captionSize, paperUrl: pp.url });
+  const se = S.photo.seal || {};
+  const cv = await drawPrint({ seal: se.enabled !== false ? { url: merge(DEFAULTS.photo.seal.small, se.small || {}).url, size: se.size || 34, angle: -0.15 } : null, name: $('testName')?.value || 'Hoàng Anh', avatarUrl: null, caption: (p.captionTemplate || '{name}').replace('{name}', $('testName')?.value || 'Hoàng Anh'), font: p.font, color: pp.caption || p.captionColor, sizePct: p.captionSize, paperUrl: pp.url });
   const g = $('printPreview').getContext('2d'); g.fillStyle = '#2a2118'; g.fillRect(0, 0, 300, 360);
   g.drawImage(cv, 20, 6, 260, 260 * cv.height / cv.width);
 }
 
 
-// ---------- per-tier settings (zoom, show, paper background) ----------
+// ---------- per-tier settings (paper background, caption colour, seal) ----------
 const TIER_NAMES = { table: 'Ảnh đặt bàn', small: 'Khung nhỏ', big: 'Khung to' };
 function renderTiers() {
   const box = $('tierList'); box.innerHTML = '';
   for (const kind of ['table', 'small', 'big']) {
-    const fx = merge(DEFAULTS.photo.tierFx[kind], S.photo.tierFx?.[kind] || {});
+    const seal = merge(DEFAULTS.photo.seal[kind], S.photo.seal?.[kind] || {});
     const paper = merge(DEFAULTS.photo.paper[kind], S.photo.paper?.[kind] || {});
     const div = document.createElement('div'); div.className = 'tier';
     const sw = document.createElement('img'); sw.className = 'swatch'; sw.alt = ''; if (paper.url) sw.src = paper.url;
@@ -206,12 +207,21 @@ function renderTiers() {
     const r1 = document.createElement('div'); r1.className = 'row'; r1.append(sel, up);
     const r2 = document.createElement('div'); r2.className = 'row';
     const lc = document.createElement('label'); lc.htmlFor = col.id; lc.textContent = 'Màu chữ';
-    const z = document.createElement('label'); z.className = 'check'; const zc = document.createElement('input'); zc.type = 'checkbox'; zc.checked = !!fx.zoom; z.append(zc, ' Phóng to khi in');
-    const sh = document.createElement('label'); sh.className = 'check'; const sc = document.createElement('input'); sc.type = 'checkbox'; sc.checked = !!fx.show; sh.append(sc, ' Hiện giữa màn hình');
-    zc.onchange = () => save({ photo: { tierFx: { [kind]: { zoom: zc.checked } } } });
-    sc.onchange = () => save({ photo: { tierFx: { [kind]: { show: sc.checked } } } });
-    r2.append(lc, col, z, sh);
-    body.append(title, r1, r2);
+    r2.append(lc, col);
+    // seal picker
+    const r3 = document.createElement('div'); r3.className = 'row seals';
+    const lab = document.createElement('span'); lab.className = 'muted'; lab.textContent = 'Con dấu:'; r3.append(lab);
+    const all = [...SEALS]; if (seal.url && !SEALS.some(x => x.url === seal.url)) all.push({ name: 'Dấu của bạn', url: seal.url });
+    for (const sl of all) {
+      const b = document.createElement('button'); b.className = 'seal' + (sl.url === seal.url ? ' on' : ''); b.title = sl.name; b.setAttribute('aria-label', sl.name);
+      const im = document.createElement('img'); im.src = sl.url; im.alt = ''; b.append(im);
+      b.onclick = () => save({ photo: { seal: { [kind]: { url: sl.url } } } }).then(() => { renderTiers(); renderPreview(); });
+      r3.append(b);
+    }
+    const upS = Object.assign(document.createElement('button'), { textContent: 'Ảnh dấu của bạn…', title: 'PNG nền trong suốt' });
+    upS.onclick = async () => { const f = await api.pickFile('image'); if (f) { await save({ photo: { seal: { [kind]: { url: f.url } } } }); renderTiers(); renderPreview(); } };
+    r3.append(upS);
+    body.append(title, r1, r2, r3);
     div.append(sw, body); box.append(div);
   }
 }
@@ -292,10 +302,18 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   bindNum('tTable', () => S.photo.tiers.table, v => ({ photo: { tiers: { table: v } } }));
   bindNum('tSmall', () => S.photo.tiers.small, v => ({ photo: { tiers: { small: v } } }));
   bindNum('tBig', () => S.photo.tiers.big, v => ({ photo: { tiers: { big: v } } }));
-  bindNum('holdSec', () => S.photo.holdSeconds, v => ({ photo: { holdSeconds: v } }));
-  for (const [id, key] of [['tmApproach', 'approach'], ['tmShutter', 'shutter'], ['tmPrint', 'print'], ['tmDevelop', 'develop'], ['tmFly', 'fly']])
+  for (const [id, key] of [['tmApproach', 'approach'], ['tmShutter', 'shutter'], ['tmTotal', 'total']])
     bindNum(id, () => S.photo.timing[key], v => ({ photo: { timing: { [key]: v } } }));
-  bindText('zoomAmt', () => Math.round(S.photo.zoomAmount * 10), v => ({ photo: { zoomAmount: Number(v) / 10 } }), 200);
+  bindCheck('sealOn', () => S.photo.seal.enabled !== false, v => ({ photo: { seal: { enabled: v } } }));
+  bindText('sealSize', () => S.photo.seal.size, v => ({ photo: { seal: { size: Number(v) } } }), 200);
+  $('sealSize').addEventListener('input', debounce(renderPreview, 400));
+  bindCheck('sndCharge', () => S.photo.sounds.charge !== false, v => ({ photo: { sounds: { charge: v } } }));
+  bindCheck('sndStamp', () => S.photo.sounds.stamp !== false, v => ({ photo: { sounds: { stamp: v } } }));
+  const showShutter = () => $('shutterName').textContent = S.photo.sounds.shutter ? (S.photo.sounds.shutterName || 'Âm thanh của bạn') : 'Mặc định';
+  showShutter();
+  $('btnShutterFile').onclick = async () => { const f = await api.pickFile('sound'); if (f) { await save({ photo: { sounds: { shutter: f.url, shutterName: f.name } } }); showShutter(); } };
+  $('btnShutterReset').onclick = async () => { await save({ photo: { sounds: { shutter: null, shutterName: '' } } }); showShutter(); };
+  $('btnShutterTest').onclick = () => { const a = new Audio(S.photo.sounds.shutter || 'sounds/shutter.wav'); a.volume = (S.photo.volume ?? 80) / 100; a.play(); };
   renderTiers();
   ['tTable', 'tSmall', 'tBig'].forEach(id => $(id).addEventListener('change', () => setTimeout(renderTiers, 300)));
   bindCheck('musOn', () => S.music.enabled, v => ({ music: { enabled: v } }));

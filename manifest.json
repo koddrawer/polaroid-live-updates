@@ -1,17 +1,17 @@
 {
- "version": "1.1.0",
- "notes": "LED dễ đọc hơn; zoom khi in ảnh 1 xu, ảnh bay vào 5 ô trên bàn; chỉnh thời gian chụp/in; nhạc nền; hình nền ảnh theo loại donate; cảnh 3D mới",
+ "version": "1.2.0",
+ "notes": "Bỏ zoom khi in; ảnh hiện giữa màn hình cho mọi mức; con dấu sáp 3D đóng lên góc ảnh (mỗi mức một loại dấu); chỉnh tổng thời gian từ lúc chụp đến khi ảnh về chỗ; chọn âm thanh chụp ảnh riêng",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
  "files": {
   "control.css": {
-   "sha256": "7628674994640e3bb213b92ec704221a3c5fb82fed2399abe5fe5dd42472e551",
-   "size": 5181
+   "sha256": "4b2e7541e3e640a707babc065e086324c18b60ed0b0e2504f16ba32a5a039065",
+   "size": 5453
   },
   "control.html": {
-   "sha256": "64b5fb0f0f6712bddbb42274342bae908cf5775784d9f24cc1ea4d5a7ebd31da",
-   "size": 11374
+   "sha256": "104cac7ebbc1b2c7dcd1f6f54dbd8955ee3dba573b147f4d107f5b0d210af758",
+   "size": 11779
   },
   "display.html": {
    "sha256": "72822fa3b626f0758331bf68914654e88f5ecf92c3133afeafe38b53739d9316",
@@ -86,16 +86,16 @@
    "size": 10694
   },
   "js/control.js": {
-   "sha256": "f2c6c200a6526dcddc8d3b6c67e2a77aba0bd625a3a4c7534e1f1325d91c2b16",
-   "size": 21537
+   "sha256": "991d51ea6606730d8ef3713747a778196e265c85f4e171dd29e21639d06cbffc",
+   "size": 23188
   },
   "js/defaults.js": {
-   "sha256": "65ea3b86e47a9f48ee169243e1c26c6c169419b0bcb4bfed628a145abe1c33f0",
-   "size": 4712
+   "sha256": "a1f25f5dff8a0b43758dfcaeb43c744ac87519b6fe5aa53a8fc173100e48a8aa",
+   "size": 5297
   },
   "js/display.js": {
-   "sha256": "9323f50b2e1bad6710e53a3a421f4d1320b1d4add0002c4f32de3830604e12c0",
-   "size": 36064
+   "sha256": "ff236a902ae2e409f6289724cac92198d31fc28831a5ecf5f1a891e068c39666",
+   "size": 39953
   },
   "js/led.js": {
    "sha256": "d2c3c2f5234208e4622d17597b3b9784b894e9a7eb56774d583ea2b56a61bf67",
@@ -106,8 +106,8 @@
    "size": 6831
   },
   "js/print.js": {
-   "sha256": "9bd84fc863f838095555bebdb929ea6d3de13d0aec58a939383772d25ee66aa4",
-   "size": 6731
+   "sha256": "63d06f7b12709c7157df585882f9c7ea1ec46f082c09697a9914e850d5298edf",
+   "size": 7469
   },
   "papers/black.jpg": {
    "sha256": "58f9f7329a0a0fcc65dc901d317976ccea26c373eaf7d4389a489e25419072a8",
@@ -253,6 +253,30 @@
    "sha256": "46816efcc3a937d37b3c98d02b17c8b772d43c67f3fe05e350e5c515511a8803",
    "size": 6035
   },
+  "seals/heart.png": {
+   "sha256": "cf23d73ddbad5819eaf4860e184ee2adcf31e08a7e992cab3e90e992d1b8c82c",
+   "size": 217890
+  },
+  "seals/leaf.png": {
+   "sha256": "197bb5f5cfb30565c91354dc3a1c8641e4cf25dc09d6a075589e727850bc41be",
+   "size": 278329
+  },
+  "seals/plum.png": {
+   "sha256": "c26fee57d0eaa0bed4a5ccd42da89d97835148842a11212d3df60e174b1c4ddb",
+   "size": 260466
+  },
+  "seals/rose.png": {
+   "sha256": "3806757dd83f61a60c2e6ecacb406fe7d8361d3bb31a33e208612f4134526363",
+   "size": 251315
+  },
+  "seals/smile.png": {
+   "sha256": "a03917d8b81a500250e82805dde6a3ef9de0af0fa639bf358f04096db5840a7a",
+   "size": 264057
+  },
+  "seals/vip.png": {
+   "sha256": "d410de150362a8ad58c3250e6e0697817784570e50f787dfe005d061c9e984d8",
+   "size": 281719
+  },
   "sounds/chime.wav": {
    "sha256": "e4ce22e5efcf39d2855605909e62267aa4afe4ae9a13d6b07970e4d026f03399",
    "size": 61782
@@ -264,6 +288,18 @@
   "sounds/shutter.wav": {
    "sha256": "42693d6fd0b0fa612948e79b861d708506161572f47207b48a673591a73de093",
    "size": 167624
+  },
+  "sounds/stamp.wav": {
+   "sha256": "9d01933328e9302e8f8e4ec048a3f8128fbe46ef3715931b253d923f2a2e2fbd",
+   "size": 39734
+  },
+  "sounds/whoosh.wav": {
+   "sha256": "8c21fa8c6f7a691e74bd3048ca331f6727e7e5850cec80ede1bcbbdc1aadb587",
+   "size": 44144
+  },
+  "stamp/stamp.glb": {
+   "sha256": "4721f1be5b4b99c8604f2b9166817bba654d9b5ea23deb00def520f67ed781d1",
+   "size": 240144
   },
   "vendor/three/addons/environments/RoomEnvironment.js": {
    "sha256": "55f466192cc84298755a424c5e040345006b2ee1455589b3b54126c2ea4123f4",

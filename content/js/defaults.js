@@ -25,6 +25,15 @@ export const LED_FONTS = [
   { family: 'Oswald', label: 'Oswald', faces: [{ url: 'app://content/fonts/Oswald.ttf', weight: '200 700' }] },
 ];
 
+export const SEALS = [
+  { id: 'vip', name: 'VIP vàng', url: 'app://content/seals/vip.png' },
+  { id: 'heart', name: 'Trái tim đỏ', url: 'app://content/seals/heart.png' },
+  { id: 'rose', name: 'Hoa hồng', url: 'app://content/seals/rose.png' },
+  { id: 'smile', name: 'Mặt cười xanh', url: 'app://content/seals/smile.png' },
+  { id: 'plum', name: 'Hoa mai vàng', url: 'app://content/seals/plum.png' },
+  { id: 'leaf', name: 'Lá xanh', url: 'app://content/seals/leaf.png' },
+];
+
 export const PAPERS = [
   { id: 'white', name: 'Trắng (mặc định)', url: null, caption: '#2a2420' },
   { id: 'vintage', name: 'Giấy cổ', url: 'app://content/papers/vintage.jpg', caption: '#3a2a18' },
@@ -65,13 +74,14 @@ export const DEFAULTS = {
     captionColor: '#2a2420', captionSize: 100, captionTemplate: '{name}',
     tiers: { table: 1, small: 5, big: 10 },
     holdSeconds: 2.5, countByCoins: true, volume: 80, flash: true,
-    timing: { approach: 1.15, shutter: 0.35, print: 1.6, develop: 4.0, fly: 1.25 },
-    zoomAmount: 2.2,
-    tierFx: {
-      table: { zoom: true, show: false },
-      small: { zoom: false, show: true },
-      big: { zoom: true, show: true },
+    timing: { approach: 1.15, shutter: 0.35, total: 9 },
+    seal: {
+      enabled: true, size: 34,
+      table: { url: 'app://content/seals/rose.png' },
+      small: { url: 'app://content/seals/heart.png' },
+      big: { url: 'app://content/seals/vip.png' },
     },
+    sounds: { shutter: null, shutterName: '', charge: true, stamp: true },
     paper: {
       table: { url: null, caption: '#2a2420' },
       small: { url: 'app://content/papers/vintage.jpg', caption: '#3a2a18' },

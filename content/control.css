@@ -68,3 +68,8 @@ details summary{cursor:pointer;color:var(--muted)}
 .grid3 input,.grid3 select{width:100%;min-width:0}
 .grid3{grid-template-columns:repeat(3,minmax(0,1fr))}
 main{overflow-x:hidden}
+
+.seals{gap:4px}
+.seals button.seal{padding:2px;width:38px;height:38px;display:grid;place-items:center;background:#0f0c09}
+.seals button.seal img{width:32px;height:32px;object-fit:contain}
+.seals button.seal.on{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass)}

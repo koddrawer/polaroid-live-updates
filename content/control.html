@@ -98,12 +98,16 @@
   <div class="grid3">
     <div class="field"><label for="tmApproach">Máy tiến lại</label><input id="tmApproach" type="number" min="0.3" max="6" step="0.1"></div>
     <div class="field"><label for="tmShutter">Chờ trước khi chụp</label><input id="tmShutter" type="number" min="0" max="5" step="0.1"></div>
-    <div class="field"><label for="tmPrint">In ảnh (ảnh trượt ra)</label><input id="tmPrint" type="number" min="0.3" max="10" step="0.1"></div>
-    <div class="field"><label for="tmDevelop">Ảnh hiện màu</label><input id="tmDevelop" type="number" min="0.3" max="15" step="0.1"></div>
-    <div class="field"><label for="holdSec">Hiện giữa màn hình</label><input id="holdSec" type="number" min="0.5" max="15" step="0.5"></div>
-    <div class="field"><label for="tmFly">Bay về chỗ</label><input id="tmFly" type="number" min="0.3" max="6" step="0.1"></div>
+    <div class="field"><label for="tmTotal">Từ lúc chụp đến khi ảnh về chỗ</label><input id="tmTotal" type="number" min="3" max="40" step="0.5"></div>
   </div>
-  <div class="field"><label for="zoomAmt">Mức phóng to khi in</label><input id="zoomAmt" type="range" min="12" max="40"></div>
+  <p class="muted">Trong khoảng này ảnh được in ra, hiện lên giữa màn hình, đóng dấu rồi bay về chỗ. Các bước tự chia theo tỉ lệ.</p>
+  <h2>Con dấu</h2>
+  <div class="field row"><label class="check"><input id="sealOn" type="checkbox"> Đóng dấu lên góc ảnh</label>
+    <label for="sealSize">Cỡ dấu</label><input id="sealSize" type="range" min="18" max="50"></div>
+  <h2>Âm thanh</h2>
+  <div class="field"><label>Tiếng chụp ảnh</label>
+    <div class="row"><span id="shutterName" class="muted"></span><button id="btnShutterFile">Chọn file âm thanh…</button><button id="btnShutterTest">▶ Nghe thử</button><button id="btnShutterReset">Dùng mặc định</button></div></div>
+  <div class="field row"><label class="check"><input id="sndCharge" type="checkbox"> Tiếng sạc flash</label><label class="check"><input id="sndStamp" type="checkbox"> Tiếng đóng dấu</label></div>
   <h2>Theo loại ảnh</h2>
   <div id="tierList" class="tiers"></div>
   <div class="field row"><label for="vol">Âm lượng chụp</label><input id="vol" type="range" min="0" max="100"><label class="check"><input id="flashOn" type="checkbox"> Flash</label></div>

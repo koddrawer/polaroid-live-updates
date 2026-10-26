@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { Pipeline } from './pipeline.js';
 import { TopBoard, BottomBoard } from './boards.js';
-import { Print, drawPrint, PRINT_ASPECT } from './print.js';
+import { Print, drawPrint, sealCenter, PRINT_ASPECT, PRINT_W, PRINT_H as PRINT_H_PX } from './print.js';
 import { DEFAULTS, BUNDLED_FONTS, LED_FONTS, merge, fill } from './defaults.js';
 
 const api = window.api || {};
@@ -53,7 +53,7 @@ async function initAudio() {
   try {
     audio.ctx = new AudioContext();
     audio.gain = audio.ctx.createGain(); audio.gain.connect(audio.ctx.destination);
-    for (const n of ['shutter', 'flash_charge', 'chime']) {
+    for (const n of ['shutter', 'flash_charge', 'chime', 'stamp', 'whoosh']) {
       const r = await fetch(`sounds/${n}.wav`); audio.buffers[n] = await audio.ctx.decodeAudioData(await r.arrayBuffer());
     }
   } catch (e) { console.warn('audio', e); }
@@ -253,13 +253,15 @@ function paperFor(kind) {
   const p = S.photo.paper?.[kind] || {};
   return { url: p.url || null, caption: p.caption || S.photo.captionColor };
 }
-async function makePrint(entry) {
+async function makePrint(entry, withSeal = true) {
   const p = S.photo;
   const font = entry.font || p.font;
   await ensureFont(font, entry.fontUrl || p.fontUrl);
   const paper = entry.paper || paperFor(entry.kind);
-  const cv = await drawPrint({ name: entry.name, avatarUrl: entry.avatar, caption: fill(p.captionTemplate || '{name}', { name: entry.name }), font,
-    color: paper.caption || p.captionColor, sizePct: p.captionSize, paperUrl: paper.url });
+  const args = { name: entry.name, avatarUrl: entry.avatar, caption: fill(p.captionTemplate || '{name}', { name: entry.name }), font,
+    color: paper.caption || p.captionColor, sizePct: p.captionSize, paperUrl: paper.url };
+  Object.defineProperty(entry, '_printArgs', { value: args, enumerable: false, configurable: true, writable: true });
+  const cv = await drawPrint({ ...args, seal: withSeal ? entry.seal : null });
   return new Print(cv, 0.38);
 }
 
@@ -324,23 +326,8 @@ async function runQueue() {
 }
 
 const tmpQ = new THREE.Quaternion();
-const anim = { blur: 0, dim: 1, flash: 0, flashLight: 0, zoom: 1, zoomC: new THREE.Vector2(0.5, 0.5) };
+const anim = { blur: 0, dim: 1, flash: 0, flashLight: 0 };
 let activePrint = null;
-
-// zoom = crop of the screen around zoomC (0..1, y from top). Hero layer uses a view-offset camera so it matches the crop exactly.
-const heroCam = new THREE.PerspectiveCamera();
-function updateZoom() {
-  const z = Math.max(1, anim.zoom);
-  const w = 1 / z, h = 1 / z;
-  const x = Math.min(1 - w, Math.max(0, anim.zoomC.x - w / 2));
-  const y = Math.min(1 - h, Math.max(0, anim.zoomC.y - h / 2));
-  pipe.crop.set(x, 1 - y - h, w, h);
-  heroCam.copy(camera);
-  if (z > 1.0001) { const FW = 1000, FH = FW * 16 / 9; heroCam.setViewOffset(FW, FH, x * FW, y * FH, w * FW, h * FH); }
-  else heroCam.clearViewOffset();
-  heroCam.updateProjectionMatrix();
-}
-function screenOf(v) { const p = v.clone().project(camera); return new THREE.Vector2((p.x + 1) / 2, (1 - p.y) / 2); }
 
 function heroClosePose() {
   const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
@@ -395,21 +382,100 @@ function printEjectPose(s, h) {
 function resetShow() {
   if (activePrint) { heroScene.remove(activePrint.mesh); activePrint = null; }
   heroPivot.position.copy(heroRest.pos); heroPivot.quaternion.copy(heroRest.quat);
-  anim.blur = 0; anim.dim = 1; anim.zoom = 1; musicDuck(false);
+  anim.blur = 0; anim.dim = 1; if (stampModel) stampModel.visible = false; musicDuck(false);
+}
+
+// ---------------------------------------------------------------- wax-seal stamp (3D)
+let stampModel = null;
+async function loadStamp() {
+  try {
+    const g = await new GLTFLoader().loadAsync('stamp/stamp.glb');
+    stampModel = g.scene;
+    stampModel.traverse(o => { if (o.isMesh) { o.frustumCulled = false; if (o.material) o.material.envMapIntensity = 1.2; } });
+    stampModel.visible = false;
+    heroScene.add(stampModel);
+  } catch (e) { console.warn('stamp model', e); }
+}
+function sealFor(kind) {
+  const se = S.photo.seal || {};
+  if (se.enabled === false) return null;
+  const url = se[kind]?.url ?? DEFAULTS.photo.seal[kind]?.url;
+  if (!url) return null;
+  return { url, size: se.size || 34, angle: (Math.random() - 0.5) * 0.5 };
+}
+// world-space point/normal of the seal centre on a print mesh
+function sealWorld(print, seal) {
+  const { x, y } = sealCenter(seal);
+  const lx = (x / PRINT_W - 0.5) * print.width, ly = (0.5 - y / PRINT_H_PX) * print.height;
+  print.mesh.updateMatrixWorld(true);
+  const p = new THREE.Vector3(lx, ly, print.width * 0.006).applyMatrix4(print.mesh.matrixWorld);
+  const q = print.mesh.getWorldQuaternion(new THREE.Quaternion());
+  const n = new THREE.Vector3(0, 0, 1).applyQuaternion(q);
+  const up = new THREE.Vector3(0, 1, 0).applyQuaternion(q), right = new THREE.Vector3(1, 0, 0).applyQuaternion(q);
+  return { p, n, up, right, scale: print.mesh.scale.x };
+}
+function stampQuat(n, up, right, tilt) {
+  // handle (+Y of the model) leans out of the print toward the viewer and up-left so it stays visible
+  const axis = n.clone().multiplyScalar(1).addScaledVector(up, 0.55 * tilt).addScaledVector(right, -0.4 * tilt).normalize();
+  const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), axis);
+  return q;
+}
+async function stampPrint(print, entry, dur) {
+  const seal = entry.seal; if (!seal) return;
+  const withSeal = drawPrint({ ...entry._printArgs, seal });
+  if (!stampModel) { print.setCanvas(await withSeal); return; }
+  const sw = sealWorld(print, seal);
+  const D = print.width * (seal.size || 34) / 100 * sw.scale;            // seal diameter in world units
+  const s = D / 1.05;                                                     // model face is ~1.05 units wide
+  stampModel.scale.setScalar(s);
+  const hover = sw.p.clone().addScaledVector(sw.n, D * 1.4).addScaledVector(sw.up, D * 0.15);
+  const start = camera.position.clone().add(new THREE.Vector3(-1.2, 1.1, -0.2).applyQuaternion(camera.quaternion));
+  const qFly = stampQuat(sw.n, sw.up, sw.right, 1.6), qPress = stampQuat(sw.n, sw.up, sw.right, 0.35);
+  const tIn = dur * 0.42, tPress = dur * 0.2, tOut = dur * 0.38;
+  stampModel.visible = true;
+  if (S.photo.sounds?.stamp !== false) play('whoosh', 0.5);
+  await tween(tIn, (k) => {
+    const e = ease(k);
+    const mid = start.clone().lerp(hover, 0.5).addScaledVector(sw.up, D * 2.5);
+    const a = start.clone().lerp(mid, e), b = mid.clone().lerp(hover, e);
+    stampModel.position.copy(a.lerp(b, e));
+    stampModel.quaternion.slerpQuaternions(qFly, qPress, e);
+  });
+  // press down
+  const sealed = await withSeal;
+  await tween(tPress * 0.4, (k) => { stampModel.position.lerpVectors(hover, sw.p, k * k); });
+  print.setCanvas(sealed);
+  if (S.photo.sounds?.stamp !== false) play('stamp', 0.9);
+  const pbase = print.mesh.position.clone();
+  await tween(tPress * 0.6, (k) => {
+    const sq = Math.sin(k * Math.PI);
+    stampModel.position.copy(sw.p).addScaledVector(sw.n, -D * 0.04 * sq);
+    print.mesh.position.copy(pbase).addScaledVector(sw.n, -D * 0.08 * sq);
+  });
+  print.mesh.position.copy(pbase);
+  // lift and fly away to the top-right
+  const exit = camera.position.clone().add(new THREE.Vector3(1.3, 1.2, -0.3).applyQuaternion(camera.quaternion));
+  await tween(tOut, (k) => {
+    const e = ease(k);
+    const lift = sw.p.clone().addScaledVector(sw.n, D * 1.6);
+    stampModel.position.copy(k < 0.3 ? sw.p.clone().lerp(lift, k / 0.3) : lift.lerp(exit, ease((k - 0.3) / 0.7)));
+    stampModel.quaternion.slerpQuaternions(qPress, qFly, e);
+  });
+  stampModel.visible = false;
 }
 
 async function shoot(job) {
   const kind = job.kind;
-  const fx = merge(DEFAULTS.photo.tierFx[kind] || {}, S.photo.tierFx?.[kind] || {});
   const tm = T();
-  const entry = { id: Date.now() + Math.random(), kind, name: job.nickname, uniqueId: job.uniqueId, avatar: job.avatarLocal || null, coins: job.coins, t: Date.now(), font: S.photo.font, fontUrl: S.photo.fontUrl, paper: paperFor(kind) };
+  const entry = { id: Date.now() + Math.random(), kind, name: job.nickname, uniqueId: job.uniqueId, avatar: job.avatarLocal || null, coins: job.coins, t: Date.now(),
+    font: S.photo.font, fontUrl: S.photo.fontUrl, paper: paperFor(kind), seal: sealFor(kind) };
   report();
   musicDuck(true);
-  const printP = makePrint(entry);
+  const printP = makePrint(entry, false);
   const close = heroClosePose();
   const restPos = heroRest.pos.clone(), restQ = heroRest.quat.clone();
   // 1. camera comes forward, background blurs
-  play('flash_charge', 0.6);
+  if (S.photo.sounds?.charge !== false) play('flash_charge', 0.6);
   await tween(tm.approach, (k) => {
     const e = ease(k);
     heroPivot.position.lerpVectors(restPos, close.pos, e);
@@ -421,88 +487,96 @@ async function shoot(job) {
   const h = print.height;
   // 2. shutter + flash
   await sleep(tm.shutter * 1000 / speed());
-  play('shutter', 1);
+  playShutter();
   await sleep(40);
   if (S.photo.flash !== false) { anim.flash = 0.85; anim.flashLight = 1; }
   const recoilQ = heroPivot.quaternion.clone();
   tween(0.25, (k) => { const a = Math.sin(k * Math.PI) * 0.02; heroPivot.quaternion.copy(recoilQ).multiply(tmpQ.setFromEuler(new THREE.Euler(-a, 0, 0))); });
-  // 3. printing: print slides out of the slot and develops; optional zoom on the slot
+
+  // phase lengths: everything from the shutter until the photo lands = tm.total seconds
+  const total = Math.max(3, Number(tm.total) || 9);
+  const hasSeal = !!entry.seal;
+  const P = { print: 0.2, toScreen: 0.11, hold1: 0.12, stamp: hasSeal ? 0.24 : 0, hold2: hasSeal ? 0.13 : 0.37, fly: 0.2 };
+  const sec = (k) => P[k] * total;
+
+  // 3. print slides out of the slot and develops (finishes just before the stamp arrives)
   print.develop = 0;
   heroScene.add(print.mesh);
-  const devStart = performance.now(), devDur = Math.max(0.3, tm.develop) * 1000 / speed();
+  const devStart = performance.now(), devDur = (sec('print') + sec('toScreen') + sec('hold1') * 0.8) * 1000 / speed();
   const developTick = () => { if (activePrint !== print) return; print.develop = clamp01((performance.now() - devStart) / devDur); if (print.develop < 1) requestAnimationFrame(developTick); };
   developTick();
-  await sleep(200 / speed());
-  const zoomTarget = fx.zoom ? Math.max(1, S.photo.zoomAmount || 2.2) : 1;
-  const z0 = anim.zoom;
-  await tween(tm.print, (k) => {
-    const s = easeOut(k) * h * 0.9;
-    const pose = printEjectPose(s, h);
+  await tween(sec('print'), (k) => {
+    const pose = printEjectPose(easeOut(k) * h * 0.9, h);
     print.mesh.position.copy(pose.pos); print.mesh.quaternion.copy(pose.quat);
-    if (zoomTarget > 1) {
-      // aim between the slot and the emerging print
-      const { p, d } = slotWorld();
-      anim.zoomC.copy(screenOf(p.clone().addScaledVector(d, h * 0.35)));
-      anim.zoomC.y -= 0.03;
-      anim.zoom = lerp(z0, zoomTarget, ease(Math.min(1, k * 1.4)));
-    }
   });
-  // wait for developing to finish while zoomed in (so the picture appears in close-up)
-  if (zoomTarget > 1) { while (print.develop < 0.97 && activePrint === print) await sleep(50); await sleep(300 / speed()); }
-  else await sleep(250 / speed());
-
+  // 4. print flies up to the screen, camera goes home
   const heroFrom = { pos: heroPivot.position.clone(), quat: heroPivot.quaternion.clone() };
-  const heroHome = () => tween(1.4, (k) => { const e = ease(k); heroPivot.position.lerpVectors(heroFrom.pos, restPos, e); heroPivot.quaternion.slerpQuaternions(heroFrom.quat, restQ, e); });
-
-  if (fx.show) {
-    // 4. zoom out, print flies up to the screen, camera goes home
-    const zf = anim.zoom;
-    const from = { pos: print.mesh.position.clone(), quat: print.mesh.quaternion.clone() };
-    const show = showPose();
-    heroHome();
-    await tween(Math.max(0.5, tm.fly * 0.8), (k) => {
-      const e = ease(k);
-      anim.zoom = lerp(zf, 1, e);
-      print.mesh.position.lerpVectors(from.pos, show.pos, e);
-      print.mesh.position.y += Math.sin(e * Math.PI) * 0.18;
-      print.mesh.quaternion.slerpQuaternions(from.quat, show.quat, e);
-    });
-    anim.zoom = 1;
-    const base = print.mesh.position.clone();
-    await tween(S.photo.holdSeconds ?? 2.5, (k) => { print.mesh.position.copy(base); print.mesh.position.y += Math.sin(k * Math.PI * 2) * 0.01; });
-  }
+  tween(1.4, (k) => { const e = ease(k); heroPivot.position.lerpVectors(heroFrom.pos, restPos, e); heroPivot.quaternion.slerpQuaternions(heroFrom.quat, restQ, e); });
+  const from = { pos: print.mesh.position.clone(), quat: print.mesh.quaternion.clone() };
+  const show = showPose();
+  await tween(sec('toScreen'), (k) => {
+    const e = ease(k);
+    print.mesh.position.lerpVectors(from.pos, show.pos, e);
+    print.mesh.position.y += Math.sin(e * Math.PI) * 0.18;
+    print.mesh.quaternion.slerpQuaternions(from.quat, show.quat, e);
+  });
+  // 5. hold on screen, stamp the seal, hold again
+  await tween(sec('hold1'), () => {});
   print.develop = 1;
-  // 5. fly to destination
+  if (hasSeal) await stampPrint(print, entry, sec('stamp'));
+  await tween(sec('hold2'), () => {});
+  // 6. fly to destination
   let pose, replace = null;
   if (kind === 'small') { const s = nextSlot('small', meta.frames.small.length); entry.slot = s.slot; replace = s.replace; pose = slotPose('small', s.slot); }
   else if (kind === 'big') { entry.slot = 0; replace = gallery.items.find(i => i.entry.kind === 'big') || null; pose = slotPose('big', 0); }
   else if (tableSlots().length) { const s = nextSlot('table', tableSlots().length); entry.slot = s.slot; replace = s.replace; pose = slotPose('table', s.slot); }
   else { pose = slotPose('table', null); entry.pick = pose.pick; }
   if (replace) removeGalleryItem(replace, true);
-  if (!fx.show) heroHome();
-  const zf = anim.zoom;
   const f2 = { pos: print.mesh.position.clone(), quat: print.mesh.quaternion.clone(), scale: print.mesh.scale.x };
-  const mid = f2.pos.clone().lerp(pose.pos, 0.5); mid.y += kind === 'table' ? 0.35 : 0.35; mid.z += 0.6;
-  await tween(tm.fly, (k) => {
+  const mid = f2.pos.clone().lerp(pose.pos, 0.5); mid.y += 0.35; mid.z += 0.6;
+  await tween(sec('fly'), (k) => {
     const e = ease(k);
     const a = f2.pos.clone().lerp(mid, e), b = mid.clone().lerp(pose.pos, e);
     print.mesh.position.copy(a.lerp(b, e));
     print.mesh.quaternion.slerpQuaternions(f2.quat, pose.quat, e);
     print.mesh.scale.setScalar(lerp(f2.scale, pose.scale, e));
-    anim.zoom = lerp(zf, 1, ease(Math.min(1, k * 1.5)));
     anim.blur = 1 - clamp01(k * 1.6); anim.dim = lerp(0.82, 1, clamp01(k * 1.6));
     print.light = lerp(1, 0.92, e);
   });
   heroScene.remove(print.mesh);
   activePrint = null;
+  delete entry._printArgs;
   placeInGallery(print, entry, pose);
   if (kind === 'table' && !tableSlots().length) {
     const items = gallery.items.filter(i => i.entry.kind === 'table');
     while (items.length > 28) removeGalleryItem(items.shift(), true);
   }
   saveGallery();
-  anim.blur = 0; anim.dim = 1; anim.zoom = 1;
+  anim.blur = 0; anim.dim = 1;
   musicDuck(false);
+}
+
+// ---------------------------------------------------------------- custom shutter sound
+const customSounds = new Map();
+async function loadCustomSound(url) {
+  if (!url || !audio.ctx) return null;
+  if (customSounds.has(url)) return customSounds.get(url);
+  const p = fetch(url).then(r => r.arrayBuffer()).then(b => audio.ctx.decodeAudioData(b)).catch(e => { console.warn('sound', e); return null; });
+  customSounds.set(url, p);
+  return p;
+}
+async function playShutter() {
+  const url = S.photo.sounds?.shutter;
+  if (url) {
+    const buf = await loadCustomSound(url);
+    if (buf) {
+      if (audio.ctx.state === 'suspended') audio.ctx.resume();
+      const src = audio.ctx.createBufferSource(); src.buffer = buf;
+      const g = audio.ctx.createGain(); g.gain.value = (S.photo.volume ?? 80) / 100;
+      src.connect(g); g.connect(audio.gain); src.start(); return;
+    }
+  }
+  play('shutter', 1);
 }
 
 // ---------------------------------------------------------------- background music
@@ -602,6 +676,7 @@ function applySettings(s) {
   leds.bottom?.configure(S.bottomBoard, S.topBoard);
   ensureFont(S.photo.font, S.photo.fontUrl);
   musicSet(S.music);
+  if (S.photo.sounds?.shutter) loadCustomSound(S.photo.sounds.shutter);
 }
 api.onSettings?.(applySettings);
 
@@ -649,8 +724,7 @@ function frame() {
   pipe.blur = anim.blur; pipe.dim = anim.dim; pipe.flash = anim.flash * 0.75;
   music.duck += (music.duckTarget - music.duck) * Math.min(1, dt * 3);
   if (!music.el.paused) music.el.volume = Math.min(1, musicVolume());
-  updateZoom();
-  pipe.render({ bgScene, heroScene, camera, heroCamera: heroCam, viewport });
+  pipe.render({ bgScene, heroScene, camera, viewport });
 }
 
 // ---------------------------------------------------------------- boot
@@ -666,6 +740,7 @@ function frame() {
     console.log('boot: scene');
     for (const f of (S.customFonts || [])) await ensureFont(f.family, f.url);
     await buildScene();
+    await loadStamp();
     console.log('boot: scene ok');
     applySettings(S);
     console.log('boot: settings');

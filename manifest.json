@@ -1,6 +1,6 @@
 {
- "version": "1.2.2",
- "notes": "Bảng LED trên hiển thị bằng điểm LED rõ như bảng dưới, chữ to hơn",
+ "version": "1.2.3",
+ "notes": "Sửa phát âm thanh tự chọn: tự thử định dạng khác nếu không giải mã được, nút Nghe thử phát qua màn hình hiển thị và báo lỗi cụ thể",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
@@ -10,8 +10,8 @@
    "size": 5453
   },
   "control.html": {
-   "sha256": "f6af5bb06f613c1b18c0e6fd97b96b2ef7fdcee0d26ab56d41303fa9c475ea04",
-   "size": 12081
+   "sha256": "efd458b35977e5329c6889eac5af480359d602eaecf48d7f62e6e98904be1cbd",
+   "size": 12136
   },
   "display.html": {
    "sha256": "72822fa3b626f0758331bf68914654e88f5ecf92c3133afeafe38b53739d9316",
@@ -86,16 +86,16 @@
    "size": 10369
   },
   "js/control.js": {
-   "sha256": "d312a5aa1e85ca326347d43dfee38643764bc1ce4bb7f0934666a8e25e7318a9",
-   "size": 23841
+   "sha256": "0a678c372d52b819d9a4ebf1d430d2a21dad6eab635c480b2304a52ebb401e5e",
+   "size": 24205
   },
   "js/defaults.js": {
    "sha256": "43537f9fa08b937cab1cfe4472d81e1805fa9ad8877d8bdd62ea8ad12b87a703",
    "size": 5330
   },
   "js/display.js": {
-   "sha256": "ff703a93e2a3f409847e6a5fa1aca77743b3465fcdde1d7aec5ec88c32545081",
-   "size": 40244
+   "sha256": "d99647ccbf42524a1cb823d80242e1627a1ce7025b72075db6da2dfd05c4caf3",
+   "size": 41392
   },
   "js/led.js": {
    "sha256": "d2c3c2f5234208e4622d17597b3b9784b894e9a7eb56774d583ea2b56a61bf67",

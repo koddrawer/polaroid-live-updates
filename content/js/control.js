@@ -44,6 +44,8 @@ api.onStatus(setStatus);
 api.onLive((ev) => { if (ev.type !== 'chat' && ev.type !== 'gift-streak') addLog(ev); });
 api.onReport((r) => {
   if (r.music) { musicNow = r.music; renderMusicNow(); return; }
+  if (r.soundTest) { $('sndMsg').textContent = r.soundTest.result === 'ok' ? '✓ Đã phát. Nếu vẫn không nghe: kiểm tra âm lượng Windows (Volume mixer → PolaroidLive) và thanh "Âm lượng chụp".' : '✗ ' + r.soundTest.result; return; }
+  if (r.soundError) { $('sndMsg').textContent = '✗ ' + r.soundError; return; }
   $('queueInfo').textContent = `Hàng chờ chụp ảnh: ${r.queue}${r.busy ? ' (đang chụp)' : ''} · Ảnh đang trưng bày: ${r.gallery}`;
   $('perf').textContent = `FPS hiện tại: ${r.fps}`;
 });
@@ -313,12 +315,12 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   showShutter();
   $('btnShutterFile').onclick = async () => { const f = await api.pickFile('sound'); if (f) { await save({ photo: { sounds: { shutter: f.url, shutterName: f.name } } }); showShutter(); } };
   $('btnShutterReset').onclick = async () => { await save({ photo: { sounds: { shutter: null, shutterName: '' } } }); showShutter(); };
-  $('btnShutterTest').onclick = () => { const a = new Audio(S.photo.sounds.shutter || 'sounds/shutter.wav'); a.volume = (S.photo.volume ?? 80) / 100; a.play(); };
+  $('btnShutterTest').onclick = () => { $('sndMsg').textContent = 'Đang phát thử trên màn hình hiển thị…'; api.command({ type: 'soundTest', which: 'shutter' }); };
   const showStamp = () => $('stampName').textContent = S.photo.sounds.stampSound ? (S.photo.sounds.stampName || 'Âm thanh của bạn') : 'Mặc định';
   showStamp();
   $('btnStampFile').onclick = async () => { const f = await api.pickFile('sound'); if (f) { await save({ photo: { sounds: { stampSound: f.url, stampName: f.name } } }); showStamp(); } };
   $('btnStampReset').onclick = async () => { await save({ photo: { sounds: { stampSound: null, stampName: '' } } }); showStamp(); };
-  $('btnStampTest').onclick = () => { const a = new Audio(S.photo.sounds.stampSound || 'sounds/stamp.wav'); a.volume = (S.photo.volume ?? 80) / 100; a.play(); };
+  $('btnStampTest').onclick = () => { $('sndMsg').textContent = 'Đang phát thử trên màn hình hiển thị…'; api.command({ type: 'soundTest', which: 'stamp' }); };
   renderTiers();
   ['tTable', 'tSmall', 'tBig'].forEach(id => $(id).addEventListener('change', () => setTimeout(renderTiers, 300)));
   bindCheck('musOn', () => S.music.enabled, v => ({ music: { enabled: v } }));

@@ -49,14 +49,20 @@ window.addEventListener('resize', resize);
 
 // ---------------------------------------------------------------- audio
 const audio = { ctx: null, buffers: {}, gain: null };
-async function initAudio() {
-  try {
-    audio.ctx = new AudioContext();
-    audio.gain = audio.ctx.createGain(); audio.gain.connect(audio.ctx.destination);
-    for (const n of ['shutter', 'flash_charge', 'chime', 'stamp', 'whoosh']) {
-      const r = await fetch(`sounds/${n}.wav`); audio.buffers[n] = await audio.ctx.decodeAudioData(await r.arrayBuffer());
-    }
-  } catch (e) { console.warn('audio', e); }
+let audioInit = null;
+function initAudio() {
+  if (audioInit) return audioInit;
+  audioInit = (async () => {
+    try {
+      audio.ctx = new AudioContext();
+      audio.gain = audio.ctx.createGain(); audio.gain.connect(audio.ctx.destination);
+    } catch (e) { console.warn('audio', e); return; }
+    await Promise.all(['shutter', 'flash_charge', 'chime', 'stamp', 'whoosh'].map(async (n) => {
+      try { const r = await fetch(`sounds/${n}.wav`); audio.buffers[n] = await audio.ctx.decodeAudioData(await r.arrayBuffer()); }
+      catch (e) { console.warn('sound', n, e); }
+    }));
+  })();
+  return audioInit;
 }
 function play(name, vol = 1) {
   if (!audio.ctx || !audio.buffers[name]) return;
@@ -562,21 +568,32 @@ const customSounds = new Map();
 async function loadCustomSound(url) {
   if (!url || !audio.ctx) return null;
   if (customSounds.has(url)) return customSounds.get(url);
-  const p = fetch(url).then(r => r.arrayBuffer()).then(b => audio.ctx.decodeAudioData(b)).catch(e => { console.warn('sound', e); return null; });
+  const p = fetch(url).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.arrayBuffer(); })
+    .then(b => audio.ctx.decodeAudioData(b))
+    .catch(e => { console.warn('sound', url, e); customSounds.delete(url); return null; });
   customSounds.set(url, p);
   return p;
 }
+// returns 'ok' or an error message (shown in the control panel's sound test)
 async function playCustom(url, fallback, vol) {
+  const v = Math.min(1, vol * (S.photo.volume ?? 80) / 100);
+  if (!audio.ctx) await initAudio();
+  if (audio.ctx?.state === 'suspended') { try { await audio.ctx.resume(); } catch {} }
   if (url) {
     const buf = await loadCustomSound(url);
     if (buf) {
-      if (audio.ctx.state === 'suspended') audio.ctx.resume();
       const src = audio.ctx.createBufferSource(); src.buffer = buf;
-      const g = audio.ctx.createGain(); g.gain.value = vol * (S.photo.volume ?? 80) / 100;
-      src.connect(g); g.connect(audio.gain); src.start(); return;
+      const g = audio.ctx.createGain(); g.gain.value = v;
+      src.connect(g); g.connect(audio.gain); src.start();
+      return 'ok';
     }
+    // decoder could not read the file → let the media element try (supports more formats)
+    try { const a = new Audio(url); a.volume = v; await a.play(); return 'ok'; }
+    catch (e) { const msg = 'Không phát được file âm thanh đã chọn (' + (e?.message || e) + '). Dùng âm mặc định.'; api.report?.({ soundError: msg }); play(fallback, vol); return msg; }
   }
+  if (!audio.buffers[fallback]) return 'Âm thanh mặc định chưa tải xong';
   play(fallback, vol);
+  return 'ok';
 }
 const playShutter = () => playCustom(S.photo.sounds?.shutter, 'shutter', 1);
 const playStamp = () => playCustom(S.photo.sounds?.stampSound, 'stamp', 0.9);
@@ -649,6 +666,9 @@ api.onCommand?.((cmd) => {
       onLive({ type: 'gift', nickname: name, uniqueId: name + '_' + coins, giftName: coins >= 10 ? 'Vương miện' : coins >= 5 ? 'Khung ảnh' : 'Hoa hồng',
         giftImage: coins >= 10 ? 'app://content/icons/crown.png' : coins >= 5 ? 'app://content/icons/frame.png' : 'app://content/icons/rose.png', unit: coins, repeat: 1, coins });
     }
+  } else if (cmd.type === 'soundTest') {
+    const fn = cmd.which === 'stamp' ? playStamp : playShutter;
+    fn().then(res => api.report?.({ soundTest: { which: cmd.which, result: res } }));
   } else if (cmd.type === 'music') {
     if (cmd.action === 'next') { music.userPaused = false; musicNext(); }
     else if (cmd.action === 'prev') musicNext(true);

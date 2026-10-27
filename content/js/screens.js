@@ -54,9 +54,21 @@ function bigDigit(g, ch, family, cx, top, h, maxW) {
   g.fillText(ch, Math.round(cx - m.width / 2), Math.round(top + z.actualBoundingBoxAscent));
 }
 
+// Simple, readable layout: big HH:MM on top, DD/MM/YYYY below (coarse 64×48 LED grid so it reads
+// even when the clock is small on screen).
+function fitInk(g, text, family, weight, h, maxW) {
+  g.font = `${weight} ${h}px ${family}`;
+  const z = g.measureText('0123456789');
+  let size = h * h / Math.max(1, z.actualBoundingBoxAscent + z.actualBoundingBoxDescent);
+  g.font = `${weight} ${size}px ${family}`;
+  let w = g.measureText(text).width;
+  if (w > maxW) { size *= maxW / w; g.font = `${weight} ${size}px ${family}`; w = g.measureText(text).width; }
+  const m = g.measureText('0123456789');
+  return { w, asc: m.actualBoundingBoxAscent, desc: m.actualBoundingBoxDescent };
+}
 export class ClockScreen {
   constructor() {
-    this.led = new LedBoard({ cols: 128, rows: 96, width: 1, height: 1, boost: 2.0, offColor: 0x0c0703 });
+    this.led = new LedBoard({ cols: 64, rows: 48, width: 1, height: 1, boost: 2.0, offColor: 0x0c0703 });
     this.cfg = {}; this.key = '';
   }
   configure(cfg, top) { this.cfg = cfg || {}; this.key = ''; if (top?.ledBrightness) this.led.brightness = 2.0 * top.ledBrightness / 100; }
@@ -67,33 +79,29 @@ export class ClockScreen {
     let hh = p.h;
     if (c.format === '12h') hh = hh % 12 || 12;
     const hs = String(hh).padStart(2, '0');
-    const day = DAYS[p.wd], date = p.d + ' ' + MONTHS[Number(p.mo) - 1] + ' ' + p.y;
-    const temp = c.showTemp === false ? '' : String(c.temp ?? '28°C').toUpperCase();
-    const key = [hs, p.mi, colon, day, date, temp, c.color].join('|');
+    const date = `${p.d}/${p.mo}/${p.y}`;
+    const key = [hs, p.mi, colon, date, c.color].join('|');
     if (key === this.key) return;
     this.key = key;
-    this.led.draw((g) => {
+    this.led.draw((g, C) => {
       g.fillStyle = c.color || '#ff9628';
-      for (const [x, y, w] of CLOCK_DECO) g.fillRect(x, y, w, 1);
-      // top row: temperature next to the weather icon, date on the right
-      if (temp) pixText(g, temp, 24, 5);
-      const topLine = day + ' ' + date;
-      pixText(g, topLine, 125 - pixWidth(topLine), 5);
-      // big time
-      const F = '"Be Vietnam Pro", "Barlow Condensed", Arial, sans-serif';
-      bigDigit(g, hs[0], F, 19, 32, 28, 20);
-      bigDigit(g, hs[1], F, 41, 32, 28, 20);
-      bigDigit(g, p.mi[0], F, 87, 32, 28, 20);
-      bigDigit(g, p.mi[1], F, 110, 32, 28, 20);
-      if (colon) { g.fillRect(61, 40, 6, 7); g.fillRect(61, 53, 6, 7); }
-      // bottom-left: day / date beside the calendar icon
-      pixText(g, day, 18, 78);
-      pixText(g, date, 18, 86);
-      // bottom-right: temperature beside the thermometer
-      if (temp) {
-        const w = pixWidth(temp) * 2 - (temp.length - 1); // 2× glyphs, 1-LED gaps
-        pixText(g, temp, Math.max(92, 126 - w), 77, 2);
+      g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+      // time: digits at fixed positions so the blinking colon never shifts them
+      const F = '"Barlow Condensed", "Arial Narrow", Arial, sans-serif';
+      const T = fitInk(g, '00:00', F, 700, 22, C - 4);
+      const digitW = g.measureText('0').width, colW = g.measureText(':').width;
+      const base = 3 + T.asc;
+      let x = Math.round((C - (digitW * 4 + colW)) / 2);
+      for (const ch of [hs[0], hs[1], ':', p.mi[0], p.mi[1]]) {
+        const w = ch === ':' ? colW : digitW;
+        if (ch !== ':' || colon) { const cw = g.measureText(ch).width; g.fillText(ch, Math.round(x + (w - cw) / 2), Math.round(base)); }
+        x += w;
       }
+      // divider
+      for (let i = 4; i < C - 4; i += 2) g.fillRect(i, 29, 1, 1);
+      // date
+      const D = fitInk(g, date, F, 700, 12, C - 2);
+      g.fillText(date, Math.round((C - D.w) / 2), Math.round(32 + D.asc));
     });
   }
 }

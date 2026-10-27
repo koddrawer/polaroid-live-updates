@@ -375,8 +375,6 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   ['tSmall', 'tMedium', 'tBig'].forEach(id => $(id).addEventListener('change', () => setTimeout(renderTiers, 300)));
   renderClock(); tickClock();
   $('clkFormat').value = S.clock.format || '24h'; $('clkFormat').onchange = () => save({ clock: { format: $('clkFormat').value } });
-  bindCheck('clkShowTemp', () => S.clock.showTemp !== false, v => ({ clock: { showTemp: v } }));
-  bindText('clkTemp', () => S.clock.temp ?? '28°C', v => ({ clock: { temp: v } }), 400);
   bindCheck('clkBlink', () => S.clock.blink !== false, v => ({ clock: { blink: v } }));
   bindText('clkColor', () => S.clock.color, v => ({ clock: { color: v } }), 150);
   bindText('spkLow', () => S.speaker.low, v => ({ speaker: { low: v } }), 150);

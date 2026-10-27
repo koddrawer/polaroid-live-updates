@@ -1,6 +1,6 @@
 {
- "version": "1.3.1",
- "notes": "Màn hình đồng hồ và loa giống mẫu trong file 3D; ảnh in ra từ khe phía trước dưới máy ảnh",
+ "version": "1.3.2",
+ "notes": "Đồng hồ chỉ hiện giờ và ngày/tháng/năm, chữ to dễ đọc",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
@@ -10,8 +10,8 @@
    "size": 5632
   },
   "control.html": {
-   "sha256": "f7971374a2eb554afb238fd18bfdee3e6601cb0a5d6fa8110d65a746386cc539",
-   "size": 13952
+   "sha256": "fc98709a1fde863a1be6adf86ecc60bf933f26174ea68a2d9659b0fd36d7f57a",
+   "size": 13710
   },
   "display.html": {
    "sha256": "72822fa3b626f0758331bf68914654e88f5ecf92c3133afeafe38b53739d9316",
@@ -86,8 +86,8 @@
    "size": 10369
   },
   "js/control.js": {
-   "sha256": "2d78e0735fbca4770c04a7599f27608e67839a648ef26448045f3fdf5d1b46f8",
-   "size": 27650
+   "sha256": "2c6169220ec36a7c24c464a2cb8eeb22c53022253b9995f49fce7c8000f70ded",
+   "size": 27463
   },
   "js/defaults.js": {
    "sha256": "8e507a1ab453e195c927baa9e2abf4ea8b161229e817b28f345d10da51c46473",
@@ -110,8 +110,8 @@
    "size": 7469
   },
   "js/screens.js": {
-   "sha256": "1641e621c593b2ca1f8a4f0dbc56bde5444bd1e84bf144ac2ff250f9119dad5c",
-   "size": 10317
+   "sha256": "19a01e157535bbfa4ffb80449016b1175e240ef9ead259f169f9217c3297a1c8",
+   "size": 10821
   },
   "papers/black.jpg": {
    "sha256": "58f9f7329a0a0fcc65dc901d317976ccea26c373eaf7d4389a489e25419072a8",

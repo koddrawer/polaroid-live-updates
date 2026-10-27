@@ -1,6 +1,6 @@
 {
- "version": "1.3.4",
- "notes": "Nền ảnh riêng cho từng loại donate; chọn nhiều con dấu cho mỗi loại, app đóng ngẫu nhiên 1 dấu",
+ "version": "1.3.5",
+ "notes": "Thêm ảnh dấu: app tự tách con dấu khỏi nền trắng",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
@@ -86,8 +86,12 @@
    "size": 10369
   },
   "js/control.js": {
-   "sha256": "bc73d0e89cee07f564dbf1a0576da5d0e0d11797f0bfe4ec23c896fbaaed80f0",
-   "size": 28650
+   "sha256": "e24c1508cf8f4998ec158a362ec6c43751ec8f100ef36747b7e0e2e18d366bfa",
+   "size": 28910
+  },
+  "js/cutout.js": {
+   "sha256": "2aec5541a446f219f568751271ec49e03e6b156dd2021d4b55327217744d66ee",
+   "size": 5364
   },
   "js/defaults.js": {
    "sha256": "8e7d1651057ed984eebc2f79ca7d4d389b47e2f7c5628723ccfff86d62e5e9d1",

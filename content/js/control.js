@@ -2,6 +2,7 @@
 import { DEFAULTS, BUILTIN_ICONS, BUNDLED_FONTS, LED_FONTS, PAPERS, SEALS, TIME_ZONES, OLD_TOP_ITEMS, merge, sealSetOf } from './defaults.js';
 import { zonedParts } from './screens.js';
 import { drawPrint } from './print.js';
+import { cutoutSeal } from './cutout.js';
 
 const api = window.api;
 const $ = (id) => document.getElementById(id);
@@ -247,12 +248,15 @@ function renderTiers() {
       b.onclick = () => saveSeals(kind, on ? set.filter(u => u !== sl.url) : [...set, sl.url]);
       r3.append(b);
     }
-    const upS = Object.assign(document.createElement('button'), { textContent: 'Thêm ảnh dấu của bạn…', title: 'PNG nền trong suốt' });
+    const upS = Object.assign(document.createElement('button'), { textContent: 'Thêm ảnh dấu của bạn…', title: 'Ảnh nền trắng hoặc trong suốt — app tự tách nền' });
     upS.onclick = async () => {
       const f = await api.pickFile('image'); if (!f) return;
-      const list = [...(S.photo.customSeals || []).filter(c => c.url !== f.url), { name: f.name || 'Dấu của bạn', url: f.url }];
+      upS.disabled = true; upS.textContent = 'Đang tách nền…';
+      let url = f.url;
+      try { url = (await cutoutSeal(f.url)) || f.url; } catch (e) { console.warn('cutout', e); }
+      const list = [...(S.photo.customSeals || []).filter(c => c.url !== url), { name: f.name || 'Dấu của bạn', url }];
       await save({ photo: { customSeals: list } });
-      saveSeals(kind, [...set.filter(u => u !== f.url), f.url]);
+      saveSeals(kind, [...set.filter(u => u !== url), url]);
     };
     r3.append(upS);
     body.append(title, r1, r3);

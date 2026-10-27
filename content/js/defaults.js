@@ -123,3 +123,12 @@ export const TIME_ZONES = [
   ['America/Denver', 'Mỹ – Denver'], ['America/Los_Angeles', 'Mỹ – miền Tây (Los Angeles)'], ['America/Toronto', 'Canada – Toronto'],
   ['America/Vancouver', 'Canada – Vancouver'], ['America/Sao_Paulo', 'Brazil'],
 ];
+
+// seals chosen for a tier (the app picks one at random per photo); [] = no seal
+export function sealSetOf(S, kind) {
+  const set = S.photo?.sealSet?.[kind];
+  if (Array.isArray(set)) return set.filter(Boolean);
+  const one = S.photo?.seal?.[kind];                       // older single-seal setting
+  const url = one && 'url' in one ? one.url : DEFAULTS.photo.seal[kind]?.url;
+  return url ? [url] : [];
+}

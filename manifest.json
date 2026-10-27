@@ -1,17 +1,17 @@
 {
- "version": "1.3.3",
- "notes": "Nền ảnh riêng cho từng loại donate; con dấu chọn riêng từng loại và bỏ chọn được",
+ "version": "1.3.4",
+ "notes": "Nền ảnh riêng cho từng loại donate; chọn nhiều con dấu cho mỗi loại, app đóng ngẫu nhiên 1 dấu",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
  "files": {
   "control.css": {
-   "sha256": "f7a52b4f7f1395d49c27063e7f0b62a59216f4327c3e9a397d4d2d6e791c38f5",
-   "size": 5932
+   "sha256": "053c1f52589b5fd0323a7570dc5ee3d96890ba8bc495e325bcd0e32de0f31cb3",
+   "size": 6176
   },
   "control.html": {
-   "sha256": "79d79d33bd0880f3c97c19357195753add060d79759aa3729bdf983c2f7fd473",
-   "size": 13710
+   "sha256": "6590d40dd33534c69ef5d63fe8f74721ff6f94ef4f8b34224fec3afbd5189941",
+   "size": 13832
   },
   "display.html": {
    "sha256": "72822fa3b626f0758331bf68914654e88f5ecf92c3133afeafe38b53739d9316",
@@ -86,16 +86,16 @@
    "size": 10369
   },
   "js/control.js": {
-   "sha256": "af235a5fb4cd92c45bde672a19b779b2e36b4f53ac9d96551fa888b41add51c0",
-   "size": 28170
+   "sha256": "bc73d0e89cee07f564dbf1a0576da5d0e0d11797f0bfe4ec23c896fbaaed80f0",
+   "size": 28650
   },
   "js/defaults.js": {
-   "sha256": "d384448954abc3e49e97fa778489ad449a171aee0e91b4213b063e59605d1543",
-   "size": 7297
+   "sha256": "8e7d1651057ed984eebc2f79ca7d4d389b47e2f7c5628723ccfff86d62e5e9d1",
+   "size": 7705
   },
   "js/display.js": {
-   "sha256": "0d3b9a6883a25da9b8d6736a98c9809c8da3e01749a13037c7f505bdea7cb938",
-   "size": 43282
+   "sha256": "912f5c85980b6f66d1b154a9d29652179ac4770ae3f4288c84fb0b38c66009ed",
+   "size": 43333
   },
   "js/led.js": {
    "sha256": "d2c3c2f5234208e4622d17597b3b9784b894e9a7eb56774d583ea2b56a61bf67",

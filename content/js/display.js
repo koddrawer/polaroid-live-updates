@@ -6,7 +6,7 @@ import { Pipeline } from './pipeline.js';
 import { TopBoard, BottomBoard } from './boards.js';
 import { ClockScreen, SpeakerScreen, zonedParts } from './screens.js';
 import { Print, drawPrint, sealCenter, PRINT_ASPECT, PRINT_W, PRINT_H as PRINT_H_PX } from './print.js';
-import { DEFAULTS, BUNDLED_FONTS, LED_FONTS, merge, fill } from './defaults.js';
+import { DEFAULTS, BUNDLED_FONTS, LED_FONTS, merge, fill, sealSetOf } from './defaults.js';
 
 const api = window.api || {};
 const $ = (id) => document.getElementById(id);
@@ -418,8 +418,9 @@ async function loadStamp() {
 function sealFor(kind) {
   const se = S.photo.seal || {};
   if (se.enabled === false) return null;
-  const url = se[kind] && 'url' in se[kind] ? se[kind].url : DEFAULTS.photo.seal[kind]?.url; // '' = no seal
-  if (!url) return null;
+  const set = sealSetOf(S, kind);
+  if (!set.length) return null;
+  const url = set[Math.floor(Math.random() * set.length)];   // random among the seals chosen for this tier
   return { url, size: se.size || 34, angle: (Math.random() - 0.5) * 0.5 };
 }
 // world-space point/normal of the seal centre on a print mesh

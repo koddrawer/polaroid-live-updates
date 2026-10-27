@@ -1,5 +1,5 @@
 // Polaroid Live — control panel
-import { DEFAULTS, BUILTIN_ICONS, BUNDLED_FONTS, LED_FONTS, PAPERS, SEALS, TIME_ZONES, OLD_TOP_ITEMS, merge } from './defaults.js';
+import { DEFAULTS, BUILTIN_ICONS, BUNDLED_FONTS, LED_FONTS, PAPERS, SEALS, TIME_ZONES, OLD_TOP_ITEMS, merge, sealSetOf } from './defaults.js';
 import { zonedParts } from './screens.js';
 import { drawPrint } from './print.js';
 
@@ -180,7 +180,7 @@ async function renderPreview() {
   await loadFont(p.font, p.fontUrl);
   const pp = paperOf('small');
   const se = S.photo.seal || {};
-  const cv = await drawPrint({ seal: se.enabled !== false && (se.small && 'url' in se.small ? se.small.url : DEFAULTS.photo.seal.small.url) ? { url: se.small && 'url' in se.small ? se.small.url : DEFAULTS.photo.seal.small.url, size: se.size || 34, angle: -0.15 } : null, name: $('testName')?.value || 'Hoàng Anh', avatarUrl: null, caption: (p.captionTemplate || '{name}').replace('{name}', $('testName')?.value || 'Hoàng Anh'), font: p.font, color: pp.caption || p.captionColor, sizePct: p.captionSize, paperUrl: pp.url });
+  const cv = await drawPrint({ seal: se.enabled !== false && sealSetOf(S, 'small').length ? { url: sealSetOf(S, 'small')[0], size: se.size || 34, angle: -0.15 } : null, name: $('testName')?.value || 'Hoàng Anh', avatarUrl: null, caption: (p.captionTemplate || '{name}').replace('{name}', $('testName')?.value || 'Hoàng Anh'), font: p.font, color: pp.caption || p.captionColor, sizePct: p.captionSize, paperUrl: pp.url });
   const g = $('printPreview').getContext('2d'); g.fillStyle = '#2a2118'; g.fillRect(0, 0, 300, 360);
   g.drawImage(cv, 20, 6, 260, 260 * cv.height / cv.width);
 }
@@ -201,15 +201,15 @@ async function savePaper(kind, val, rerender = true) {
   if (rerender) renderTiers();
   renderPreview();
 }
-async function saveSeal(kind, url) { await save({ photo: { seal: { [kind]: { url } } } }); renderTiers(); renderPreview(); }
+async function saveSeals(kind, list) { await save({ photo: { sealSet: { [kind]: list } } }); renderTiers(); renderPreview(); }
 function renderTiers() {
   const box = $('tierList'); box.innerHTML = '';
   const t = S.photo.tierCoins;
   $('tierHint').textContent = `Khung nhỏ: ${tierRange('small')} · Khung vừa: ${tierRange('medium')} · Khung to nhất: ${tierRange('big')}`
     + (t.small < t.medium && t.medium < t.big ? '' : ' — các mốc phải tăng dần!');
   for (const kind of ['small', 'medium', 'big']) {
-    const sealObj = S.photo.seal?.[kind];
-    const sealUrl = sealObj && 'url' in sealObj ? sealObj.url : DEFAULTS.photo.seal[kind].url;
+    const set = sealSetOf(S, kind);
+    const sealUrl = set[0] || '';
     const paper = paperOf(kind);
     const div = document.createElement('div'); div.className = 'tier';
     const sw = document.createElement('div'); sw.className = 'swatch-stack';
@@ -230,22 +230,30 @@ function renderTiers() {
     col.oninput = debounce(() => savePaper(kind, { url: paper.url, caption: col.value }, false), 250);
     const lc = document.createElement('label'); lc.htmlFor = col.id; lc.textContent = 'Màu chữ';
     const r1 = document.createElement('div'); r1.className = 'row'; r1.append(sel, up, lc, col);
-    // seal: click to choose, click the chosen one again (or "Không đóng dấu") to remove
+    // seals: tick several — each photo of this tier gets one of them at random
     const r3 = document.createElement('div'); r3.className = 'row seals';
-    const lab = document.createElement('span'); lab.className = 'muted'; lab.textContent = 'Con dấu:'; r3.append(lab);
-    const none = document.createElement('button'); none.className = 'seal none' + (!sealUrl ? ' on' : ''); none.textContent = 'Không'; none.title = 'Không đóng dấu'; none.setAttribute('aria-pressed', String(!sealUrl));
-    none.onclick = () => saveSeal(kind, '');
+    const lab = document.createElement('span'); lab.className = 'muted'; lab.textContent = set.length > 1 ? `Con dấu (ngẫu nhiên 1 trong ${set.length}):` : 'Con dấu:'; r3.append(lab);
+    const none = document.createElement('button'); none.className = 'seal none' + (!set.length ? ' on' : ''); none.textContent = 'Không'; none.title = 'Bỏ chọn tất cả (không đóng dấu)'; none.setAttribute('aria-pressed', String(!set.length));
+    none.onclick = () => saveSeals(kind, []);
     r3.append(none);
-    const all = [...SEALS]; if (sealUrl && !SEALS.some(x => x.url === sealUrl)) all.push({ name: 'Dấu của bạn', url: sealUrl });
+    const custom = (S.photo.customSeals || []).filter(c => !SEALS.some(x => x.url === c.url));
+    const all = [...SEALS, ...custom];
+    for (const u of set) if (!all.some(x => x.url === u)) all.push({ name: 'Dấu của bạn', url: u });
     for (const sl of all) {
-      const on = sl.url === sealUrl;
-      const b = document.createElement('button'); b.className = 'seal' + (on ? ' on' : ''); b.title = on ? sl.name + ' (bấm lại để bỏ dấu)' : sl.name; b.setAttribute('aria-label', sl.name); b.setAttribute('aria-pressed', String(on));
+      const on = set.includes(sl.url);
+      const b = document.createElement('button'); b.className = 'seal' + (on ? ' on' : ''); b.title = sl.name + (on ? ' — đang chọn, bấm để bỏ' : ' — bấm để chọn'); b.setAttribute('aria-label', sl.name); b.setAttribute('aria-pressed', String(on));
       const im = document.createElement('img'); im.src = sl.url; im.alt = ''; b.append(im);
-      b.onclick = () => saveSeal(kind, on ? '' : sl.url);
+      if (on) { const ck = document.createElement('span'); ck.className = 'tick'; ck.textContent = '✓'; b.append(ck); }
+      b.onclick = () => saveSeals(kind, on ? set.filter(u => u !== sl.url) : [...set, sl.url]);
       r3.append(b);
     }
-    const upS = Object.assign(document.createElement('button'), { textContent: 'Ảnh dấu của bạn…', title: 'PNG nền trong suốt' });
-    upS.onclick = async () => { const f = await api.pickFile('image'); if (f) saveSeal(kind, f.url); };
+    const upS = Object.assign(document.createElement('button'), { textContent: 'Thêm ảnh dấu của bạn…', title: 'PNG nền trong suốt' });
+    upS.onclick = async () => {
+      const f = await api.pickFile('image'); if (!f) return;
+      const list = [...(S.photo.customSeals || []).filter(c => c.url !== f.url), { name: f.name || 'Dấu của bạn', url: f.url }];
+      await save({ photo: { customSeals: list } });
+      saveSeals(kind, [...set.filter(u => u !== f.url), f.url]);
+    };
     r3.append(upS);
     body.append(title, r1, r3);
     div.append(sw, body); box.append(div);

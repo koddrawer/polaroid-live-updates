@@ -75,3 +75,6 @@ main{overflow-x:hidden}
 .seals button.seal.on{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass)}
 .tier img.swatch.seal-sw{height:64px;object-fit:contain;background:transparent;border:none}
 .row.cfg{gap:10px;align-items:center;margin:8px 0}.row.cfg label:not(.check){margin:0}
+.swatch-stack{position:relative;flex:none;align-self:flex-start}
+.swatch-stack .swatch-seal{position:absolute;left:-6px;top:-6px;width:34px;height:34px;object-fit:contain;filter:drop-shadow(0 1px 2px #000a)}
+.seals button.seal.none{width:auto;padding:0 8px;font-size:12px;color:var(--muted,#b8a98f)}

@@ -84,6 +84,7 @@ export const DEFAULTS = {
     },
     sounds: { shutter: null, shutterName: '', stampSound: null, stampName: '', charge: true, stamp: true },
     paperAll: { url: null, caption: '#2a2420' },
+    paperTier: {}, // { small|medium|big: { url, caption } } — falls back to paperAll
     paper: {
       table: { url: null, caption: '#2a2420' },
       small: { url: 'app://content/papers/vintage.jpg', caption: '#3a2a18' },

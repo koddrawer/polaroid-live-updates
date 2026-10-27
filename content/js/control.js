@@ -178,9 +178,9 @@ $('btnFontFile').addEventListener('click', async () => {
 async function renderPreview() {
   const p = S.photo;
   await loadFont(p.font, p.fontUrl);
-  const pp = merge(DEFAULTS.photo.paperAll, p.paperAll || {});
+  const pp = paperOf('small');
   const se = S.photo.seal || {};
-  const cv = await drawPrint({ seal: se.enabled !== false ? { url: merge(DEFAULTS.photo.seal.small, se.small || {}).url, size: se.size || 34, angle: -0.15 } : null, name: $('testName')?.value || 'Hoàng Anh', avatarUrl: null, caption: (p.captionTemplate || '{name}').replace('{name}', $('testName')?.value || 'Hoàng Anh'), font: p.font, color: pp.caption || p.captionColor, sizePct: p.captionSize, paperUrl: pp.url });
+  const cv = await drawPrint({ seal: se.enabled !== false && (se.small && 'url' in se.small ? se.small.url : DEFAULTS.photo.seal.small.url) ? { url: se.small && 'url' in se.small ? se.small.url : DEFAULTS.photo.seal.small.url, size: se.size || 34, angle: -0.15 } : null, name: $('testName')?.value || 'Hoàng Anh', avatarUrl: null, caption: (p.captionTemplate || '{name}').replace('{name}', $('testName')?.value || 'Hoàng Anh'), font: p.font, color: pp.caption || p.captionColor, sizePct: p.captionSize, paperUrl: pp.url });
   const g = $('printPreview').getContext('2d'); g.fillStyle = '#2a2118'; g.fillRect(0, 0, 300, 360);
   g.drawImage(cv, 20, 6, 260, 260 * cv.height / cv.width);
 }
@@ -194,54 +194,60 @@ function tierRange(kind) {
   if (kind === 'medium') return `${t.medium} – ${t.big - 1} xu`;
   return `từ ${t.big} xu`;
 }
-function renderPaper() {
-  const box = $('paperBox'); box.innerHTML = '';
-  const paper = merge(DEFAULTS.photo.paperAll, S.photo.paperAll || {});
-  const div = document.createElement('div'); div.className = 'tier';
-  const sw = document.createElement('img'); sw.className = 'swatch'; sw.alt = ''; if (paper.url) sw.src = paper.url;
-  const body = document.createElement('div'); body.className = 'body';
-  const sel = document.createElement('select'); sel.id = 'paperAll'; sel.setAttribute('aria-label', 'Hình nền ảnh');
-  for (const pp of PAPERS) { const o = document.createElement('option'); o.value = pp.url || ''; o.textContent = pp.name; sel.append(o); }
-  if (!PAPERS.some(pp => (pp.url || '') === (paper.url || ''))) { const o = document.createElement('option'); o.value = paper.url; o.textContent = 'Ảnh của bạn'; sel.append(o); }
-  sel.value = paper.url || '';
-  sel.onchange = () => { const pp = PAPERS.find(x => (x.url || '') === sel.value); savePaper({ url: sel.value || null, caption: pp ? pp.caption : paper.caption }); };
-  const up = Object.assign(document.createElement('button'), { textContent: 'Ảnh nền của bạn…' });
-  up.onclick = async () => { const f = await api.pickFile('image'); if (f) savePaper({ url: f.url, caption: paper.caption }); };
-  const col = document.createElement('input'); col.type = 'color'; col.value = paper.caption || '#2a2420'; col.id = 'capAll';
-  col.oninput = debounce(() => savePaper({ url: paper.url, caption: col.value }, false), 250);
-  const lc = document.createElement('label'); lc.htmlFor = col.id; lc.textContent = 'Màu chữ';
-  const r1 = document.createElement('div'); r1.className = 'row'; r1.append(sel, up);
-  const r2 = document.createElement('div'); r2.className = 'row'; r2.append(lc, col);
-  body.append(r1, r2); div.append(sw, body); box.append(div);
-}
-async function savePaper(val, rerender = true) {
-  await save({ photo: { paperAll: val } });
-  if (rerender) renderPaper();
+const paperOf = (kind) => merge(merge(DEFAULTS.photo.paperAll, S.photo.paperAll || {}), S.photo.paperTier?.[kind] || {});
+function renderPaper() {}
+async function savePaper(kind, val, rerender = true) {
+  await save({ photo: { paperTier: { [kind]: val } } });
+  if (rerender) renderTiers();
   renderPreview();
 }
+async function saveSeal(kind, url) { await save({ photo: { seal: { [kind]: { url } } } }); renderTiers(); renderPreview(); }
 function renderTiers() {
   const box = $('tierList'); box.innerHTML = '';
   const t = S.photo.tierCoins;
   $('tierHint').textContent = `Khung nhỏ: ${tierRange('small')} · Khung vừa: ${tierRange('medium')} · Khung to nhất: ${tierRange('big')}`
     + (t.small < t.medium && t.medium < t.big ? '' : ' — các mốc phải tăng dần!');
   for (const kind of ['small', 'medium', 'big']) {
-    const seal = merge(DEFAULTS.photo.seal[kind], S.photo.seal?.[kind] || {});
+    const sealObj = S.photo.seal?.[kind];
+    const sealUrl = sealObj && 'url' in sealObj ? sealObj.url : DEFAULTS.photo.seal[kind].url;
+    const paper = paperOf(kind);
     const div = document.createElement('div'); div.className = 'tier';
-    const sw = document.createElement('img'); sw.className = 'swatch seal-sw'; sw.alt = ''; if (seal.url) sw.src = seal.url;
+    const sw = document.createElement('div'); sw.className = 'swatch-stack';
+    const pim = document.createElement('img'); pim.className = 'swatch'; pim.alt = ''; if (paper.url) pim.src = paper.url;
+    sw.append(pim);
+    if (sealUrl) { const sim = document.createElement('img'); sim.className = 'swatch-seal'; sim.alt = ''; sim.src = sealUrl; sw.append(sim); }
     const body = document.createElement('div'); body.className = 'body';
     const title = document.createElement('div'); title.className = 'title'; title.textContent = `${TIER_NAMES[kind]} (${tierRange(kind)})`;
+    // paper
+    const sel = document.createElement('select'); sel.id = 'paper_' + kind; sel.setAttribute('aria-label', 'Nền ảnh ' + TIER_NAMES[kind]);
+    for (const pp of PAPERS) { const o = document.createElement('option'); o.value = pp.url || ''; o.textContent = pp.name; sel.append(o); }
+    if (!PAPERS.some(pp => (pp.url || '') === (paper.url || ''))) { const o = document.createElement('option'); o.value = paper.url; o.textContent = 'Ảnh của bạn'; sel.append(o); }
+    sel.value = paper.url || '';
+    sel.onchange = () => { const pp = PAPERS.find(x => (x.url || '') === sel.value); savePaper(kind, { url: sel.value || null, caption: pp ? pp.caption : paper.caption }); };
+    const up = Object.assign(document.createElement('button'), { textContent: 'Ảnh nền của bạn…' });
+    up.onclick = async () => { const f = await api.pickFile('image'); if (f) savePaper(kind, { url: f.url, caption: paper.caption }); };
+    const col = document.createElement('input'); col.type = 'color'; col.value = paper.caption || '#2a2420'; col.id = 'cap_' + kind;
+    col.oninput = debounce(() => savePaper(kind, { url: paper.url, caption: col.value }, false), 250);
+    const lc = document.createElement('label'); lc.htmlFor = col.id; lc.textContent = 'Màu chữ';
+    const r1 = document.createElement('div'); r1.className = 'row'; r1.append(sel, up, lc, col);
+    // seal: click to choose, click the chosen one again (or "Không đóng dấu") to remove
     const r3 = document.createElement('div'); r3.className = 'row seals';
-    const all = [...SEALS]; if (seal.url && !SEALS.some(x => x.url === seal.url)) all.push({ name: 'Dấu của bạn', url: seal.url });
+    const lab = document.createElement('span'); lab.className = 'muted'; lab.textContent = 'Con dấu:'; r3.append(lab);
+    const none = document.createElement('button'); none.className = 'seal none' + (!sealUrl ? ' on' : ''); none.textContent = 'Không'; none.title = 'Không đóng dấu'; none.setAttribute('aria-pressed', String(!sealUrl));
+    none.onclick = () => saveSeal(kind, '');
+    r3.append(none);
+    const all = [...SEALS]; if (sealUrl && !SEALS.some(x => x.url === sealUrl)) all.push({ name: 'Dấu của bạn', url: sealUrl });
     for (const sl of all) {
-      const b = document.createElement('button'); b.className = 'seal' + (sl.url === seal.url ? ' on' : ''); b.title = sl.name; b.setAttribute('aria-label', sl.name);
+      const on = sl.url === sealUrl;
+      const b = document.createElement('button'); b.className = 'seal' + (on ? ' on' : ''); b.title = on ? sl.name + ' (bấm lại để bỏ dấu)' : sl.name; b.setAttribute('aria-label', sl.name); b.setAttribute('aria-pressed', String(on));
       const im = document.createElement('img'); im.src = sl.url; im.alt = ''; b.append(im);
-      b.onclick = () => save({ photo: { seal: { [kind]: { url: sl.url } } } }).then(() => { renderTiers(); renderPreview(); });
+      b.onclick = () => saveSeal(kind, on ? '' : sl.url);
       r3.append(b);
     }
     const upS = Object.assign(document.createElement('button'), { textContent: 'Ảnh dấu của bạn…', title: 'PNG nền trong suốt' });
-    upS.onclick = async () => { const f = await api.pickFile('image'); if (f) { await save({ photo: { seal: { [kind]: { url: f.url } } } }); renderTiers(); renderPreview(); } };
+    upS.onclick = async () => { const f = await api.pickFile('image'); if (f) saveSeal(kind, f.url); };
     r3.append(upS);
-    body.append(title, r3);
+    body.append(title, r1, r3);
     div.append(sw, body); box.append(div);
   }
 }

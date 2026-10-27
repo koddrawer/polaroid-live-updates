@@ -265,9 +265,9 @@ function slotPose(kind, index) {
   return { pos: new THREE.Vector3(x, y, z), quat: q, scale: 1.25, pick: { x, z, yaw } };
 }
 
-// one paper for every photo — tiers are told apart only by their seal
-function paperFor() {
-  const p = S.photo.paperAll || {};
+// paper per donate tier (falls back to the shared paper)
+function paperFor(kind) {
+  const p = S.photo.paperTier?.[kind] || S.photo.paperAll || {};
   return { url: p.url || null, caption: p.caption || S.photo.captionColor };
 }
 async function makePrint(entry, withSeal = true) {
@@ -418,7 +418,7 @@ async function loadStamp() {
 function sealFor(kind) {
   const se = S.photo.seal || {};
   if (se.enabled === false) return null;
-  const url = se[kind]?.url ?? DEFAULTS.photo.seal[kind]?.url;
+  const url = se[kind] && 'url' in se[kind] ? se[kind].url : DEFAULTS.photo.seal[kind]?.url; // '' = no seal
   if (!url) return null;
   return { url, size: se.size || 34, angle: (Math.random() - 0.5) * 0.5 };
 }
@@ -487,7 +487,7 @@ async function shoot(job) {
   const kind = job.kind;
   const tm = T();
   const entry = { id: Date.now() + Math.random(), kind, name: job.nickname, uniqueId: job.uniqueId, avatar: job.avatarLocal || null, coins: job.coins, t: Date.now(),
-    font: S.photo.font, fontUrl: S.photo.fontUrl, paper: paperFor(), seal: sealFor(kind) };
+    font: S.photo.font, fontUrl: S.photo.fontUrl, paper: paperFor(kind), seal: sealFor(kind) };
   report();
   musicDuck(true);
   const printP = makePrint(entry, false);

@@ -28,12 +28,12 @@ function drawLine(g, text, L, x, top, areaH) {
   g.fillText(text, Math.round(x), Math.round(base));
 }
 function marquee(g, text, L, left, right, top, areaH, offset) {
-  // starts left-aligned, holds ~1 s, then scrolls left in whole-LED steps and loops
-  const gap = 28, per = Math.round(L.width + gap), hold = 26;
-  const k = Math.floor(offset) % (per + hold);
-  const x = left - Math.max(0, k - hold);
-  drawLine(g, text, L, x, top, areaH);
-  if (x + per < right) drawLine(g, text, L, x + per, top, areaH);
+  // endless loop: scrolls left in whole-LED steps without ever stopping; the next copy follows
+  // right behind, so the text runs round continuously. Returns the loop length (LEDs).
+  const gap = 28, per = Math.round(L.width + gap);
+  const x = left - (Math.floor(offset) % per);
+  for (let xx = x; xx < right; xx += per) drawLine(g, text, L, xx, top, areaH);
+  return per;
 }
 
 // ------------------------------------------------------------------ TOP BOARD
@@ -60,7 +60,9 @@ export class TopBoard {
     const F = fam(cfg.ledFont), W = cfg.ledWeight || 700;
     if (this.items.length > 1) {
       this.itemT += dt;
-      if (this.itemT > secs && this.trans >= 1) { this.itemT = 0; this.prev = this.idx; this.idx = (this.idx + 1) % this.items.length; this.trans = 0; this.scroll2 = 0; }
+      // a scrolling line finishes its current loop before the next item comes in (no jump mid-text)
+      const loopDone = !this.l2Per || (this.scroll2 >= this.l2Per && Math.floor(this.scroll2) % this.l2Per < 2);
+      if (this.itemT > secs && this.trans >= 1 && loopDone) { this.itemT = 0; this.prev = this.idx; this.idx = (this.idx + 1) % this.items.length; this.trans = 0; this.scroll2 = 0; }
     }
     if (this.trans < 1) this.trans = Math.min(1, this.trans + dt / 0.4);
     const speed = cfg.scrollSpeed || 26;
@@ -128,9 +130,10 @@ export class TopBoard {
     if (scrolling) {
       if (active) this.scroll2 += dt * (this.cfg.scrollSpeed || 26);
       g.save(); g.beginPath(); g.rect(x, by, maxW, bh); g.clip();
-      marquee(g, text, L, x, x + maxW, top + areaH * 0.04, areaH * 0.92, this.scroll2);
+      const per = marquee(g, text, L, x, x + maxW, top + areaH * 0.04, areaH * 0.92, this.scroll2);
+      if (active) this.l2Per = per;
       g.restore();
-    } else drawLine(g, text, L, x, top + areaH * 0.04, areaH * 0.92);
+    } else { drawLine(g, text, L, x, top + areaH * 0.04, areaH * 0.92); if (active) this.l2Per = 0; }
   }
 }
 

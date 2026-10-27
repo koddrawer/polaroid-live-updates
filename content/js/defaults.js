@@ -54,9 +54,9 @@ export const DEFAULTS = {
     itemSeconds: 4,
     ledFont: 'Barlow Condensed', ledWeight: 700, scrollSpeed: 26, ledBrightness: 100,
     items: [
-      { text: '1 xu: Ảnh đặt bàn', icon: 'app://content/icons/rose.png', color: '#ffb347' },
-      { text: '5 xu: Khung nhỏ', icon: 'app://content/icons/frame.png', color: '#ffd27a' },
-      { text: '10 xu: Khung to', icon: 'app://content/icons/crown.png', color: '#ffe08a' },
+      { text: '1 xu: Khung nhỏ', icon: 'app://content/icons/rose.png', color: '#ffb347' },
+      { text: '10 xu: Khung vừa', icon: 'app://content/icons/frame.png', color: '#ffd27a' },
+      { text: '40 xu: Khung to nhất', icon: 'app://content/icons/crown.png', color: '#ffe08a' },
     ],
   },
   bottomBoard: {
@@ -72,22 +72,26 @@ export const DEFAULTS = {
   photo: {
     font: 'Patrick Hand', fontUrl: 'app://content/fonts/PatrickHand-Regular.ttf',
     captionColor: '#2a2420', captionSize: 100, captionTemplate: '{name}',
-    tiers: { table: 1, small: 5, big: 10 },
+    tiers: { table: 1, small: 5, big: 10 }, // (v1.2, unused)
+    tierCoins: { small: 1, medium: 10, big: 40 },
     holdSeconds: 2.5, countByCoins: true, volume: 80, flash: true,
     timing: { approach: 1.15, shutter: 0.35, total: 9 },
     seal: {
       enabled: true, size: 34,
-      table: { url: 'app://content/seals/rose.png' },
       small: { url: 'app://content/seals/heart.png' },
+      medium: { url: 'app://content/seals/rose.png' },
       big: { url: 'app://content/seals/vip.png' },
     },
     sounds: { shutter: null, shutterName: '', stampSound: null, stampName: '', charge: true, stamp: true },
+    paperAll: { url: null, caption: '#2a2420' },
     paper: {
       table: { url: null, caption: '#2a2420' },
       small: { url: 'app://content/papers/vintage.jpg', caption: '#3a2a18' },
       big: { url: 'app://content/papers/gold.jpg', caption: '#3a2408' },
     },
   },
+  clock: { timeZone: 'Asia/Ho_Chi_Minh', format: '24h', weekday: true, blink: true, color: '#ffb347', color2: '#ffd27a' },
+  speaker: { low: '#3cff6a', mid: '#ffd23c', high: '#ff4a2a' },
   music: { enabled: false, volume: 35, shuffle: true, duck: true, tracks: [] },
   customFonts: [],
 };
@@ -100,3 +104,21 @@ export function merge(base, over) {
   return out;
 }
 export const fill = (tpl, d) => String(tpl || '').replace(/\{(\w+)\}/g, (_, k) => (d[k] ?? ''));
+
+// the old (v1.2) default LED texts, replaced automatically by the new tier texts
+export const OLD_TOP_ITEMS = ['1 xu: Ảnh đặt bàn', '5 xu: Khung nhỏ', '10 xu: Khung to'];
+
+// common time zones for the clock (any IANA name works)
+export const TIME_ZONES = [
+  ['Asia/Ho_Chi_Minh', 'Việt Nam (GMT+7)'], ['Asia/Bangkok', 'Thái Lan (GMT+7)'], ['Asia/Jakarta', 'Indonesia – Jakarta (GMT+7)'],
+  ['Asia/Phnom_Penh', 'Campuchia (GMT+7)'], ['Asia/Vientiane', 'Lào (GMT+7)'], ['Asia/Shanghai', 'Trung Quốc (GMT+8)'],
+  ['Asia/Hong_Kong', 'Hồng Kông (GMT+8)'], ['Asia/Taipei', 'Đài Loan (GMT+8)'], ['Asia/Singapore', 'Singapore (GMT+8)'],
+  ['Asia/Kuala_Lumpur', 'Malaysia (GMT+8)'], ['Asia/Manila', 'Philippines (GMT+8)'], ['Australia/Perth', 'Úc – Perth (GMT+8)'],
+  ['Asia/Seoul', 'Hàn Quốc (GMT+9)'], ['Asia/Tokyo', 'Nhật Bản (GMT+9)'], ['Australia/Sydney', 'Úc – Sydney'],
+  ['Pacific/Auckland', 'New Zealand'], ['Asia/Kolkata', 'Ấn Độ (GMT+5:30)'], ['Asia/Dubai', 'Dubai (GMT+4)'],
+  ['Europe/Moscow', 'Nga – Moskva (GMT+3)'], ['Europe/Berlin', 'Đức / Trung Âu'], ['Europe/Paris', 'Pháp'],
+  ['Europe/Prague', 'Séc'], ['Europe/Warsaw', 'Ba Lan'], ['Europe/London', 'Anh'], ['UTC', 'UTC (GMT+0)'],
+  ['America/New_York', 'Mỹ – miền Đông (New York)'], ['America/Chicago', 'Mỹ – miền Trung (Chicago)'],
+  ['America/Denver', 'Mỹ – Denver'], ['America/Los_Angeles', 'Mỹ – miền Tây (Los Angeles)'], ['America/Toronto', 'Canada – Toronto'],
+  ['America/Vancouver', 'Canada – Vancouver'], ['America/Sao_Paulo', 'Brazil'],
+];

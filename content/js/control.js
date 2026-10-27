@@ -1,5 +1,6 @@
 // Polaroid Live — control panel
-import { DEFAULTS, BUILTIN_ICONS, BUNDLED_FONTS, LED_FONTS, PAPERS, SEALS, merge } from './defaults.js';
+import { DEFAULTS, BUILTIN_ICONS, BUNDLED_FONTS, LED_FONTS, PAPERS, SEALS, TIME_ZONES, OLD_TOP_ITEMS, merge } from './defaults.js';
+import { zonedParts } from './screens.js';
 import { drawPrint } from './print.js';
 
 const api = window.api;
@@ -177,7 +178,7 @@ $('btnFontFile').addEventListener('click', async () => {
 async function renderPreview() {
   const p = S.photo;
   await loadFont(p.font, p.fontUrl);
-  const pp = merge(DEFAULTS.photo.paper.small, p.paper?.small || {});
+  const pp = merge(DEFAULTS.photo.paperAll, p.paperAll || {});
   const se = S.photo.seal || {};
   const cv = await drawPrint({ seal: se.enabled !== false ? { url: merge(DEFAULTS.photo.seal.small, se.small || {}).url, size: se.size || 34, angle: -0.15 } : null, name: $('testName')?.value || 'Hoàng Anh', avatarUrl: null, caption: (p.captionTemplate || '{name}').replace('{name}', $('testName')?.value || 'Hoàng Anh'), font: p.font, color: pp.caption || p.captionColor, sizePct: p.captionSize, paperUrl: pp.url });
   const g = $('printPreview').getContext('2d'); g.fillStyle = '#2a2118'; g.fillRect(0, 0, 300, 360);
@@ -185,34 +186,51 @@ async function renderPreview() {
 }
 
 
-// ---------- per-tier settings (paper background, caption colour, seal) ----------
-const TIER_NAMES = { table: 'Ảnh đặt bàn', small: 'Khung nhỏ', big: 'Khung to' };
+// ---------- one paper for every photo + a seal per frame size ----------
+const TIER_NAMES = { small: 'Khung nhỏ', medium: 'Khung vừa', big: 'Khung to nhất' };
+function tierRange(kind) {
+  const t = S.photo.tierCoins;
+  if (kind === 'small') return `${t.small} – ${t.medium - 1} xu`;
+  if (kind === 'medium') return `${t.medium} – ${t.big - 1} xu`;
+  return `từ ${t.big} xu`;
+}
+function renderPaper() {
+  const box = $('paperBox'); box.innerHTML = '';
+  const paper = merge(DEFAULTS.photo.paperAll, S.photo.paperAll || {});
+  const div = document.createElement('div'); div.className = 'tier';
+  const sw = document.createElement('img'); sw.className = 'swatch'; sw.alt = ''; if (paper.url) sw.src = paper.url;
+  const body = document.createElement('div'); body.className = 'body';
+  const sel = document.createElement('select'); sel.id = 'paperAll'; sel.setAttribute('aria-label', 'Hình nền ảnh');
+  for (const pp of PAPERS) { const o = document.createElement('option'); o.value = pp.url || ''; o.textContent = pp.name; sel.append(o); }
+  if (!PAPERS.some(pp => (pp.url || '') === (paper.url || ''))) { const o = document.createElement('option'); o.value = paper.url; o.textContent = 'Ảnh của bạn'; sel.append(o); }
+  sel.value = paper.url || '';
+  sel.onchange = () => { const pp = PAPERS.find(x => (x.url || '') === sel.value); savePaper({ url: sel.value || null, caption: pp ? pp.caption : paper.caption }); };
+  const up = Object.assign(document.createElement('button'), { textContent: 'Ảnh nền của bạn…' });
+  up.onclick = async () => { const f = await api.pickFile('image'); if (f) savePaper({ url: f.url, caption: paper.caption }); };
+  const col = document.createElement('input'); col.type = 'color'; col.value = paper.caption || '#2a2420'; col.id = 'capAll';
+  col.oninput = debounce(() => savePaper({ url: paper.url, caption: col.value }, false), 250);
+  const lc = document.createElement('label'); lc.htmlFor = col.id; lc.textContent = 'Màu chữ';
+  const r1 = document.createElement('div'); r1.className = 'row'; r1.append(sel, up);
+  const r2 = document.createElement('div'); r2.className = 'row'; r2.append(lc, col);
+  body.append(r1, r2); div.append(sw, body); box.append(div);
+}
+async function savePaper(val, rerender = true) {
+  await save({ photo: { paperAll: val } });
+  if (rerender) renderPaper();
+  renderPreview();
+}
 function renderTiers() {
   const box = $('tierList'); box.innerHTML = '';
-  for (const kind of ['table', 'small', 'big']) {
+  const t = S.photo.tierCoins;
+  $('tierHint').textContent = `Khung nhỏ: ${tierRange('small')} · Khung vừa: ${tierRange('medium')} · Khung to nhất: ${tierRange('big')}`
+    + (t.small < t.medium && t.medium < t.big ? '' : ' — các mốc phải tăng dần!');
+  for (const kind of ['small', 'medium', 'big']) {
     const seal = merge(DEFAULTS.photo.seal[kind], S.photo.seal?.[kind] || {});
-    const paper = merge(DEFAULTS.photo.paper[kind], S.photo.paper?.[kind] || {});
     const div = document.createElement('div'); div.className = 'tier';
-    const sw = document.createElement('img'); sw.className = 'swatch'; sw.alt = ''; if (paper.url) sw.src = paper.url;
+    const sw = document.createElement('img'); sw.className = 'swatch seal-sw'; sw.alt = ''; if (seal.url) sw.src = seal.url;
     const body = document.createElement('div'); body.className = 'body';
-    const title = document.createElement('div'); title.className = 'title'; title.textContent = `${TIER_NAMES[kind]} (từ ${S.photo.tiers[kind]} xu)`;
-    const sel = document.createElement('select'); sel.id = 'paper_' + kind; sel.setAttribute('aria-label', 'Hình nền ' + TIER_NAMES[kind]);
-    for (const pp of PAPERS) { const o = document.createElement('option'); o.value = pp.url || ''; o.textContent = pp.name; sel.append(o); }
-    const custom = PAPERS.some(pp => (pp.url || '') === (paper.url || '')) ? null : paper.url;
-    if (custom) { const o = document.createElement('option'); o.value = custom; o.textContent = 'Ảnh của bạn'; sel.append(o); }
-    sel.value = paper.url || '';
-    sel.onchange = () => { const pp = PAPERS.find(x => (x.url || '') === sel.value); savePaper(kind, { url: sel.value || null, caption: pp ? pp.caption : paper.caption }); };
-    const up = Object.assign(document.createElement('button'), { textContent: 'Ảnh nền của bạn…' });
-    up.onclick = async () => { const f = await api.pickFile('image'); if (f) savePaper(kind, { url: f.url, caption: paper.caption }); };
-    const col = document.createElement('input'); col.type = 'color'; col.value = paper.caption || '#2a2420'; col.id = 'cap_' + kind; col.setAttribute('aria-label', 'Màu chữ');
-    col.oninput = debounce(() => savePaper(kind, { url: paper.url, caption: col.value }, false), 250);
-    const r1 = document.createElement('div'); r1.className = 'row'; r1.append(sel, up);
-    const r2 = document.createElement('div'); r2.className = 'row';
-    const lc = document.createElement('label'); lc.htmlFor = col.id; lc.textContent = 'Màu chữ';
-    r2.append(lc, col);
-    // seal picker
+    const title = document.createElement('div'); title.className = 'title'; title.textContent = `${TIER_NAMES[kind]} (${tierRange(kind)})`;
     const r3 = document.createElement('div'); r3.className = 'row seals';
-    const lab = document.createElement('span'); lab.className = 'muted'; lab.textContent = 'Con dấu:'; r3.append(lab);
     const all = [...SEALS]; if (seal.url && !SEALS.some(x => x.url === seal.url)) all.push({ name: 'Dấu của bạn', url: seal.url });
     for (const sl of all) {
       const b = document.createElement('button'); b.className = 'seal' + (sl.url === seal.url ? ' on' : ''); b.title = sl.name; b.setAttribute('aria-label', sl.name);
@@ -223,15 +241,41 @@ function renderTiers() {
     const upS = Object.assign(document.createElement('button'), { textContent: 'Ảnh dấu của bạn…', title: 'PNG nền trong suốt' });
     upS.onclick = async () => { const f = await api.pickFile('image'); if (f) { await save({ photo: { seal: { [kind]: { url: f.url } } } }); renderTiers(); renderPreview(); } };
     r3.append(upS);
-    body.append(title, r1, r2, r3);
+    body.append(title, r3);
     div.append(sw, body); box.append(div);
   }
 }
-async function savePaper(kind, val, rerender = true) {
-  await save({ photo: { paper: { [kind]: val } } });
-  if (rerender) renderTiers();
-  renderPreview();
+
+// ---------- clock ----------
+function renderClock() {
+  const sel = $('tzSel'); sel.innerHTML = '';
+  let sys = ''; try { sys = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch {}
+  const list = [...TIME_ZONES];
+  if (sys && !list.some(z => z[0] === sys)) list.unshift([sys, `Giờ máy tính (${sys})`]);
+  for (const [id, name] of list) { const o = document.createElement('option'); o.value = id; o.textContent = name; sel.append(o); }
+  const other = document.createElement('option'); other.value = '__other'; other.textContent = 'Múi giờ khác…'; sel.append(other);
+  const tz = S.clock.timeZone || 'Asia/Ho_Chi_Minh';
+  const known = list.some(z => z[0] === tz);
+  sel.value = known ? tz : '__other';
+  $('tzOtherBox').hidden = known; $('tzOther').value = known ? '' : tz;
+  sel.onchange = () => {
+    if (sel.value === '__other') { $('tzOtherBox').hidden = false; $('tzOther').focus(); return; }
+    $('tzOtherBox').hidden = true; save({ clock: { timeZone: sel.value } }).then(tickClock);
+  };
+  $('tzOther').onchange = () => {
+    const v = $('tzOther').value.trim();
+    try { new Intl.DateTimeFormat('en', { timeZone: v }); save({ clock: { timeZone: v } }).then(tickClock); }
+    catch { $('tzNow').textContent = `"${v}" không phải tên múi giờ hợp lệ (ví dụ: Europe/Rome, America/Lima).`; }
+  };
 }
+const WDN = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy'];
+function tickClock() {
+  if ($('tzNow') && S.clock) {
+    const p = zonedParts(new Date(), S.clock.timeZone);
+    $('tzNow').textContent = `Đồng hồ đang hiện: ${String(p.h).padStart(2, '0')}:${p.mi} — ${WDN[p.wd]}, ${p.d}/${p.mo}/${p.y}`;
+  }
+}
+setInterval(tickClock, 1000);
 
 // ---------- music ----------
 let musicNow = null;
@@ -264,13 +308,20 @@ $('musPrev').onclick = () => api.command({ type: 'music', action: 'prev' });
 
 // ---------- test buttons ----------
 document.querySelectorAll('[data-test]').forEach(b => b.addEventListener('click', () => api.command({ type: 'test', kind: b.dataset.test, name: $('testName').value.trim() || 'Khách' })));
-$('btnClearTable').onclick = () => api.command({ type: 'clear', what: 'table' });
+$('btnClearSmall').onclick = () => api.command({ type: 'clear', what: 'small' });
+$('btnClearMedium').onclick = () => api.command({ type: 'clear', what: 'medium' });
 $('btnClearWall').onclick = () => api.command({ type: 'clear', what: 'wall' });
 $('btnReloadDisplay').onclick = () => api.reloadDisplay();
 
 // ---------- init ----------
 (async () => {
   S = merge(DEFAULTS, await api.getSettings());
+  // v1.3: the old tier texts on the top LED board → new tiers (only if the user never edited them)
+  const its = S.topBoard.items || [];
+  if (its.length === 3 && its.every((it, i) => it.text === OLD_TOP_ITEMS[i])) {
+    S.topBoard.items = its.map((it, i) => ({ ...it, text: DEFAULTS.topBoard.items[i].text }));
+    await api.replaceSetting('topBoard', S.topBoard);
+  }
   const info = await api.info(); $('ver').textContent = 'v' + info.version;
   setStatus(await api.tiktokStatus());
   for (const f of BUNDLED_FONTS) loadFont(f.family, f.url);
@@ -301,9 +352,8 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   bindText('capColor', () => S.photo.captionColor, v => ({ photo: { captionColor: v } }), 150);
   bindText('capTpl', () => S.photo.captionTemplate, v => ({ photo: { captionTemplate: v } }));
   bindText('capSize', () => S.photo.captionSize, v => ({ photo: { captionSize: Number(v) } }), 150);
-  bindNum('tTable', () => S.photo.tiers.table, v => ({ photo: { tiers: { table: v } } }));
-  bindNum('tSmall', () => S.photo.tiers.small, v => ({ photo: { tiers: { small: v } } }));
-  bindNum('tBig', () => S.photo.tiers.big, v => ({ photo: { tiers: { big: v } } }));
+  for (const [id, key] of [['tSmall', 'small'], ['tMedium', 'medium'], ['tBig', 'big']])
+    bindNum(id, () => S.photo.tierCoins[key], v => ({ photo: { tierCoins: { [key]: Math.max(1, Math.round(v) || 1) } } }));
   for (const [id, key] of [['tmApproach', 'approach'], ['tmShutter', 'shutter'], ['tmTotal', 'total']])
     bindNum(id, () => S.photo.timing[key], v => ({ photo: { timing: { [key]: v } } }));
   bindCheck('sealOn', () => S.photo.seal.enabled !== false, v => ({ photo: { seal: { enabled: v } } }));
@@ -321,8 +371,17 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   $('btnStampFile').onclick = async () => { const f = await api.pickFile('sound'); if (f) { await save({ photo: { sounds: { stampSound: f.url, stampName: f.name } } }); showStamp(); } };
   $('btnStampReset').onclick = async () => { await save({ photo: { sounds: { stampSound: null, stampName: '' } } }); showStamp(); };
   $('btnStampTest').onclick = () => { $('sndMsg').textContent = 'Đang phát thử trên màn hình hiển thị…'; api.command({ type: 'soundTest', which: 'stamp' }); };
-  renderTiers();
-  ['tTable', 'tSmall', 'tBig'].forEach(id => $(id).addEventListener('change', () => setTimeout(renderTiers, 300)));
+  renderPaper(); renderTiers();
+  ['tSmall', 'tMedium', 'tBig'].forEach(id => $(id).addEventListener('change', () => setTimeout(renderTiers, 300)));
+  renderClock(); tickClock();
+  $('clkFormat').value = S.clock.format || '24h'; $('clkFormat').onchange = () => save({ clock: { format: $('clkFormat').value } });
+  bindCheck('clkWeekday', () => S.clock.weekday !== false, v => ({ clock: { weekday: v } }));
+  bindCheck('clkBlink', () => S.clock.blink !== false, v => ({ clock: { blink: v } }));
+  bindText('clkColor', () => S.clock.color, v => ({ clock: { color: v } }), 150);
+  bindText('clkColor2', () => S.clock.color2, v => ({ clock: { color2: v } }), 150);
+  bindText('spkLow', () => S.speaker.low, v => ({ speaker: { low: v } }), 150);
+  bindText('spkMid', () => S.speaker.mid, v => ({ speaker: { mid: v } }), 150);
+  bindText('spkHigh', () => S.speaker.high, v => ({ speaker: { high: v } }), 150);
   bindCheck('musOn', () => S.music.enabled, v => ({ music: { enabled: v } }));
   bindCheck('musShuffle', () => S.music.shuffle, v => ({ music: { shuffle: v } }));
   bindCheck('musDuck', () => S.music.duck, v => ({ music: { duck: v } }));

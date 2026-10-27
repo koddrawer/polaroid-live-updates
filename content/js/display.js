@@ -4,6 +4,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { Pipeline } from './pipeline.js';
 import { TopBoard, BottomBoard } from './boards.js';
+import { ClockScreen, SpeakerScreen, zonedParts } from './screens.js';
 import { Print, drawPrint, sealCenter, PRINT_ASPECT, PRINT_W, PRINT_H as PRINT_H_PX } from './print.js';
 import { DEFAULTS, BUNDLED_FONTS, LED_FONTS, merge, fill } from './defaults.js';
 
@@ -57,6 +58,7 @@ function initAudio() {
       audio.ctx = new AudioContext();
       audio.gain = audio.ctx.createGain(); audio.gain.connect(audio.ctx.destination);
     } catch (e) { console.warn('audio', e); return; }
+    hookMusicAnalyser();
     await Promise.all(['shutter', 'flash_charge', 'chime', 'stamp', 'whoosh'].map(async (n) => {
       try { const r = await fetch(`sounds/${n}.wav`); audio.buffers[n] = await audio.ctx.decodeAudioData(await r.arrayBuffer()); }
       catch (e) { console.warn('sound', n, e); }
@@ -134,12 +136,8 @@ async function buildScene() {
   bgScene.add(plateMesh);
 
   // LED boards on their real 3D panels
-  for (const key of ['top', 'bottom']) {
-    const L = meta.leds[key]; if (!L) continue;
-    // top board: same LED pitch as the bottom board so every LED stays a visible dot even in a small window
-    const board = key === 'top' ? new TopBoard({ cols: 96, rows: 44 }) : new BottomBoard(L);
+  const mount = (board, c) => {
     const g = new THREE.BufferGeometry();
-    const c = L.corners;
     g.setAttribute('position', new THREE.Float32BufferAttribute([...c[0], ...c[1], ...c[2], ...c[3]], 3));
     g.setAttribute('uv', new THREE.Float32BufferAttribute([0, 1, 1, 1, 1, 0, 0, 0], 2));
     g.setIndex([0, 3, 1, 1, 3, 2]);
@@ -147,8 +145,17 @@ async function buildScene() {
     board.led.material.depthTest = false; board.led.material.depthWrite = false; board.led.material.side = THREE.DoubleSide;
     board.led.mesh.renderOrder = -50; board.led.mesh.frustumCulled = false;
     bgScene.add(board.led.mesh);
+  };
+  for (const key of ['top', 'bottom']) {
+    const L = meta.leds[key]; if (!L) continue;
+    // top board: same LED pitch as the bottom board so every LED stays a visible dot even in a small window
+    const board = key === 'top' ? new TopBoard({ cols: 96, rows: 44 }) : new BottomBoard(L);
+    mount(board, L.corners);
     leds[key] = board;
   }
+  // screens built into the props: desk clock + wall speaker equalizer
+  if (meta.screens?.clock) { leds.clock = new ClockScreen(); mount(leds.clock, meta.screens.clock.corners); }
+  if (meta.screens?.speaker) { leds.speaker = new SpeakerScreen(); mount(leds.speaker, meta.screens.speaker.corners); if (music.analyser) leds.speaker.setAnalyser(music.analyser); }
 
   // gear + clock-hand sprites (screen space, rotate around their pivots)
   const quadGeo = new THREE.PlaneGeometry(2, 2);
@@ -237,11 +244,12 @@ function cornerPose(slot, fill = 0.95) {
   const h = c[0].distanceTo(c[3]);
   return { pos: center, quat: q, scale: (h * fill) / PRINT_H };
 }
-function tableSlots() { return meta.frames?.table || []; }
+const KINDS = ['small', 'medium', 'big'];
+function slotsOf(kind) { return meta.frames?.[kind] || []; }
 function slotPose(kind, index) {
   if (kind === 'big') return cornerPose(meta.frames.big[0]);
-  if (kind === 'small') return cornerPose(meta.frames.small[index % meta.frames.small.length]);
-  const ts = tableSlots();
+  if (kind === 'small' || kind === 'medium') { const sl = slotsOf(kind).length ? slotsOf(kind) : slotsOf('small'); return cornerPose(sl[index % sl.length]); }
+  const ts = slotsOf('table');
   if (ts.length && typeof index === 'number') return cornerPose(ts[index % ts.length], 0.97);
   // fallback (older scenes without table slots): random point on the table
   let hits = (meta.table?.hits || []).filter(h => !/^(Plane|Pipe|Cylinder)/.test(h.obj));
@@ -256,8 +264,9 @@ function slotPose(kind, index) {
   return { pos: new THREE.Vector3(x, y, z), quat: q, scale: 1.25, pick: { x, z, yaw } };
 }
 
-function paperFor(kind) {
-  const p = S.photo.paper?.[kind] || {};
+// one paper for every photo — tiers are told apart only by their seal
+function paperFor() {
+  const p = S.photo.paperAll || {};
   return { url: p.url || null, caption: p.caption || S.photo.captionColor };
 }
 async function makePrint(entry, withSeal = true) {
@@ -285,16 +294,18 @@ function removeGalleryItem(it, fade = true) {
   const tick = () => { const k = (performance.now() - t0) / 600; it.print.opacity = 1 - k; if (k < 1) requestAnimationFrame(tick); else { gallery.group.remove(it.print.mesh); it.print.dispose(); } };
   tick();
 }
-function saveGallery() { api.saveState?.('gallery', { items: gallery.items.map(i => i.entry) }); }
+// photos saved with another scene layout are dropped (their slots don't exist any more)
+const sceneId = () => [meta.source || '', ...KINDS.map(k => slotsOf(k).length)].join('|');
+function saveGallery() { api.saveState?.('gallery', { scene: sceneId(), items: gallery.items.map(i => i.entry) }); }
 async function restoreGallery() {
   const st = await api.loadState?.('gallery');
   if (!st?.items) return;
+  if (st.scene !== sceneId()) { saveGallery(); return; }
   for (const e of st.items) {
     try {
-      if (e.kind === 'table' && tableSlots().length && typeof e.slot !== 'number') continue; // old free-placed table photos
+      if (!KINDS.includes(e.kind) || typeof e.slot !== 'number') continue;
       const pr = await makePrint(e);
-      const pose = e.kind === 'table' ? slotPose('table', typeof e.slot === 'number' ? e.slot : e.pick) : slotPose(e.kind, e.slot);
-      placeInGallery(pr, e, pose);
+      placeInGallery(pr, e, slotPose(e.kind, e.slot));
     } catch (err) { console.warn(err); }
   }
 }
@@ -309,10 +320,10 @@ function nextSlot(kind, n) {
 const queue = [];
 let busy = false;
 function tierOf(coins) {
-  const t = S.photo.tiers;
-  if (coins >= (t.big || 10)) return 'big';
-  if (coins >= (t.small || 5)) return 'small';
-  if (coins >= (t.table || 1)) return 'table';
+  const t = S.photo.tierCoins || DEFAULTS.photo.tierCoins;
+  if (coins >= (t.big || 40)) return 'big';
+  if (coins >= (t.medium || 10)) return 'medium';
+  if (coins >= (t.small || 1)) return 'small';
   return null;
 }
 function enqueuePhoto(job) {
@@ -475,7 +486,7 @@ async function shoot(job) {
   const kind = job.kind;
   const tm = T();
   const entry = { id: Date.now() + Math.random(), kind, name: job.nickname, uniqueId: job.uniqueId, avatar: job.avatarLocal || null, coins: job.coins, t: Date.now(),
-    font: S.photo.font, fontUrl: S.photo.fontUrl, paper: paperFor(kind), seal: sealFor(kind) };
+    font: S.photo.font, fontUrl: S.photo.fontUrl, paper: paperFor(), seal: sealFor(kind) };
   report();
   musicDuck(true);
   const printP = makePrint(entry, false);
@@ -534,10 +545,8 @@ async function shoot(job) {
   await tween(sec('hold2'), () => {});
   // 6. fly to destination
   let pose, replace = null;
-  if (kind === 'small') { const s = nextSlot('small', meta.frames.small.length); entry.slot = s.slot; replace = s.replace; pose = slotPose('small', s.slot); }
-  else if (kind === 'big') { entry.slot = 0; replace = gallery.items.find(i => i.entry.kind === 'big') || null; pose = slotPose('big', 0); }
-  else if (tableSlots().length) { const s = nextSlot('table', tableSlots().length); entry.slot = s.slot; replace = s.replace; pose = slotPose('table', s.slot); }
-  else { pose = slotPose('table', null); entry.pick = pose.pick; }
+  if (kind === 'big') { entry.slot = 0; replace = gallery.items.find(i => i.entry.kind === 'big') || null; pose = slotPose('big', 0); }
+  else { const n = (slotsOf(kind).length ? slotsOf(kind) : slotsOf('small')).length; const s = nextSlot(kind, n); entry.slot = s.slot; replace = s.replace; pose = slotPose(kind, s.slot); }
   if (replace) removeGalleryItem(replace, true);
   const f2 = { pos: print.mesh.position.clone(), quat: print.mesh.quaternion.clone(), scale: print.mesh.scale.x };
   const mid = f2.pos.clone().lerp(pose.pos, 0.5); mid.y += 0.35; mid.z += 0.6;
@@ -554,10 +563,6 @@ async function shoot(job) {
   activePrint = null;
   delete entry._printArgs;
   placeInGallery(print, entry, pose);
-  if (kind === 'table' && !tableSlots().length) {
-    const items = gallery.items.filter(i => i.entry.kind === 'table');
-    while (items.length > 28) removeGalleryItem(items.shift(), true);
-  }
   saveGallery();
   anim.blur = 0; anim.dim = 1;
   musicDuck(false);
@@ -601,8 +606,23 @@ const playStamp = () => playCustom(S.photo.sounds?.stampSound, 'stamp', 0.9);
 // ---------------------------------------------------------------- background music
 const music = { el: new Audio(), list: [], idx: -1, duck: 1, duckTarget: 1, playing: false };
 music.el.preload = 'auto';
+music.el.crossOrigin = 'anonymous'; // required so the analyser can read app://user tracks (otherwise Chromium outputs silence)
 music.el.addEventListener('ended', () => musicNext());
 music.el.addEventListener('error', () => setTimeout(musicNext, 500));
+// music → analyser (drives the speaker equalizer) → gain (volume) → speakers
+function hookMusicAnalyser() {
+  if (music.routed || !audio.ctx) return;
+  // only route the music through Web Audio once the context is really running, so music can never go silent
+  if (audio.ctx.state !== 'running') { audio.ctx.resume().then(() => { if (audio.ctx.state === 'running') hookMusicAnalyser(); }).catch(() => {}); return; }
+  try {
+    const src = audio.ctx.createMediaElementSource(music.el);
+    const an = audio.ctx.createAnalyser(); an.fftSize = 2048; an.smoothingTimeConstant = 0.55; an.minDecibels = -85; an.maxDecibels = -20;
+    const g = audio.ctx.createGain();
+    src.connect(an); an.connect(g); g.connect(audio.ctx.destination);
+    music.analyser = an; music.gain = g; music.routed = true;
+    leds.speaker?.setAnalyser(an);
+  } catch (e) { console.warn('music analyser', e); }
+}
 function musicVolume() { return (S.music.volume ?? 35) / 100 * music.duck; }
 function musicSet(cfg) {
   music.list = (cfg.tracks || []).map(t => t.url);
@@ -616,7 +636,7 @@ function musicNext(prev) {
   else music.idx = (music.idx + (prev ? -1 + music.list.length : 1)) % music.list.length;
   const url = music.list[music.idx];
   music.el.src = url; music.el.dataset.url = url;
-  music.el.volume = musicVolume();
+  music.el.volume = music.routed ? 1 : musicVolume();
   music.el.play().then(() => { music.playing = true; reportMusic(); }).catch(e => console.warn('music', e));
 }
 function musicDuck(on) { music.duckTarget = on && S.music.duck !== false ? 0.25 : 1; }
@@ -660,11 +680,12 @@ api.onCommand?.((cmd) => {
     else if (cmd.kind === 'follow') onLive({ type: 'follow', nickname: name, uniqueId: name });
     else if (cmd.kind === 'burst') {
       const names = ['Lan Anh', 'Minh Tú', 'Bảo Ngọc', 'Quốc Huy', 'Thảo Vy', 'Đức Anh', 'Hà My', 'Gia Bảo', 'Khánh Linh', 'Tuấn Kiệt'];
-      names.forEach((n, i) => setTimeout(() => onLive({ type: 'gift', nickname: n, uniqueId: n, giftName: 'Hoa hồng', giftImage: 'app://content/icons/rose.png', unit: 1, repeat: [1, 1, 5, 1, 10, 1, 1, 5, 1, 1][i], coins: [1, 1, 5, 1, 10, 1, 1, 5, 1, 1][i] }), i * 400));
+      const cs = [1, 1, 10, 1, 40, 1, 5, 10, 1, 1];
+      names.forEach((n, i) => setTimeout(() => onLive({ type: 'gift', nickname: n, uniqueId: n, giftName: 'Hoa hồng', giftImage: 'app://content/icons/rose.png', unit: 1, repeat: cs[i], coins: cs[i] }), i * 400));
     } else {
       const coins = Number(cmd.kind) || 1;
-      onLive({ type: 'gift', nickname: name, uniqueId: name + '_' + coins, giftName: coins >= 10 ? 'Vương miện' : coins >= 5 ? 'Khung ảnh' : 'Hoa hồng',
-        giftImage: coins >= 10 ? 'app://content/icons/crown.png' : coins >= 5 ? 'app://content/icons/frame.png' : 'app://content/icons/rose.png', unit: coins, repeat: 1, coins });
+      onLive({ type: 'gift', nickname: name, uniqueId: name + '_' + coins, giftName: coins >= 40 ? 'Vương miện' : coins >= 10 ? 'Khung ảnh' : 'Hoa hồng',
+        giftImage: coins >= 40 ? 'app://content/icons/crown.png' : coins >= 10 ? 'app://content/icons/frame.png' : 'app://content/icons/rose.png', unit: coins, repeat: 1, coins });
     }
   } else if (cmd.type === 'soundTest') {
     const fn = cmd.which === 'stamp' ? playStamp : playShutter;
@@ -676,7 +697,7 @@ api.onCommand?.((cmd) => {
     else if (cmd.action === 'play') { music.userPaused = false; if (music.el.src) music.el.play().then(() => { music.playing = true; reportMusic(); }); else musicNext(); }
     else if (cmd.action === 'track' && typeof cmd.index === 'number') { music.idx = cmd.index - 1; const sh = S.music.shuffle; S.music.shuffle = false; musicNext(); S.music.shuffle = sh; }
   } else if (cmd.type === 'clear') {
-    for (const it of [...gallery.items]) if ((cmd.what === 'table' && it.entry.kind === 'table') || (cmd.what === 'wall' && it.entry.kind !== 'table')) removeGalleryItem(it, true);
+    for (const it of [...gallery.items]) if (cmd.what === 'wall' || cmd.what === 'all' || it.entry.kind === cmd.what) removeGalleryItem(it, true);
     saveGallery();
   }
 });
@@ -696,6 +717,8 @@ function applySettings(s) {
   for (const f of LED_FONTS) for (const face of f.faces) ensureFont(f.family, face.url, face.weight);
   leds.top?.configure(S.topBoard);
   leds.bottom?.configure(S.bottomBoard, S.topBoard);
+  leds.clock?.configure(S.clock, S.topBoard);
+  leds.speaker?.configure(S.speaker, S.topBoard);
   ensureFont(S.photo.font, S.photo.fontUrl);
   musicSet(S.music);
   for (const u of [S.photo.sounds?.shutter, S.photo.sounds?.stampSound]) if (u) loadCustomSound(u);
@@ -719,8 +742,8 @@ function frame() {
   frames++; fpsT += dt; if (fpsT >= 1) { fps = Math.round(frames / fpsT); frames = 0; fpsT = 0; if (S.display.showFps) $('fps').textContent = `${fps} fps\nhàng chờ: ${queue.length}`; }
 
   // sprites
-  const now = new Date();
-  const sec = now.getSeconds() + now.getMilliseconds() / 1000, min = now.getMinutes() + sec / 60, hr = (now.getHours() % 12) + min / 60;
+  const now = new Date(), zp = zonedParts(now, S.clock?.timeZone);
+  const sec = zp.s + now.getMilliseconds() / 1000, min = Number(zp.mi) + sec / 60, hr = (zp.h % 12) + min / 60;
   for (const sp of sprites) {
     if (sp.kind === 'gear') sp.angle -= sp.spin * dt;            // + spin = counter-clockwise on screen
     else {
@@ -733,6 +756,8 @@ function frame() {
   for (const g of glows) g.mat.uniforms.strength.value = 0.06 + 0.05 * Math.sin(t * 13 + g.seed) * Math.sin(t * 7.3 + g.seed * 2) + anim.flash * 0.2;
   leds.top?.update(dt, t);
   leds.bottom?.update(dt, t);
+  leds.clock?.update(dt, t);
+  leds.speaker?.update(dt, t, !music.el.paused && music.routed);
 
   // flash decay
   anim.flash = Math.max(0, anim.flash - dt * 3.2);
@@ -745,7 +770,8 @@ function frame() {
   plateMat && (plateMat.uniforms.light.value = 1 + anim.flash * 0.35);
   pipe.blur = anim.blur; pipe.dim = anim.dim; pipe.flash = anim.flash * 0.75;
   music.duck += (music.duckTarget - music.duck) * Math.min(1, dt * 3);
-  if (!music.el.paused) music.el.volume = Math.min(1, musicVolume());
+  if (music.routed) { music.el.volume = 1; music.gain.gain.value = Math.min(1, musicVolume()); if (audio.ctx.state === 'suspended' && !music.el.paused) audio.ctx.resume(); }
+  else if (!music.el.paused) music.el.volume = Math.min(1, musicVolume());
   pipe.render({ bgScene, heroScene, camera, viewport });
 }
 

@@ -21,6 +21,7 @@
   <button role="tab" data-tab="bottom">LED dưới</button>
   <button role="tab" data-tab="photo">Ảnh</button>
   <button role="tab" data-tab="music">Nhạc</button>
+  <button role="tab" data-tab="clock">Đồng hồ</button>
   <button role="tab" data-tab="view">Hiển thị</button>
   <button role="tab" data-tab="test">Thử</button>
 </nav>
@@ -89,10 +90,11 @@
   <canvas id="printPreview" width="300" height="360" aria-label="Xem trước ảnh polaroid"></canvas>
   <h2>Mốc xu</h2>
   <div class="grid3">
-    <div class="field"><label for="tTable">Đặt lên bàn từ</label><input id="tTable" type="number" min="1"></div>
     <div class="field"><label for="tSmall">Khung nhỏ từ</label><input id="tSmall" type="number" min="1"></div>
-    <div class="field"><label for="tBig">Khung to từ</label><input id="tBig" type="number" min="1"></div>
+    <div class="field"><label for="tMedium">Khung vừa từ</label><input id="tMedium" type="number" min="1"></div>
+    <div class="field"><label for="tBig">Khung to nhất từ</label><input id="tBig" type="number" min="1"></div>
   </div>
+  <p id="tierHint" class="muted"></p>
   <label class="check"><input id="countByCoins" type="checkbox"> Tính theo tổng xu cả combo</label>
   <h2>Thời gian (giây)</h2>
   <div class="grid3">
@@ -111,10 +113,13 @@
     <div class="row"><span id="stampName" class="muted"></span><button id="btnStampFile">Chọn file âm thanh…</button><button id="btnStampTest">▶ Nghe thử</button><button id="btnStampReset">Dùng mặc định</button></div></div>
   <div class="field row"><label class="check"><input id="sndCharge" type="checkbox"> Tiếng sạc flash</label><label class="check"><input id="sndStamp" type="checkbox"> Bật tiếng đóng dấu</label></div>
   <p id="sndMsg" class="muted" aria-live="polite"></p>
-  <h2>Theo loại ảnh</h2>
+  <h2>Nền ảnh (chung cho mọi khung)</h2>
+  <div id="paperBox" class="tiers"></div>
+  <h2>Con dấu theo khung</h2>
+  <p class="muted">Ảnh ở mọi khung giống nhau, chỉ khác con dấu đóng ở góc.</p>
   <div id="tierList" class="tiers"></div>
   <div class="field row"><label for="vol">Âm lượng chụp</label><input id="vol" type="range" min="0" max="100"><label class="check"><input id="flashOn" type="checkbox"> Flash</label></div>
-  <div class="row"><button id="btnClearTable">Dọn ảnh trên bàn</button><button id="btnClearWall">Gỡ ảnh trên tường</button></div>
+  <div class="row"><button id="btnClearSmall">Gỡ ảnh khung nhỏ</button><button id="btnClearMedium">Gỡ ảnh khung vừa</button><button id="btnClearWall">Gỡ tất cả ảnh</button></div>
 </section>
 
 <!-- ============ MUSIC ============ -->
@@ -125,6 +130,20 @@
   <div class="row"><button id="musPrev">⏮</button><button id="musPlay" class="primary">▶ Phát</button><button id="musPause">⏸ Dừng</button><button id="musNext">⏭</button><span id="musNow" class="muted"></span></div>
   <ol id="musList" class="items"></ol>
   <div class="row"><button id="musAdd">+ Thêm bài nhạc (mp3, wav, ogg)…</button></div>
+</section>
+
+<!-- ============ CLOCK + SPEAKER ============ -->
+<section data-panel="clock" hidden>
+  <h2>Đồng hồ để bàn</h2>
+  <div class="field"><label for="tzSel">Múi giờ</label><select id="tzSel"></select></div>
+  <div class="field" id="tzOtherBox" hidden><label for="tzOther">Tên múi giờ (IANA, ví dụ Europe/Rome)</label><input id="tzOther" type="text" spellcheck="false"></div>
+  <p id="tzNow" class="muted" aria-live="off"></p>
+  <div class="row wrap cfg"><label for="clkFormat">Kiểu giờ</label><select id="clkFormat"><option value="24h">24 giờ (18:30)</option><option value="12h">12 giờ (6:30 CH)</option></select>
+    <label class="check"><input id="clkWeekday" type="checkbox"> Xen kẽ thứ trong tuần</label><label class="check"><input id="clkBlink" type="checkbox"> Nhấp nháy dấu :</label></div>
+  <div class="row wrap cfg"><label for="clkColor">Màu giờ</label><input id="clkColor" type="color"><label for="clkColor2">Màu ngày</label><input id="clkColor2" type="color"></div>
+  <h2>Loa treo tường</h2>
+  <p class="muted">Cột sóng nhạc trên màn hình loa nhảy theo bài nhạc nền đang phát (tab Nhạc). Khi không phát nhạc, cột sóng nằm yên.</p>
+  <div class="row wrap cfg"><label for="spkLow">Màu thấp</label><input id="spkLow" type="color"><label for="spkMid">Màu giữa</label><input id="spkMid" type="color"><label for="spkHigh">Màu đỉnh</label><input id="spkHigh" type="color"></div>
 </section>
 
 <!-- ============ VIEW ============ -->
@@ -149,8 +168,8 @@
     <button data-test="join">Người vào live</button>
     <button data-test="follow">Follow</button>
     <button data-test="1">Tặng 1 xu</button>
-    <button data-test="5">Tặng 5 xu</button>
     <button data-test="10">Tặng 10 xu</button>
+    <button data-test="40">Tặng 40 xu</button>
     <button data-test="burst">10 quà liên tiếp</button>
   </div>
   <p class="muted">Ảnh thử dùng ảnh đại diện mẫu tự tạo.</p>

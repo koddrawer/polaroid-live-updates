@@ -73,3 +73,5 @@ main{overflow-x:hidden}
 .seals button.seal{padding:2px;width:38px;height:38px;display:grid;place-items:center;background:#0f0c09}
 .seals button.seal img{width:32px;height:32px;object-fit:contain}
 .seals button.seal.on{border-color:var(--brass);box-shadow:0 0 0 1px var(--brass)}
+.tier img.swatch.seal-sw{height:64px;object-fit:contain;background:transparent;border:none}
+.row.cfg{gap:10px;align-items:center;margin:8px 0}.row.cfg label:not(.check){margin:0}

@@ -90,8 +90,8 @@ export const DEFAULTS = {
       big: { url: 'app://content/papers/gold.jpg', caption: '#3a2408' },
     },
   },
-  clock: { timeZone: 'Asia/Ho_Chi_Minh', format: '24h', weekday: true, blink: true, color: '#ffb347', color2: '#ffd27a' },
-  speaker: { low: '#3cff6a', mid: '#ffd23c', high: '#ff4a2a' },
+  clock: { timeZone: 'Asia/Ho_Chi_Minh', format: '24h', blink: true, color: '#ff9628', temp: '28°C', showTemp: true },
+  speaker: { low: '#ffaa26', high: '#ff4a0c' },
   music: { enabled: false, volume: 35, shuffle: true, duck: true, tracks: [] },
   customFonts: [],
 };

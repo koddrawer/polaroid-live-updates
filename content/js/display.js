@@ -110,6 +110,7 @@ void main(){ float d = length(vPx - pivot) / radius; float a = exp(-d * d * 3.5)
 const PLATE_FS = `uniform sampler2D map; uniform float light; varying vec2 vUv; void main(){ gl_FragColor = vec4(texture2D(map, vUv).rgb * light, 1.0); }`;
 
 const sprites = [], glows = [], leds = {};
+window.__leds = leds; // debug/tests
 let plateMat = null;
 let flashSprite = null;
 let heroPivot = null, heroRest = null, heroLights = [], flashLight = null, heroEnvIntensity = 0.35;
@@ -616,7 +617,7 @@ function hookMusicAnalyser() {
   if (audio.ctx.state !== 'running') { audio.ctx.resume().then(() => { if (audio.ctx.state === 'running') hookMusicAnalyser(); }).catch(() => {}); return; }
   try {
     const src = audio.ctx.createMediaElementSource(music.el);
-    const an = audio.ctx.createAnalyser(); an.fftSize = 2048; an.smoothingTimeConstant = 0.55; an.minDecibels = -85; an.maxDecibels = -20;
+    const an = audio.ctx.createAnalyser(); an.fftSize = 4096; an.smoothingTimeConstant = 0.5; an.minDecibels = -85; an.maxDecibels = -20;
     const g = audio.ctx.createGain();
     src.connect(an); an.connect(g); g.connect(audio.ctx.destination);
     music.analyser = an; music.gain = g; music.routed = true;

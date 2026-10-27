@@ -1,8 +1,6 @@
 // LED screens built into the scene props: the Chrono desk clock and the wall speaker's equalizer.
 import { LedBoard } from './led.js';
 
-const fam = (f) => `"${f || 'Barlow Condensed'}", "Barlow Condensed", "Arial Narrow", Arial, sans-serif`;
-const WEEKDAYS = ['CHỦ NHẬT', 'THỨ HAI', 'THỨ BA', 'THỨ TƯ', 'THỨ NĂM', 'THỨ SÁU', 'THỨ BẢY'];
 const WD = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
 
 // Wall-clock parts in any IANA time zone (falls back to the computer's zone if the name is invalid)
@@ -20,136 +18,147 @@ export function zonedParts(date, timeZone) {
   return { y: o.year, mo: o.month, d: o.day, h: Number(o.hour) % 24, mi: o.minute, s: Number(o.second), wd: WD[o.weekday] ?? 0 };
 }
 
-// Fit text so its ink box is `h` LEDs tall (and at most `w` wide); draws centred at (cx, top).
-function inkText(g, text, family, weight, cx, top, h, w) {
-  let size = h;
-  g.font = `${weight} ${size}px ${family}`;
-  let m = g.measureText(text);
-  size *= h / Math.max(1, m.actualBoundingBoxAscent + m.actualBoundingBoxDescent);
-  g.font = `${weight} ${size}px ${family}`;
-  m = g.measureText(text);
-  if (m.width > w) { size *= w / m.width; g.font = `${weight} ${size}px ${family}`; m = g.measureText(text); }
-  const inkH = m.actualBoundingBoxAscent + m.actualBoundingBoxDescent;
+// ------------------------------------------------------------------ CLOCK
+// Recreates the screen design from the Chrono clock model (led_screen.png): 128×96 amber LEDs —
+// weather icon + temperature and date on top, big HH:MM, divider with a gear, calendar + day/date
+// bottom-left, thermometer + temperature bottom-right. Icons are copied LED-for-LED from the design.
+const CLOCK_DECO = [[10,1,1],[10,2,1],[6,3,1],[14,3,1],[9,4,4],[8,5,1],[12,5,2],[7,6,1],[13,6,1],[4,7,2],[7,7,1],[13,7,1],[16,7,1],[7,8,1],[13,8,1],[7,9,2],[11,9,8],[8,10,4],[19,10,1],[6,11,1],[10,11,1],[19,11,1],[10,12,1],[19,12,1],[10,13,1],[19,13,1],[11,14,8],[63,63,2],[63,64,2],[58,65,1],[63,65,2],[69,65,1],[59,66,10],[59,67,3],[66,67,3],[59,68,2],[68,68,1],[59,69,1],[63,69,2],[68,69,2],[56,70,4],[62,70,4],[68,70,4],[6,71,46],[56,71,4],[62,71,4],[68,71,5],[76,71,46],[59,72,1],[63,72,3],[68,72,2],[59,73,2],[68,73,1],[59,74,2],[67,74,2],[59,75,10],[58,76,1],[62,76,4],[69,76,1],[87,77,2],[86,78,1],[88,78,1],[6,79,9],[86,79,1],[88,79,1],[6,80,1],[14,80,1],[86,80,1],[88,80,1],[6,81,1],[14,81,1],[86,81,1],[88,81,1],[6,82,9],[86,82,1],[88,82,1],[6,83,1],[14,83,1],[86,83,1],[88,83,1],[6,84,1],[14,84,1],[86,84,1],[88,84,1],[6,85,1],[14,85,1],[86,85,4],[6,86,1],[14,86,1],[85,86,5],[6,87,9],[84,87,7],[84,88,7],[85,89,5],[86,90,4],[63,77,2],[63,78,2],[63,79,2],[64,80,1],[64,81,1],[64,82,1]];
+const PIX = {"0": ".##.|#..#|#..#|#..#|#..#|.##.", "1": ".#.|##.|.#.|.#.|.#.|###", "2": ".##.|#..#|..#.|.#..|#...|####", "3": "###.|...#|.##.|...#|...#|###.", "4": "#..#|#..#|####|...#|...#|...#", "5": "####|#...|###.|...#|...#|###.", "6": ".##.|#...|###.|#..#|#..#|.##.", "7": "####|...#|..#.|.#..|.#..|.#..", "8": ".##.|#..#|.##.|#..#|#..#|.##.", "9": ".##.|#..#|#..#|.###|...#|.##.", "A": ".##.|#..#|#..#|####|#..#|#..#", "B": "###.|#..#|###.|#..#|#..#|###.", "C": ".###|#...|#...|#...|#...|.###", "D": "###.|#..#|#..#|#..#|#..#|###.", "E": "####|#...|###.|#...|#...|####", "F": "####|#...|###.|#...|#...|#...", "G": ".###|#...|#.##|#..#|#..#|.###", "H": "#..#|#..#|####|#..#|#..#|#..#", "I": "###|.#.|.#.|.#.|.#.|###", "J": "...#|...#|...#|...#|#..#|.##.", "K": "#..#|#.#.|##..|#.#.|#..#|#..#", "L": "#...|#...|#...|#...|#...|####", "M": "#...#|##.##|#.#.#|#...#|#...#|#...#", "N": "#..#|##.#|##.#|#.##|#.##|#..#", "O": ".##.|#..#|#..#|#..#|#..#|.##.", "P": "###.|#..#|#..#|###.|#...|#...", "Q": ".##.|#..#|#..#|#..#|#.#.|.#.#", "R": "###.|#..#|#..#|###.|#.#.|#..#", "S": ".###|#...|.##.|...#|...#|###.", "T": "###|.#.|.#.|.#.|.#.|.#.", "U": "#..#|#..#|#..#|#..#|#..#|.##.", "V": "#..#|#..#|#..#|#..#|.##.|.##.", "W": "#...#|#...#|#...#|#.#.#|##.##|#...#", "X": "#..#|#..#|.##.|.##.|#..#|#..#", "Y": "#.#|#.#|#.#|.#.|.#.|.#.", "Z": "####|...#|..#.|.#..|#...|####", "°": ".#.|#.#|.#.|...|...|...", "-": "...|...|###|...|...|...", ":": ".|#|.|.|#|.", ".": ".|.|.|.|.|#", "/": "...#|..#.|..#.|.#..|.#..|#..."};
+const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+const MONTHS = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+const glyph = (ch) => PIX[ch] ? PIX[ch].split('|') : null;
+function pixWidth(text) {
+  let w = 0;
+  for (const ch of text.toUpperCase()) { const g = glyph(ch); w += g ? g[0].length + 1 : 2; }
+  return Math.max(0, w - 1);
+}
+// 6-row LED pixel font (like the small text on the design), one fillRect per lit LED
+function pixText(g, text, x, y, k = 1) {
+  for (const ch of text.toUpperCase()) {
+    const gl = glyph(ch);
+    if (!gl) { x += 2 * k; continue; }
+    for (let r = 0; r < gl.length; r++) for (let c = 0; c < gl[r].length; c++) if (gl[r][c] === '#') g.fillRect(x + c * k, y + r * k, k, k);
+    x += gl[0].length * k + 1;
+  }
+}
+// one big digit, ink height h LEDs, centred on cx
+function bigDigit(g, ch, family, cx, top, h, maxW) {
+  g.font = `800 ${h}px ${family}`;
+  const z0 = g.measureText('0');
+  let size = h * h / Math.max(1, z0.actualBoundingBoxAscent + z0.actualBoundingBoxDescent);
+  g.font = `800 ${size}px ${family}`;
+  let m = g.measureText(ch);
+  if (m.width > maxW) { size *= maxW / m.width; g.font = `800 ${size}px ${family}`; m = g.measureText(ch); }
+  const z = g.measureText('0');
   g.textAlign = 'left'; g.textBaseline = 'alphabetic';
-  g.fillText(text, Math.round(cx - m.width / 2), Math.round(top + (h - inkH) / 2 + m.actualBoundingBoxAscent));
-  return m.width;
+  g.fillText(ch, Math.round(cx - m.width / 2), Math.round(top + z.actualBoundingBoxAscent));
 }
 
-// ------------------------------------------------------------------ CLOCK
 export class ClockScreen {
   constructor() {
-    this.led = new LedBoard({ cols: 44, rows: 33, width: 1, height: 1, boost: 2.0 });
+    this.led = new LedBoard({ cols: 128, rows: 96, width: 1, height: 1, boost: 2.0, offColor: 0x0c0703 });
     this.cfg = {}; this.key = '';
   }
-  configure(cfg, top) { this.cfg = cfg || {}; this.font = top?.ledFont; this.key = ''; if (top?.ledBrightness) this.led.brightness = 2.0 * top.ledBrightness / 100; }
-  update(dt, t) {
+  configure(cfg, top) { this.cfg = cfg || {}; this.key = ''; if (top?.ledBrightness) this.led.brightness = 2.0 * top.ledBrightness / 100; }
+  update() {
     const c = this.cfg, now = new Date();
     const p = zonedParts(now, c.timeZone);
-    const colon = now.getMilliseconds() < 500 || c.blink === false;
-    let hh = p.h, ampm = '';
-    if (c.format === '12h') { ampm = hh < 12 ? 'SA' : 'CH'; hh = hh % 12 || 12; }
-    const time = `${c.format === '12h' ? hh : String(hh).padStart(2, '0')}${colon ? ':' : ' '}${p.mi}`;
-    // second line alternates: date ↔ weekday (every 4 s)
-    const showDay = Math.floor(now.getTime() / 4000) % 2 === 1 && c.weekday !== false;
-    const line2 = showDay ? WEEKDAYS[p.wd] + (ampm ? ' ' + ampm : '') : `${p.d}/${p.mo}/${p.y}`;
-    const key = time + '|' + line2 + '|' + this.font;
+    const colon = c.blink === false || now.getMilliseconds() < 500;
+    let hh = p.h;
+    if (c.format === '12h') hh = hh % 12 || 12;
+    const hs = String(hh).padStart(2, '0');
+    const day = DAYS[p.wd], date = p.d + ' ' + MONTHS[Number(p.mo) - 1] + ' ' + p.y;
+    const temp = c.showTemp === false ? '' : String(c.temp ?? '28°C').toUpperCase();
+    const key = [hs, p.mi, colon, day, date, temp, c.color].join('|');
     if (key === this.key) return;
     this.key = key;
-    const F = fam(this.font);
-    this.led.draw((g, C, R) => {
-      // time: draw digits at fixed width so the colon blink doesn't shift them
-      g.fillStyle = c.color || '#ffb347';
-      const hT = 14, top = 2;
-      g.font = `700 20px ${F}`;
-      const probe = g.measureText('00:00');
-      const k = hT / Math.max(1, probe.actualBoundingBoxAscent + probe.actualBoundingBoxDescent);
-      let size = 20 * k; g.font = `700 ${size}px ${F}`;
-      let wFull = g.measureText(time.replace(' ', ':')).width;
-      if (wFull > C - 2) { size *= (C - 2) / wFull; g.font = `700 ${size}px ${F}`; wFull = g.measureText(time.replace(' ', ':')).width; }
-      const m = g.measureText('0');
-      const base = Math.round(top + (hT + m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2);
-      let x = Math.round((C - wFull) / 2);
-      g.textBaseline = 'alphabetic'; g.textAlign = 'left';
-      for (const ch of time) {
-        const cw = g.measureText(ch === ' ' ? ':' : ch).width;
-        if (ch !== ' ') g.fillText(ch, x, base);
-        x += cw;
+    this.led.draw((g) => {
+      g.fillStyle = c.color || '#ff9628';
+      for (const [x, y, w] of CLOCK_DECO) g.fillRect(x, y, w, 1);
+      // top row: temperature next to the weather icon, date on the right
+      if (temp) pixText(g, temp, 24, 5);
+      const topLine = day + ' ' + date;
+      pixText(g, topLine, 125 - pixWidth(topLine), 5);
+      // big time
+      const F = '"Be Vietnam Pro", "Barlow Condensed", Arial, sans-serif';
+      bigDigit(g, hs[0], F, 19, 32, 28, 20);
+      bigDigit(g, hs[1], F, 41, 32, 28, 20);
+      bigDigit(g, p.mi[0], F, 87, 32, 28, 20);
+      bigDigit(g, p.mi[1], F, 110, 32, 28, 20);
+      if (colon) { g.fillRect(61, 40, 6, 7); g.fillRect(61, 53, 6, 7); }
+      // bottom-left: day / date beside the calendar icon
+      pixText(g, day, 18, 78);
+      pixText(g, date, 18, 86);
+      // bottom-right: temperature beside the thermometer
+      if (temp) {
+        const w = pixWidth(temp) * 2 - (temp.length - 1); // 2× glyphs, 1-LED gaps
+        pixText(g, temp, Math.max(92, 126 - w), 77, 2);
       }
-      // separator line
-      g.fillStyle = c.color2 || '#ff8a3c';
-      for (let i = 3; i < C - 3; i += 2) g.fillRect(i, 18, 1, 1);
-      g.fillStyle = c.color2 || '#ffd27a';
-      inkText(g, line2, F, 700, C / 2, 20, 10, C - 3);
     });
   }
 }
 
 // ------------------------------------------------------------------ SPEAKER EQUALIZER
+// Same look as the wall speaker's screen design: 128×56 LEDs, 61 one-LED-wide bars on every other
+// column, colour fading from amber at the bottom to red-orange at the top; driven by the music.
+const hex = (h) => { const n = parseInt(String(h || '#000').replace('#', ''), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
 export class SpeakerScreen {
   constructor() {
-    this.led = new LedBoard({ cols: 38, rows: 16, width: 1, height: 1, boost: 2.0 });
-    this.bars = 13; this.level = new Float32Array(this.bars); this.peak = new Float32Array(this.bars); this.peakHold = new Float32Array(this.bars);
-    this.analyser = null; this.data = null; this.acc = 0; this.cfg = {};
+    this.led = new LedBoard({ cols: 128, rows: 56, width: 1, height: 1, boost: 2.0, offColor: 0x241208 });
+    this.bars = 61; this.x0 = 3; this.base = 53; this.maxH = 47;
+    this.level = new Float32Array(this.bars);
+    this.analyser = null; this.data = null; this.acc = 0; this.cfg = {}; this.rowCol = [];
   }
-  configure(cfg, top) { this.cfg = cfg || {}; if (top?.ledBrightness) this.led.brightness = 2.0 * top.ledBrightness / 100; }
+  configure(cfg, top) {
+    this.cfg = cfg || {};
+    if (top?.ledBrightness) this.led.brightness = 2.0 * top.ledBrightness / 100;
+    const lo = hex(this.cfg.low || '#ffaa26'), hi = hex(this.cfg.high || '#ff4a0c');
+    this.rowCol = [];
+    for (let r = 0; r < this.maxH; r++) {
+      const k = r / (this.maxH - 1), c = lo.map((v, i) => Math.round(v + (hi[i] - v) * k));
+      this.rowCol.push('rgb(' + c.join(',') + ')');
+    }
+  }
   setAnalyser(an) {
     this.analyser = an;
     if (!an) return;
     this.data = new Uint8Array(an.frequencyBinCount);
-    // log-spaced bands 50 Hz … 14 kHz
-    const sr = an.context.sampleRate, n = an.frequencyBinCount, hz = sr / 2 / n;
+    // log-spaced bands 45 Hz … 16 kHz (fractional bin ranges so the low bars stay distinct)
+    const hz = an.context.sampleRate / 2 / an.frequencyBinCount;
     this.bands = [];
     for (let i = 0; i < this.bars; i++) {
-      const f0 = 50 * Math.pow(14000 / 50, i / this.bars), f1 = 50 * Math.pow(14000 / 50, (i + 1) / this.bars);
-      const a = Math.max(1, Math.floor(f0 / hz)), b = Math.max(a + 1, Math.ceil(f1 / hz));
-      this.bands.push([a, Math.min(n, b)]);
+      const f0 = 45 * Math.pow(16000 / 45, i / this.bars), f1 = 45 * Math.pow(16000 / 45, (i + 1) / this.bars);
+      this.bands.push([f0 / hz, Math.max(f0 / hz + 0.5, f1 / hz)]);
     }
   }
+  sample(a, b) {
+    const d = this.data, n = d.length - 1;
+    let s = 0, k = 0;
+    for (let x = a; x <= b; x += 0.5) { const i = Math.min(n, Math.floor(x)), f = x - i; s += d[i] * (1 - f) + d[Math.min(n, i + 1)] * f; k++; }
+    return s / Math.max(1, k) / 255;
+  }
   update(dt, t, playing) {
-    // targets from the music analyser (0..1)
     const an = this.analyser, B = this.bars;
-    let any = false;
     if (an && playing) {
       an.getByteFrequencyData(this.data);
       for (let i = 0; i < B; i++) {
-        const [a, b] = this.bands[i];
-        let s = 0, mx = 0;
-        for (let k = a; k < b; k++) { s += this.data[k]; if (this.data[k] > mx) mx = this.data[k]; }
-        let v = (0.6 * mx + 0.4 * s / (b - a)) / 255;
-        v = Math.max(0, (v - 0.18) / 0.75);            // drop the noise floor
-        v = Math.min(1, Math.pow(v, 1.35) * (1 + i * 0.05)); // tilt so highs show too
+        let v = this.sample(this.bands[i][0], this.bands[i][1]);
+        v = Math.max(0, (v - 0.12) / 0.8);
+        v = Math.min(1, Math.pow(v, 1.2) * (1 + i * 0.012));
         const cur = this.level[i];
-        this.level[i] = v > cur ? cur + (v - cur) * Math.min(1, dt * 30) : Math.max(v, cur - dt * 1.6);
-        if (this.level[i] > 0.02) any = true;
+        this.level[i] = v > cur ? cur + (v - cur) * Math.min(1, dt * 35) : Math.max(v, cur - dt * 1.8);
       }
     } else {
-      for (let i = 0; i < B; i++) this.level[i] = Math.max(0, this.level[i] - dt * 1.6);
+      for (let i = 0; i < B; i++) this.level[i] = Math.max(0, this.level[i] - dt * 1.8);
     }
-    for (let i = 0; i < B; i++) {
-      if (this.level[i] >= this.peak[i]) { this.peak[i] = this.level[i]; this.peakHold[i] = 0.35; }
-      else if ((this.peakHold[i] -= dt) <= 0) this.peak[i] = Math.max(this.level[i], this.peak[i] - dt * 0.9);
-    }
-    // redraw at ~30 fps
     this.acc += dt; if (this.acc < 1 / 30) return; this.acc = 0;
-    const c = this.cfg;
-    const cols = [c.low || '#3cff6a', c.mid || '#ffd23c', c.high || '#ff4a2a'];
-    this.led.draw((g, C, R) => {
-      const bw = 2, gap = 1, total = B * (bw + gap) - gap, x0 = Math.floor((C - total) / 2);
-      const rows = R - 1;
+    if (!this.rowCol.length) this.configure(this.cfg);
+    this.led.draw((g) => {
       for (let i = 0; i < B; i++) {
-        const x = x0 + i * (bw + gap);
-        const h = Math.round(this.level[i] * rows);
-        for (let r = 0; r < h; r++) {
-          const fr = r / rows;
-          g.fillStyle = fr < 0.55 ? cols[0] : fr < 0.82 ? cols[1] : cols[2];
-          g.fillRect(x, R - 1 - r, bw, 1);
-        }
-        const pk = Math.round(this.peak[i] * rows);
-        if (pk > 0 && pk >= h) { g.fillStyle = cols[2]; g.fillRect(x, R - 1 - pk, bw, 1); }
-        // baseline LED so the screen never looks dead
-        if (h === 0) { g.fillStyle = cols[0]; g.fillRect(x, R - 1, bw, 1); }
+        const x = this.x0 + i * 2;
+        const h = Math.max(1, Math.round(this.level[i] * this.maxH)); // bottom LED always lit
+        for (let r = 0; r < h; r++) { g.fillStyle = this.rowCol[r]; g.fillRect(x, this.base - r, 1, 1); }
       }
     });
-    return any;
   }
 }

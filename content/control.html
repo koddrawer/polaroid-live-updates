@@ -139,11 +139,11 @@
   <div class="field" id="tzOtherBox" hidden><label for="tzOther">Tên múi giờ (IANA, ví dụ Europe/Rome)</label><input id="tzOther" type="text" spellcheck="false"></div>
   <p id="tzNow" class="muted" aria-live="off"></p>
   <div class="row wrap cfg"><label for="clkFormat">Kiểu giờ</label><select id="clkFormat"><option value="24h">24 giờ (18:30)</option><option value="12h">12 giờ (6:30 CH)</option></select>
-    <label class="check"><input id="clkWeekday" type="checkbox"> Xen kẽ thứ trong tuần</label><label class="check"><input id="clkBlink" type="checkbox"> Nhấp nháy dấu :</label></div>
-  <div class="row wrap cfg"><label for="clkColor">Màu giờ</label><input id="clkColor" type="color"><label for="clkColor2">Màu ngày</label><input id="clkColor2" type="color"></div>
+    <label class="check"><input id="clkBlink" type="checkbox"> Nhấp nháy dấu :</label><label for="clkColor">Màu LED</label><input id="clkColor" type="color"></div>
+  <div class="row wrap cfg"><label class="check"><input id="clkShowTemp" type="checkbox"> Hiện nhiệt độ</label><label for="clkTemp">Nhiệt độ</label><input id="clkTemp" type="text" style="max-width:90px" placeholder="28°C"></div>
   <h2>Loa treo tường</h2>
-  <p class="muted">Cột sóng nhạc trên màn hình loa nhảy theo bài nhạc nền đang phát (tab Nhạc). Khi không phát nhạc, cột sóng nằm yên.</p>
-  <div class="row wrap cfg"><label for="spkLow">Màu thấp</label><input id="spkLow" type="color"><label for="spkMid">Màu giữa</label><input id="spkMid" type="color"><label for="spkHigh">Màu đỉnh</label><input id="spkHigh" type="color"></div>
+  <p class="muted">Cột sóng nhạc trên màn hình loa nhảy theo bài nhạc nền đang phát (tab Nhạc). Khi không phát nhạc, chỉ còn hàng LED dưới cùng sáng.</p>
+  <div class="row wrap cfg"><label for="spkLow">Màu chân cột</label><input id="spkLow" type="color"><label for="spkHigh">Màu đỉnh cột</label><input id="spkHigh" type="color"></div>
 </section>
 
 <!-- ============ VIEW ============ -->

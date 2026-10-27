@@ -1,6 +1,6 @@
 {
- "version": "1.3.0",
- "notes": "Cảnh mới (đồng hồ Chrono + loa treo tường); đồng hồ theo múi giờ đã chọn; cột sóng loa nhảy theo nhạc đang phát; 3 khung: nhỏ 1–9 xu, vừa 10–39 xu, to nhất từ 40 xu, chỉ khác con dấu",
+ "version": "1.3.1",
+ "notes": "Màn hình đồng hồ và loa giống mẫu trong file 3D; ảnh in ra từ khe phía trước dưới máy ảnh",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
@@ -10,8 +10,8 @@
    "size": 5632
   },
   "control.html": {
-   "sha256": "01025d4b842322627e3175ef81c18cbd45c01f801ed4029aba8f4233eecbcdc2",
-   "size": 13961
+   "sha256": "f7971374a2eb554afb238fd18bfdee3e6601cb0a5d6fa8110d65a746386cc539",
+   "size": 13952
   },
   "display.html": {
    "sha256": "72822fa3b626f0758331bf68914654e88f5ecf92c3133afeafe38b53739d9316",
@@ -86,16 +86,16 @@
    "size": 10369
   },
   "js/control.js": {
-   "sha256": "78a3a7b0906e0794041e2b28dc79e430aa546ffda6848f774d35f013443a9233",
-   "size": 27722
+   "sha256": "2d78e0735fbca4770c04a7599f27608e67839a648ef26448045f3fdf5d1b46f8",
+   "size": 27650
   },
   "js/defaults.js": {
-   "sha256": "493f3b0cb43742df4337565bd2694485cf4152357c71ce53250e18db9edbb713",
-   "size": 7228
+   "sha256": "8e507a1ab453e195c927baa9e2abf4ea8b161229e817b28f345d10da51c46473",
+   "size": 7209
   },
   "js/display.js": {
-   "sha256": "1b8c6aad279bba879c2384c99d29a9129db30e5aabd416ed6899c648b1710b85",
-   "size": 43178
+   "sha256": "781faacd25d148829ef387942bbc2949c074503c983c3108fa622eb80b93f840",
+   "size": 43214
   },
   "js/led.js": {
    "sha256": "d2c3c2f5234208e4622d17597b3b9784b894e9a7eb56774d583ea2b56a61bf67",
@@ -110,8 +110,8 @@
    "size": 7469
   },
   "js/screens.js": {
-   "sha256": "ec8e8b17736db3fb4bfe86d3df69d4acf20a97629a35809898c33c2b5c086e5f",
-   "size": 7733
+   "sha256": "1641e621c593b2ca1f8a4f0dbc56bde5444bd1e84bf144ac2ff250f9119dad5c",
+   "size": 10317
   },
   "papers/black.jpg": {
    "sha256": "58f9f7329a0a0fcc65dc901d317976ccea26c373eaf7d4389a489e25419072a8",
@@ -146,8 +146,8 @@
    "size": 370006
   },
   "scene/scene.json": {
-   "sha256": "5f2fdf04604014216e6adc9f1ce29912eb3924abb7e90d96b2ca6b5bfceffb0b",
-   "size": 23356
+   "sha256": "8f32503f4f5579c5c7f9252c5cd967ebf44671370a71ee50faef116057428a3e",
+   "size": 14030
   },
   "scene/sprites/Clock_Hand_Hour.png": {
    "sha256": "a8a553084acfe56129097f3945cdfc0c227b30509443737c8ec0ecbdab3c6870",

@@ -1,0 +1,1 @@
+{"name":"polaroid-android-engine","private":true,"type":"module","scripts":{"build":"node build.mjs"},"dependencies":{"buffer":"^6.0.3","esbuild":"^0.28.2","events":"^3.3.0","pako":"^3.0.3","tiktok-live-connector":"^2.5.0","ws":"^8.22.0"}}

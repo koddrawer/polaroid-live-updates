@@ -414,6 +414,8 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   bindCheck('winFrame', () => S.display.frame, v => ({ display: { frame: v } }));
   bindCheck('onTop', () => S.display.alwaysOnTop, v => ({ display: { alwaysOnTop: v } }));
   bindCheck('showFps', () => S.display.showFps, v => ({ display: { showFps: v } }));
+  bindCheck('autoRes', () => !!S.display.autoRes, v => ({ display: { autoRes: v } }));
+  $('fitMode').value = S.display.fit || 'contain'; $('fitMode').addEventListener('change', () => save({ display: { fit: $('fitMode').value } }));
 
   const st0 = await api.tiktokStatus();
   if (S.tiktok.autoConnect && S.tiktok.username && (!st0 || st0.state === 'idle')) api.connect({ username: S.tiktok.username, signApiKey: S.tiktok.signApiKey });

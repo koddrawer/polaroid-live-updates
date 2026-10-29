@@ -78,6 +78,8 @@ public class MainActivity extends Activity {
     private final Map<String, Object> inflightImages = new ConcurrentHashMap<>();
     private Object[] pendingPick = null; // {WebView, id, kind}
     private int reqSeq = 0;
+    private volatile boolean engineReady = false;
+    private final java.util.List<String> engineQueue = new java.util.ArrayList<>();
     private long lastBack = 0;
 
     // ------------------------------------------------------------------ lifecycle
@@ -232,6 +234,11 @@ public class MainActivity extends Activity {
         w.addJavascriptInterface(new Bridge(w, role), "Native");
         w.setWebViewClient(new WebViewClient() {
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) { return server.handle(req); }
+            @Override public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail d) {
+                // a WebView renderer died (low memory): rebuild the whole screen instead of crashing the app
+                ui.post(MainActivity.this::recreate);
+                return true;
+            }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest req) {
                 Uri u = req.getUrl();
                 if (ContentServer.HOST.equals(u.getHost())) return false;
@@ -291,6 +298,7 @@ public class MainActivity extends Activity {
                 case "live:event":
                 case "tiktok:status": broadcast(channel, json); break;
                 case "ui:control": ui.post(() -> showControl("true".equals(json))); break;
+                case "engine:ready": ui.post(() -> { engineReady = true; for (String c : engineQueue) engine.evaluateJavascript(c, null); engineQueue.clear(); }); break;
                 default: break;
             }
         }
@@ -389,7 +397,8 @@ public class MainActivity extends Activity {
                 if (method.startsWith("tiktok:")) {
                     String rid = "r" + (++reqSeq);
                     engineReqs.put(rid, new Object[]{view, id});
-                    js(engine, "window.__engineCall&&__engineCall(" + JSONObject.quote(rid) + "," + JSONObject.quote(method) + "," + JSONObject.quote(a.toString()) + ")");
+                    String code = "window.__engineCall&&__engineCall(" + JSONObject.quote(rid) + "," + JSONObject.quote(method) + "," + JSONObject.quote(a.toString()) + ")";
+                    ui.post(() -> { if (engineReady) engine.evaluateJavascript(code, null); else engineQueue.add(code); });
                     // give up after 60 s so the page never waits forever
                     ui.postDelayed(() -> { Object[] r = engineReqs.remove(rid); if (r != null) resolve((WebView) r[0], (String) r[1], false, Updater.obj("message", "TikTok engine timeout").toString()); }, 60000);
                     return PENDING;

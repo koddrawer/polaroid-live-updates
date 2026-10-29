@@ -43,7 +43,7 @@
   <h2>Cập nhật</h2>
   <div class="row"><button id="btnUpdate">Kiểm tra cập nhật</button><button id="btnApply" hidden class="primary">Áp dụng ngay</button></div>
   <p id="updMsg" class="muted"></p>
-  <div class="row"><button id="btnUserData">Mở thư mục dữ liệu</button></div>
+  <div class="row desktop-only"><button id="btnUserData">Mở thư mục dữ liệu</button></div>
 </section>
 
 <!-- ============ TOP LED ============ -->
@@ -83,7 +83,7 @@
 <section data-panel="photo" hidden>
   <h2>Chữ dưới ảnh</h2>
   <div class="field"><label for="fontSel">Font</label>
-    <div class="row"><select id="fontSel"></select><button id="btnFontFile">Thêm font…</button><button id="btnSysFonts">Font hệ thống</button></div></div>
+    <div class="row"><select id="fontSel"></select><button id="btnFontFile">Thêm font…</button><button id="btnSysFonts" class="desktop-only">Font hệ thống</button></div></div>
   <div class="field row"><label for="capColor">Màu chữ</label><input id="capColor" type="color">
     <label for="capSize">Cỡ</label><input id="capSize" type="range" min="50" max="150"></div>
   <div class="field"><label for="capTpl">Mẫu chữ ({name})</label><input id="capTpl" type="text"></div>
@@ -145,14 +145,18 @@
 
 <!-- ============ VIEW ============ -->
 <section data-panel="view" hidden>
-  <h2>Cửa sổ hiển thị</h2>
-  <div class="field"><label for="winSize">Kích thước (9:16)</label>
+  <h2 class="desktop-only">Cửa sổ hiển thị</h2>
+  <h2 class="android-only">Màn hình điện thoại</h2>
+  <div class="field android-only"><label for="fitMode">Khung hình</label>
+    <select id="fitMode"><option value="cover">Tràn màn hình (cắt bớt 2 bên)</option><option value="contain">Giữ nguyên 9:16 (có viền đen)</option></select></div>
+  <div class="field desktop-only"><label for="winSize">Kích thước (9:16)</label>
     <select id="winSize"><option value="540x960">540 × 960</option><option value="720x1280">720 × 1280</option><option value="1080x1920">1080 × 1920</option></select></div>
   <div class="field"><label for="quality">Chất lượng đồ hoạ</label>
-    <select id="quality"><option value="low">Thấp — máy yếu / GPU cũ</option><option value="medium">Trung bình — GTX 1050 trở lên</option><option value="high">Cao</option></select></div>
+    <select id="quality"><option value="low">Thấp — máy yếu / GPU cũ</option><option value="medium">Trung bình — GTX 1050 / điện thoại tầm trung</option><option value="high">Cao</option></select></div>
   <div class="field"><label for="fpsCap">Giới hạn FPS</label><select id="fpsCap"><option value="30">30</option><option value="60">60</option></select></div>
-  <div class="field row"><label class="check"><input id="winFrame" type="checkbox"> Viền cửa sổ (tắt khi live)</label><label class="check"><input id="onTop" type="checkbox"> Luôn nằm trên</label><label class="check"><input id="showFps" type="checkbox"> Hiện FPS</label></div>
-  <p class="muted">Bật/tắt viền sẽ mở lại cửa sổ hiển thị. Khi live: tắt viền, bắt cửa sổ "Polaroid Live — Màn hình" trong TikTok LIVE Studio.</p>
+  <div class="field row"><label class="check desktop-only"><input id="winFrame" type="checkbox"> Viền cửa sổ (tắt khi live)</label><label class="check desktop-only"><input id="onTop" type="checkbox"> Luôn nằm trên</label><label class="check"><input id="autoRes" type="checkbox"> Tự giảm độ phân giải khi máy chậm</label><label class="check"><input id="showFps" type="checkbox"> Hiện FPS</label></div>
+  <p class="muted android-only">Khi live: mở TikTok → Phát trực tiếp → Phát màn hình điện thoại, rồi quay lại app này. Nút ⚙ góc trên phải tự ẩn sau vài giây (chạm màn hình để hiện lại).</p>
+  <p class="muted desktop-only">Bật/tắt viền sẽ mở lại cửa sổ hiển thị. Khi live: tắt viền, bắt cửa sổ "Polaroid Live — Màn hình" trong TikTok LIVE Studio.</p>
   <div class="row"><button id="btnReloadDisplay">Tải lại màn hình</button></div>
   <p id="perf" class="muted"></p>
 </section>

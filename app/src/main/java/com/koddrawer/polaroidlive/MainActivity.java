@@ -226,7 +226,7 @@ public class MainActivity extends Activity {
         s.setCacheMode(WebSettings.LOAD_NO_CACHE);
         s.setOffscreenPreRaster("display".equals(role));
         s.setTextZoom(100);
-        s.setUseWideViewPort(true);
+        s.setUseWideViewPort(false);
         s.setLoadWithOverviewMode(false);
         w.setBackgroundColor("control".equals(role) ? Color.parseColor("#15110d") : Color.BLACK);
         w.setLayerType(View.LAYER_TYPE_HARDWARE, null);

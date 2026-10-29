@@ -20,6 +20,14 @@ jobs:
           set -o pipefail
           gradle --no-daemon assembleRelease 2>&1 | tee build.log
         continue-on-error: true
+      - name: Release
+        if: hashFiles('app/build/outputs/apk/release/app-release.apk') != ''
+        env: { GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
+        run: |
+          VER=$(grep -oP "versionName '\K[^']+" app/build.gradle)
+          cp app/build/outputs/apk/release/app-release.apk PolaroidLive-$VER.apk
+          gh release delete android-v$VER -y --cleanup-tag || true
+          gh release create android-v$VER PolaroidLive-$VER.apk --title "Polaroid Live Android $VER" --notes "APK cho điện thoại Android" --target ${GITHUB_SHA}
       - name: Publish result to branch apk-out
         run: |
           VER=$(grep -oP "versionName '\K[^']+" app/build.gradle)
@@ -32,11 +40,3 @@ jobs:
           cp /tmp/out/* .
           git add -A && git commit -q -m "APK build ${GITHUB_SHA::7} $(cat STATUS)"
           git push -f origin HEAD:apk-out
-      - name: Release
-        if: hashFiles('app/build/outputs/apk/release/app-release.apk') != ''
-        env: { GH_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
-        run: |
-          VER=$(grep -oP "versionName '\K[^']+" app/build.gradle)
-          cp app/build/outputs/apk/release/app-release.apk PolaroidLive-$VER.apk
-          gh release delete android-v$VER -y --cleanup-tag || true
-          gh release create android-v$VER PolaroidLive-$VER.apk --title "Polaroid Live Android $VER" --notes "APK cho điện thoại Android" --target ${GITHUB_SHA}

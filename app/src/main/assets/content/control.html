@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<title>Polaroid Live — Bảng điều khiển</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' app: data: blob:; img-src 'self' app: data: blob: https:; style-src 'self' 'unsafe-inline'; font-src 'self' app: data: blob:; script-src 'self' app: 'unsafe-inline';">
+<link rel="stylesheet" href="control.css">
+<script type="importmap">
+{ "imports": { "three": "./vendor/three/three.module.js", "three/addons/": "./vendor/three/addons/" } }
+</script>
+</head>
+<body>
+<header class="top">
+  <div class="brand">Polaroid Live <span id="ver" class="muted"></span></div>
+  <div id="statusPill" class="pill idle">Chưa kết nối</div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button role="tab" data-tab="live" aria-selected="true">Kết nối</button>
+  <button role="tab" data-tab="top">LED trên</button>
+  <button role="tab" data-tab="bottom">LED dưới</button>
+  <button role="tab" data-tab="photo">Ảnh</button>
+  <button role="tab" data-tab="music">Nhạc</button>
+  <button role="tab" data-tab="clock">Đồng hồ</button>
+  <button role="tab" data-tab="view">Hiển thị</button>
+  <button role="tab" data-tab="test">Thử</button>
+</nav>
+
+<main>
+<!-- ============ LIVE ============ -->
+<section data-panel="live">
+  <h2>Kênh TikTok</h2>
+  <div class="field"><label for="tkUser">Tên kênh (@username)</label>
+    <div class="row"><input id="tkUser" type="text" placeholder="koddrawer"><button id="btnConnect" class="primary">Kết nối</button><button id="btnDisconnect">Ngắt</button></div>
+  </div>
+  <details class="field"><summary>Nâng cao</summary>
+    <label for="tkKey">Euler Stream API key (không bắt buộc, giúp kết nối ổn định hơn khi live đông)</label>
+    <input id="tkKey" type="password" placeholder="để trống nếu không có">
+    <label class="check"><input id="tkAuto" type="checkbox"> Tự kết nối khi mở app</label>
+  </details>
+  <h2>Sự kiện gần đây</h2>
+  <ul id="log" class="log"></ul>
+  <h2>Cập nhật</h2>
+  <div class="row"><button id="btnUpdate">Kiểm tra cập nhật</button><button id="btnApply" hidden class="primary">Áp dụng ngay</button></div>
+  <p id="updMsg" class="muted"></p>
+  <div class="row"><button id="btnUserData">Mở thư mục dữ liệu</button></div>
+</section>
+
+<!-- ============ TOP LED ============ -->
+<section data-panel="top" hidden>
+  <h2>Dòng trên</h2>
+  <div class="field"><label for="l1Text">Nội dung</label><input id="l1Text" type="text"></div>
+  <div class="field row"><label for="l1Color">Màu</label><input id="l1Color" type="color"><label class="check"><input id="l1Scroll" type="checkbox"> Luôn chạy chữ</label></div>
+  <h2>Chữ LED</h2>
+  <div class="field"><label for="ledFont">Font LED</label><select id="ledFont"></select></div>
+  <div class="grid3">
+    <div class="field"><label for="ledWeight">Độ đậm</label><select id="ledWeight"><option value="700">Đậm</option><option value="800">Rất đậm</option></select></div>
+    <div class="field"><label for="scrollSpeed">Tốc độ chạy chữ</label><input id="scrollSpeed" type="number" min="8" max="80"></div>
+    <div class="field"><label for="ledBright">Độ sáng LED %</label><input id="ledBright" type="number" min="40" max="200" step="10"></div>
+  </div>
+  <p class="muted">Chữ tự thu nhỏ cho vừa bảng; chỉ chạy chữ khi quá dài.</p>
+  <h2>Dòng quà (thay phiên lần lượt)</h2>
+  <p class="muted">Mỗi dòng: icon quà + nội dung. Bấm vào ô icon để chọn quà TikTok, icon có sẵn hoặc ảnh của bạn.</p>
+  <ol id="itemList" class="items"></ol>
+  <div class="row"><button id="btnAddItem">+ Thêm dòng</button>
+    <label for="itemSec">Mỗi dòng hiện</label><input id="itemSec" type="number" min="1" max="60" step="0.5" style="width:70px"><span>giây</span></div>
+</section>
+
+<!-- ============ BOTTOM LED ============ -->
+<section data-panel="bottom" hidden>
+  <h2>Lời chào &amp; cảm ơn</h2>
+  <p class="muted">Dùng {name} = tên người xem, {gift} = tên quà, {count} = số lượng, {coins} = tổng xu.</p>
+  <div class="field"><label for="joinTpl">Khi có người vào live</label><input id="joinTpl" type="text"></div>
+  <div class="field"><label for="giftTpl">Khi có người tặng quà</label><input id="giftTpl" type="text"></div>
+  <div class="field"><label for="followTpl">Khi có người follow</label><input id="followTpl" type="text"></div>
+  <div class="field"><label for="idleTxt">Khi không có ai (chữ chờ)</label><input id="idleTxt" type="text"></div>
+  <div class="field row"><label class="check"><input id="showJoins" type="checkbox"> Chào người vào live</label>
+    <label for="joinSec">Mỗi lời chào</label><input id="joinSec" type="number" min="1" max="20" step="0.5" style="width:70px"><span>giây</span></div>
+  <div class="field row"><label for="b2Color">Màu chào</label><input id="b2Color" type="color"><label for="b2GiftColor">Màu cảm ơn</label><input id="b2GiftColor" type="color"></div>
+</section>
+
+<!-- ============ PHOTO ============ -->
+<section data-panel="photo" hidden>
+  <h2>Chữ dưới ảnh</h2>
+  <div class="field"><label for="fontSel">Font</label>
+    <div class="row"><select id="fontSel"></select><button id="btnFontFile">Thêm font…</button><button id="btnSysFonts">Font hệ thống</button></div></div>
+  <div class="field row"><label for="capColor">Màu chữ</label><input id="capColor" type="color">
+    <label for="capSize">Cỡ</label><input id="capSize" type="range" min="50" max="150"></div>
+  <div class="field"><label for="capTpl">Mẫu chữ ({name})</label><input id="capTpl" type="text"></div>
+  <canvas id="printPreview" width="300" height="360" aria-label="Xem trước ảnh polaroid"></canvas>
+  <h2>Mốc xu</h2>
+  <div class="grid3">
+    <div class="field"><label for="tSmall">Khung nhỏ từ</label><input id="tSmall" type="number" min="1"></div>
+    <div class="field"><label for="tMedium">Khung vừa từ</label><input id="tMedium" type="number" min="1"></div>
+    <div class="field"><label for="tBig">Khung to nhất từ</label><input id="tBig" type="number" min="1"></div>
+  </div>
+  <p id="tierHint" class="muted"></p>
+  <label class="check"><input id="countByCoins" type="checkbox"> Tính theo tổng xu cả combo</label>
+  <h2>Thời gian (giây)</h2>
+  <div class="grid3">
+    <div class="field"><label for="tmApproach">Máy tiến lại</label><input id="tmApproach" type="number" min="0.3" max="6" step="0.1"></div>
+    <div class="field"><label for="tmShutter">Chờ trước khi chụp</label><input id="tmShutter" type="number" min="0" max="5" step="0.1"></div>
+    <div class="field"><label for="tmTotal">Từ lúc chụp đến khi ảnh về chỗ</label><input id="tmTotal" type="number" min="3" max="40" step="0.5"></div>
+  </div>
+  <p class="muted">Trong khoảng này ảnh được in ra, hiện lên giữa màn hình, đóng dấu rồi bay về chỗ. Các bước tự chia theo tỉ lệ.</p>
+  <h2>Con dấu</h2>
+  <div class="field row"><label class="check"><input id="sealOn" type="checkbox"> Đóng dấu lên góc ảnh</label>
+    <label for="sealSize">Cỡ dấu</label><input id="sealSize" type="range" min="18" max="50"></div>
+  <h2>Âm thanh</h2>
+  <div class="field"><label>Tiếng chụp ảnh</label>
+    <div class="row"><span id="shutterName" class="muted"></span><button id="btnShutterFile">Chọn file âm thanh…</button><button id="btnShutterTest">▶ Nghe thử</button><button id="btnShutterReset">Dùng mặc định</button></div></div>
+  <div class="field"><label>Tiếng đóng dấu</label>
+    <div class="row"><span id="stampName" class="muted"></span><button id="btnStampFile">Chọn file âm thanh…</button><button id="btnStampTest">▶ Nghe thử</button><button id="btnStampReset">Dùng mặc định</button></div></div>
+  <div class="field row"><label class="check"><input id="sndCharge" type="checkbox"> Tiếng sạc flash</label><label class="check"><input id="sndStamp" type="checkbox"> Bật tiếng đóng dấu</label></div>
+  <p id="sndMsg" class="muted" aria-live="polite"></p>
+  <h2>Nền ảnh và con dấu theo loại donate</h2>
+  <p class="muted">Mỗi loại có nền ảnh, màu chữ và bộ con dấu riêng. Bấm vào dấu để chọn/bỏ chọn (chọn được nhiều dấu) — mỗi ảnh sẽ được đóng ngẫu nhiên 1 dấu trong số đã chọn. Nút "Không" = không đóng dấu.</p>
+  <div id="tierList" class="tiers"></div>
+  <div class="field row"><label for="vol">Âm lượng chụp</label><input id="vol" type="range" min="0" max="100"><label class="check"><input id="flashOn" type="checkbox"> Flash</label></div>
+  <div class="row"><button id="btnClearSmall">Gỡ ảnh khung nhỏ</button><button id="btnClearMedium">Gỡ ảnh khung vừa</button><button id="btnClearWall">Gỡ tất cả ảnh</button></div>
+</section>
+
+<!-- ============ MUSIC ============ -->
+<section data-panel="music" hidden>
+  <h2>Nhạc nền</h2>
+  <div class="field row"><label class="check"><input id="musOn" type="checkbox"> Bật nhạc nền</label><label class="check"><input id="musShuffle" type="checkbox"> Phát ngẫu nhiên</label><label class="check"><input id="musDuck" type="checkbox"> Nhỏ nhạc khi chụp ảnh</label></div>
+  <div class="field"><label for="musVol">Âm lượng nhạc</label><input id="musVol" type="range" min="0" max="100"></div>
+  <div class="row"><button id="musPrev">⏮</button><button id="musPlay" class="primary">▶ Phát</button><button id="musPause">⏸ Dừng</button><button id="musNext">⏭</button><span id="musNow" class="muted"></span></div>
+  <ol id="musList" class="items"></ol>
+  <div class="row"><button id="musAdd">+ Thêm bài nhạc (mp3, wav, ogg)…</button></div>
+</section>
+
+<!-- ============ CLOCK + SPEAKER ============ -->
+<section data-panel="clock" hidden>
+  <h2>Đồng hồ để bàn</h2>
+  <div class="field"><label for="tzSel">Múi giờ</label><select id="tzSel"></select></div>
+  <div class="field" id="tzOtherBox" hidden><label for="tzOther">Tên múi giờ (IANA, ví dụ Europe/Rome)</label><input id="tzOther" type="text" spellcheck="false"></div>
+  <p id="tzNow" class="muted" aria-live="off"></p>
+  <div class="row wrap cfg"><label for="clkFormat">Kiểu giờ</label><select id="clkFormat"><option value="24h">24 giờ (18:30)</option><option value="12h">12 giờ (6:30 CH)</option></select>
+    <label class="check"><input id="clkBlink" type="checkbox"> Nhấp nháy dấu :</label><label for="clkColor">Màu LED</label><input id="clkColor" type="color"></div>
+  <h2>Loa treo tường</h2>
+  <p class="muted">Cột sóng nhạc trên màn hình loa nhảy theo bài nhạc nền đang phát (tab Nhạc). Khi không phát nhạc, chỉ còn hàng LED dưới cùng sáng.</p>
+  <div class="row wrap cfg"><label for="spkLow">Màu chân cột</label><input id="spkLow" type="color"><label for="spkHigh">Màu đỉnh cột</label><input id="spkHigh" type="color"></div>
+</section>
+
+<!-- ============ VIEW ============ -->
+<section data-panel="view" hidden>
+  <h2>Cửa sổ hiển thị</h2>
+  <div class="field"><label for="winSize">Kích thước (9:16)</label>
+    <select id="winSize"><option value="540x960">540 × 960</option><option value="720x1280">720 × 1280</option><option value="1080x1920">1080 × 1920</option></select></div>
+  <div class="field"><label for="quality">Chất lượng đồ hoạ</label>
+    <select id="quality"><option value="low">Thấp — máy yếu / GPU cũ</option><option value="medium">Trung bình — GTX 1050 trở lên</option><option value="high">Cao</option></select></div>
+  <div class="field"><label for="fpsCap">Giới hạn FPS</label><select id="fpsCap"><option value="30">30</option><option value="60">60</option></select></div>
+  <div class="field row"><label class="check"><input id="winFrame" type="checkbox"> Viền cửa sổ (tắt khi live)</label><label class="check"><input id="onTop" type="checkbox"> Luôn nằm trên</label><label class="check"><input id="showFps" type="checkbox"> Hiện FPS</label></div>
+  <p class="muted">Bật/tắt viền sẽ mở lại cửa sổ hiển thị. Khi live: tắt viền, bắt cửa sổ "Polaroid Live — Màn hình" trong TikTok LIVE Studio.</p>
+  <div class="row"><button id="btnReloadDisplay">Tải lại màn hình</button></div>
+  <p id="perf" class="muted"></p>
+</section>
+
+<!-- ============ TEST ============ -->
+<section data-panel="test" hidden>
+  <h2>Giả lập sự kiện</h2>
+  <div class="field"><label for="testName">Tên</label><input id="testName" type="text" value="Hoàng Anh"></div>
+  <div class="row wrap">
+    <button data-test="join">Người vào live</button>
+    <button data-test="follow">Follow</button>
+    <button data-test="1">Tặng 1 xu</button>
+    <button data-test="10">Tặng 10 xu</button>
+    <button data-test="40">Tặng 40 xu</button>
+    <button data-test="burst">10 quà liên tiếp</button>
+  </div>
+  <p class="muted">Ảnh thử dùng ảnh đại diện mẫu tự tạo.</p>
+  <div id="queueInfo" class="muted"></div>
+</section>
+</main>
+
+<!-- icon picker -->
+<div id="picker" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="pickTitle">
+  <div class="sheet">
+    <div class="row between"><h3 id="pickTitle">Chọn icon quà</h3><button id="pickClose">Đóng</button></div>
+    <div class="row"><input id="pickSearch" type="text" placeholder="Tìm quà…"><button id="pickUpload">Ảnh của bạn…</button><button id="pickNone">Không icon</button></div>
+    <p id="pickMsg" class="muted"></p>
+    <div id="pickGrid" class="pgrid"></div>
+  </div>
+</div>
+<script type="module" src="js/control.js"></script>
+</body>
+</html>

@@ -1,0 +1,445 @@
+{
+ "version": "1.3.6",
+ "notes": "Chữ chạy trên bảng LED chạy vòng liên tục, không khựng lại",
+ "repo": "koddrawer/polaroid-live-updates",
+ "branch": "main",
+ "minShell": "1.0.0",
+ "files": {
+  "control.css": {
+   "sha256": "053c1f52589b5fd0323a7570dc5ee3d96890ba8bc495e325bcd0e32de0f31cb3",
+   "size": 6176
+  },
+  "control.html": {
+   "sha256": "6590d40dd33534c69ef5d63fe8f74721ff6f94ef4f8b34224fec3afbd5189941",
+   "size": 13832
+  },
+  "display.html": {
+   "sha256": "72822fa3b626f0758331bf68914654e88f5ecf92c3133afeafe38b53739d9316",
+   "size": 1208
+  },
+  "fonts/BarlowCondensed-Bold.ttf": {
+   "sha256": "e476562ec9c1e16cf16475895b511f08c804f438cc9a9f80a44ea50a0eeb5b65",
+   "size": 109912
+  },
+  "fonts/BarlowCondensed-ExtraBold.ttf": {
+   "sha256": "724c9c25952d5f4a2d87185d9767aa006144c5f0d944dc05bf7d5d603551c260",
+   "size": 110296
+  },
+  "fonts/BeVietnamPro-ExtraBold.ttf": {
+   "sha256": "44dbfa01553d227bec76ba6446c5618870a76a4a3297f41630dde859d0650d02",
+   "size": 139680
+  },
+  "fonts/Caveat.ttf": {
+   "sha256": "0bdb6b660482d31531b3945849fba5916b3ef8695da7024a9e6b9ee3c4157988",
+   "size": 403648
+  },
+  "fonts/DancingScript.ttf": {
+   "sha256": "21808625578fe8d8cd10cb684be546dca077b27cd03a53a2f1ec11dc743c924c",
+   "size": 133636
+  },
+  "fonts/Oswald.ttf": {
+   "sha256": "5b38c246e255a12f5712d640d56bcced0472466fc68983d2d0410ec0457c2817",
+   "size": 172088
+  },
+  "fonts/Pacifico-Regular.ttf": {
+   "sha256": "5b6c0d5334a7bf77dea52b975c5a0c408878c0f7115ed5b6fb151f634b7bf701",
+   "size": 329380
+  },
+  "fonts/PatrickHand-Regular.ttf": {
+   "sha256": "0f173b3e6cb6d1af25babf7f0057c5ac4ee11f9992b0469bb817e967ef4ad0fc",
+   "size": 214772
+  },
+  "icons/camera.png": {
+   "sha256": "1ec1f853ded2b511514b2311b393753e7112608dc920225bd636bc06887ec69c",
+   "size": 4095
+  },
+  "icons/coin.png": {
+   "sha256": "cc4e38949a0f7a8799a7fd04a262efba0790e9ea122beffd118ea9f88715a690",
+   "size": 6599
+  },
+  "icons/crown.png": {
+   "sha256": "2234a4838e9912053c29735c83f2edbb8a88d012210f2944a1d247c848796edc",
+   "size": 3651
+  },
+  "icons/frame.png": {
+   "sha256": "c73bf03eeeae26e392a15b2926b28f8aaf6c6762eca5bffcad10d0d2b570291a",
+   "size": 2041
+  },
+  "icons/gift.png": {
+   "sha256": "083a2cdbe029be1371c67b2fc7373709d8c6753cafad60612bf50ae6629c9737",
+   "size": 2686
+  },
+  "icons/heart.png": {
+   "sha256": "107604382f49eb696b21ec40bd539fbd076980147366993aacdb53422406aec1",
+   "size": 3215
+  },
+  "icons/rose.png": {
+   "sha256": "ebc3e4f16b57860265d23985fb0432ac82589d99aa93d4b4b5a7fbdefd97dbde",
+   "size": 6655
+  },
+  "icons/star.png": {
+   "sha256": "afbfa226ad272d79f1721aa14511079e52cd620e4ae7597fd8450ae37a648145",
+   "size": 3838
+  },
+  "js/boards.js": {
+   "sha256": "bee056449080529504940c6550ee1578d93d15b1cc89db98b012f06c3695aa74",
+   "size": 10710
+  },
+  "js/control.js": {
+   "sha256": "e24c1508cf8f4998ec158a362ec6c43751ec8f100ef36747b7e0e2e18d366bfa",
+   "size": 28910
+  },
+  "js/cutout.js": {
+   "sha256": "2aec5541a446f219f568751271ec49e03e6b156dd2021d4b55327217744d66ee",
+   "size": 5364
+  },
+  "js/defaults.js": {
+   "sha256": "8e7d1651057ed984eebc2f79ca7d4d389b47e2f7c5628723ccfff86d62e5e9d1",
+   "size": 7705
+  },
+  "js/display.js": {
+   "sha256": "912f5c85980b6f66d1b154a9d29652179ac4770ae3f4288c84fb0b38c66009ed",
+   "size": 43333
+  },
+  "js/led.js": {
+   "sha256": "d2c3c2f5234208e4622d17597b3b9784b894e9a7eb56774d583ea2b56a61bf67",
+   "size": 4012
+  },
+  "js/pipeline.js": {
+   "sha256": "7cf4feea7789982d5804d8040af4ee55ad6a6e2747f0a9ca8769e37c41a39367",
+   "size": 6831
+  },
+  "js/print.js": {
+   "sha256": "63d06f7b12709c7157df585882f9c7ea1ec46f082c09697a9914e850d5298edf",
+   "size": 7469
+  },
+  "js/screens.js": {
+   "sha256": "19a01e157535bbfa4ffb80449016b1175e240ef9ead259f169f9217c3297a1c8",
+   "size": 10821
+  },
+  "papers/black.jpg": {
+   "sha256": "58f9f7329a0a0fcc65dc901d317976ccea26c373eaf7d4389a489e25419072a8",
+   "size": 53635
+  },
+  "papers/gold.jpg": {
+   "sha256": "e8428b11ad0eb30344885f79b64433f185cf54e76eb457adaee5320a4448d4ce",
+   "size": 46750
+  },
+  "papers/kraft.jpg": {
+   "sha256": "76f94644a41309063866280dbe4880ae28e770fb7509269e151e546588e9db4a",
+   "size": 45078
+  },
+  "papers/pink.jpg": {
+   "sha256": "e1198c2973b64e336f00f4e31a570590cb50bfb8055efa3ff961a26736d61737",
+   "size": 51342
+  },
+  "papers/vintage.jpg": {
+   "sha256": "b6dac716a9a4eee682e9fb74f36eba6eaf80e8773a20ab1a917f54f64b9031f8",
+   "size": 27243
+  },
+  "papers/wood.jpg": {
+   "sha256": "a6f6f8217b505da970ce022b02a814f9125c7d3510bc4912990a33d78b2e0b4f",
+   "size": 58442
+  },
+  "scene/hero.glb": {
+   "sha256": "6fc05f04a75f377e9e1e69f67b721722b0eaa1671afdb22a1929b535181c730e",
+   "size": 1769592
+  },
+  "scene/plate.jpg": {
+   "sha256": "e09b94f86cd56616da5766236703dd7addcdb4f70881f8eac9cbff1cdef94610",
+   "size": 370006
+  },
+  "scene/scene.json": {
+   "sha256": "8f32503f4f5579c5c7f9252c5cd967ebf44671370a71ee50faef116057428a3e",
+   "size": 14030
+  },
+  "scene/sprites/Clock_Hand_Hour.png": {
+   "sha256": "a8a553084acfe56129097f3945cdfc0c227b30509443737c8ec0ecbdab3c6870",
+   "size": 1089
+  },
+  "scene/sprites/Clock_Hand_Hour_001.png": {
+   "sha256": "21a7ba421174dbbd1e158ff2fa5846ecc74261b7d7891f95e5400541c0a8e4a3",
+   "size": 1187
+  },
+  "scene/sprites/Clock_Hand_Minute.png": {
+   "sha256": "01da78db863fc7e5462874b680819371144cea8cf51d60ddebec91210f998334",
+   "size": 1147
+  },
+  "scene/sprites/Clock_Hand_Minute_001.png": {
+   "sha256": "5aac799ae6414799c700c164634ff78014de26c82fe8834cec145b17bfab02ce",
+   "size": 1258
+  },
+  "scene/sprites/Clock_Hand_Second.png": {
+   "sha256": "c4932c6b9aa8eef85b9442b191ab4afdc76a0ebda9af09b5e29c9257e01ddd6c",
+   "size": 1102
+  },
+  "scene/sprites/Clock_Hand_Second_001.png": {
+   "sha256": "46547fe8e593cb0f7cbf3eec77394ea0d8448ed9e63feb56196cd13ef118412f",
+   "size": 1107
+  },
+  "scene/sprites/Gear_B1.png": {
+   "sha256": "5427ebee1468615a2a1aa16531d096760937013284e66b4690f2477ba9773dfe",
+   "size": 14180
+  },
+  "scene/sprites/Gear_B2.png": {
+   "sha256": "eae0f8e22c48c0f172d69094fe44d5393147e06ffb54af53d2b073ed7605b133",
+   "size": 6087
+  },
+  "scene/sprites/Gear_B3.png": {
+   "sha256": "e7c5ada21502a6619d475008edd622515a7374a8e5aec75ec145b430b9eb4b1c",
+   "size": 6204
+  },
+  "scene/sprites/Gear_B4.png": {
+   "sha256": "2538c8138a1b750900a44f07446a4dfac8ad9da0ec6ab6f07cc924f433b4704e",
+   "size": 8874
+  },
+  "scene/sprites/Gear_B5.png": {
+   "sha256": "72bef08a4c1a161c6fd86030c549594f7b03a1f235c119bfd6a20aabc386f16b",
+   "size": 5119
+  },
+  "scene/sprites/Gear_BotCenter.png": {
+   "sha256": "36f00784a67f64f52267f236f4c7fe58d76c5b287601eeca2f3b430c9272d22d",
+   "size": 11485
+  },
+  "scene/sprites/Gear_BotCenter2.png": {
+   "sha256": "bfad0cf1281bfc770908e06706fdf406be8aeb8cbea8334f32c7923c0e0a19e7",
+   "size": 4979
+  },
+  "scene/sprites/Gear_BotRight.png": {
+   "sha256": "e9ed824b23be42ebf3b2e5466d2cfec7e2a293fdf573ed4fef9e86e8df89b2b7",
+   "size": 8853
+  },
+  "scene/sprites/Gear_BotRight2.png": {
+   "sha256": "5f820f255b6cf8c2adad3a480798b6fa4f84019c804a5e6840c8f1cb5e624b87",
+   "size": 5002
+  },
+  "scene/sprites/Gear_F1.png": {
+   "sha256": "73588b6938df3c23668c919beafa2c0d934773e215f9c383d6fe9feecf02fd02",
+   "size": 6247
+  },
+  "scene/sprites/Gear_F2.png": {
+   "sha256": "c815049160332417a944240f480753c6822ad284093e43d58c454fd96f78f80f",
+   "size": 5225
+  },
+  "scene/sprites/Gear_F3.png": {
+   "sha256": "199e67beaba67f42f127e2cdcbbf87cd00e9045f048e3a0dde506760d2d928d6",
+   "size": 8959
+  },
+  "scene/sprites/Gear_F4.png": {
+   "sha256": "a6555453b634d4e3f3aaf75771a7e90406c5f597e71ca406545247067a4b3aa5",
+   "size": 5069
+  },
+  "scene/sprites/Gear_F5.png": {
+   "sha256": "2390a5e2d55f624688c5e93fa585d416f69e6d28b6dcdabf1b2526b0fb76e67d",
+   "size": 7626
+  },
+  "scene/sprites/Gear_F6.png": {
+   "sha256": "5ecffe6c26e02f33b5320ee406792f18e5f240af16ad15239e2f64be35421ae3",
+   "size": 5051
+  },
+  "scene/sprites/Gear_FL_2.png": {
+   "sha256": "86272c696f691ff1d3d3c213a71f3e7450a9aedcebf839088bd50600680a245b",
+   "size": 5450
+  },
+  "scene/sprites/Gear_FL_3.png": {
+   "sha256": "c258179bef18f78724d660516566b00d01b013eb9b1066248d1406926957b294",
+   "size": 4671
+  },
+  "scene/sprites/Gear_Left.png": {
+   "sha256": "2fe74f18604ff9916c37f6b9de63e6a29296b7fc0cb92978ea1b507e5cd5357b",
+   "size": 11792
+  },
+  "scene/sprites/Gear_LeftSmall.png": {
+   "sha256": "70414eb3bba842df362e5d6b1a42c77a9d05b23442ee9938c002fe82b6697198",
+   "size": 5181
+  },
+  "scene/sprites/Gear_Right.png": {
+   "sha256": "9286144c15859334c838476dbc7202260ee60e9ebb73cc34701efa688e6d3c1d",
+   "size": 10706
+  },
+  "scene/sprites/Gear_T1.png": {
+   "sha256": "202817dd6d9f8ba41289db93d1f9c497161b6ce9143ef0ea6f75b97589b6756c",
+   "size": 10153
+  },
+  "scene/sprites/Gear_TopLeft.png": {
+   "sha256": "891312e967a7d1cf9a3578c905acf928ebf646b4254e21265f6e6713af9e596b",
+   "size": 6206
+  },
+  "scene/sprites/Gear_TopRight.png": {
+   "sha256": "f2d29d10fe02b75afb132d722549e9e3a7b1386911184d9961e411371883a0a6",
+   "size": 6226
+  },
+  "scene/sprites/Gear_Top_1.png": {
+   "sha256": "9aeb44930581e2142205810c77506d9b55e0babbb4134b0800caa07bae547d35",
+   "size": 3565
+  },
+  "scene/sprites/Gear_Top_1_001.png": {
+   "sha256": "58384056911b3da67e3c23417c00f5512ab812a539b77126a9a7d5956950a84c",
+   "size": 3060
+  },
+  "scene/sprites/Gear_Top_2_001.png": {
+   "sha256": "823be82b6e23d623f4562862039385c3d87b5ebc754f32a974f93c825080c3be",
+   "size": 2692
+  },
+  "scene/sprites/Gear_Top_3.png": {
+   "sha256": "b5eb0f0c07455a9ac2f8cebf44b2ca929c87c9223f6988a1fea234b7812be26e",
+   "size": 3557
+  },
+  "scene/sprites/Gear_Top_3_001.png": {
+   "sha256": "c1c7038d5a8dc32c4a2d3fc08d5b836d2a2a391a460cb5057ba9da132322bd3e",
+   "size": 3758
+  },
+  "scene/sprites/Gear_Top_4.png": {
+   "sha256": "7fe244583c7f4b91dc2e56c636efdf67a960e1d2f7dba6c5263bef81cc9460fd",
+   "size": 2425
+  },
+  "scene/sprites/Gear_Top_Big.png": {
+   "sha256": "5c43e5e36ff01827033bb797a4d9723d22e25f6a88fc5397aab051d3a9e3a1a7",
+   "size": 7123
+  },
+  "scene/sprites/Handwheel_Front.png": {
+   "sha256": "aa38e438b27756a5135a369fa339151979960aa24362489220da10ca40114647",
+   "size": 8965
+  },
+  "scene/sprites/Valve_L.png": {
+   "sha256": "3770b4a67addea44888aa5cf37eee570b55307ae69ab33e5e63b2fe13352866e",
+   "size": 1923
+  },
+  "scene/sprites/Valve_R.png": {
+   "sha256": "c3438f0003d3e04d8ac93918b279a55a9f4d0c35199d45c0fcad295a8c066898",
+   "size": 1940
+  },
+  "seals/heart.png": {
+   "sha256": "cf23d73ddbad5819eaf4860e184ee2adcf31e08a7e992cab3e90e992d1b8c82c",
+   "size": 217890
+  },
+  "seals/leaf.png": {
+   "sha256": "197bb5f5cfb30565c91354dc3a1c8641e4cf25dc09d6a075589e727850bc41be",
+   "size": 278329
+  },
+  "seals/plum.png": {
+   "sha256": "c26fee57d0eaa0bed4a5ccd42da89d97835148842a11212d3df60e174b1c4ddb",
+   "size": 260466
+  },
+  "seals/rose.png": {
+   "sha256": "3806757dd83f61a60c2e6ecacb406fe7d8361d3bb31a33e208612f4134526363",
+   "size": 251315
+  },
+  "seals/smile.png": {
+   "sha256": "a03917d8b81a500250e82805dde6a3ef9de0af0fa639bf358f04096db5840a7a",
+   "size": 264057
+  },
+  "seals/vip.png": {
+   "sha256": "d410de150362a8ad58c3250e6e0697817784570e50f787dfe005d061c9e984d8",
+   "size": 281719
+  },
+  "sounds/chime.wav": {
+   "sha256": "e4ce22e5efcf39d2855605909e62267aa4afe4ae9a13d6b07970e4d026f03399",
+   "size": 61782
+  },
+  "sounds/flash_charge.wav": {
+   "sha256": "be2a76e6dd24c87f6771d1e0401c3ed50494878a909d53dede50331850831317",
+   "size": 52964
+  },
+  "sounds/shutter.wav": {
+   "sha256": "32e89abe619b630c4718ca246cd6dc9adeded0a5ffdc1ce1c8d238de166ccb35",
+   "size": 115278
+  },
+  "sounds/stamp.wav": {
+   "sha256": "fc9d4a26426366e0bdfc82d3101feb995722aebcfd5df66c94a843cead931481",
+   "size": 41550
+  },
+  "sounds/whoosh.wav": {
+   "sha256": "8c21fa8c6f7a691e74bd3048ca331f6727e7e5850cec80ede1bcbbdc1aadb587",
+   "size": 44144
+  },
+  "stamp/stamp.glb": {
+   "sha256": "4721f1be5b4b99c8604f2b9166817bba654d9b5ea23deb00def520f67ed781d1",
+   "size": 240144
+  },
+  "vendor/three/addons/environments/RoomEnvironment.js": {
+   "sha256": "55f466192cc84298755a424c5e040345006b2ee1455589b3b54126c2ea4123f4",
+   "size": 4960
+  },
+  "vendor/three/addons/libs/draco/draco_decoder.js": {
+   "sha256": "8625489da79a805f4f2a7d511c3e52d8b4085608a9d2a4d5f4f9de5db0aea04f",
+   "size": 512465
+  },
+  "vendor/three/addons/libs/draco/draco_decoder.wasm": {
+   "sha256": "a680d927bed9cb864ddbd63521868891af2bfbe755092761b4837487618df8ac",
+   "size": 192420
+  },
+  "vendor/three/addons/libs/draco/draco_wasm_wrapper.js": {
+   "sha256": "8bb2952d2ba7d67e1414f8df819410cb0434a666be53f671fff75f68843d76f6",
+   "size": 58456
+  },
+  "vendor/three/addons/libs/meshopt_decoder.module.js": {
+   "sha256": "d428e73a000057c6c94bfcedc3412d0c2dc14ca8800e88553aab05113ad2bf19",
+   "size": 29256
+  },
+  "vendor/three/addons/loaders/DRACOLoader.js": {
+   "sha256": "fdafdf4aa11bbc65d89adb338efd844bedf94073702f9049240ff1f1ea48ad5f",
+   "size": 19030
+  },
+  "vendor/three/addons/loaders/GLTFLoader.js": {
+   "sha256": "131c0f78c01d19368ae495caa65b3adaa10487810a36a05bb5901b769a35ac16",
+   "size": 117570
+  },
+  "vendor/three/addons/postprocessing/EffectComposer.js": {
+   "sha256": "4e079a5886152d7e529a59aef644e968ab4d32c6a33ce016b36bf29b2eac26f7",
+   "size": 8501
+  },
+  "vendor/three/addons/postprocessing/MaskPass.js": {
+   "sha256": "7cd08eee9d5d6f5578beaddbdcbe9c384f6873810af27f22ab7db3ceeb127aa3",
+   "size": 4694
+  },
+  "vendor/three/addons/postprocessing/OutputPass.js": {
+   "sha256": "02e4a261af34de71338185e9e87f0cbe5cba9115608d984363e1269dec1d2272",
+   "size": 4184
+  },
+  "vendor/three/addons/postprocessing/Pass.js": {
+   "sha256": "444b409c235ead986893c472e720da1b779a56985c7d10b279c7944b52bd61c5",
+   "size": 4218
+  },
+  "vendor/three/addons/postprocessing/RenderPass.js": {
+   "sha256": "817f6c3cdcd0fd41515d112359ea0532568eefb5aabd3b33903957ebca1b8a6a",
+   "size": 4280
+  },
+  "vendor/three/addons/postprocessing/ShaderPass.js": {
+   "sha256": "e2500a5913b26bbf5148ceaae644c6edcff06a18b01494ee37bf856353d2ab9d",
+   "size": 3228
+  },
+  "vendor/three/addons/postprocessing/UnrealBloomPass.js": {
+   "sha256": "ba8f2fcadfa6588384c9473498f974d81d120f02f0e63a0e59c265202a006b5a",
+   "size": 15397
+  },
+  "vendor/three/addons/shaders/CopyShader.js": {
+   "sha256": "a33057d5ac91c43304c186ac0e8816e62bb2ed471d3a00ff3018dfd5c0389718",
+   "size": 729
+  },
+  "vendor/three/addons/shaders/LuminosityHighPassShader.js": {
+   "sha256": "5044f780b6e6cf863947f64c36fe1587132f7fbe395ada863cd1e5f0388dcf1e",
+   "size": 1291
+  },
+  "vendor/three/addons/shaders/OutputShader.js": {
+   "sha256": "353479f77a8d7e2629d49ccac9fc2f5dbfdda5442e0adf867b00377a2fcb0cb2",
+   "size": 1876
+  },
+  "vendor/three/addons/utils/BufferGeometryUtils.js": {
+   "sha256": "9fb63427ce6641fa14fd0baff9cc4d1b5f9c3d85fd084bf2e90e803c44ec1797",
+   "size": 37712
+  },
+  "vendor/three/addons/utils/SkeletonUtils.js": {
+   "sha256": "b1632a703206c3d830de9fcbe515696770d04b71a15ee6b50afa6d2c3298c86f",
+   "size": 11535
+  },
+  "vendor/three/three.core.js": {
+   "sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6",
+   "size": 1458113
+  },
+  "vendor/three/three.module.js": {
+   "sha256": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea",
+   "size": 662772
+  }
+ }
+}

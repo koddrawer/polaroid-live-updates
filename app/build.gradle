@@ -1,0 +1,39 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'com.koddrawer.polaroidlive'
+    compileSdk 34
+    defaultConfig {
+        applicationId 'com.koddrawer.polaroidlive'
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName '1.0.0'
+    }
+    signingConfigs {
+        release {
+            storeFile file('../release.jks')
+            storePassword 'polaroid123'
+            keyAlias 'polaroid'
+            keyPassword 'polaroid123'
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    androidResources { noCompress += ['glb', 'jpg', 'png', 'ttf', 'wav', 'mp3'] }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.11.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+}

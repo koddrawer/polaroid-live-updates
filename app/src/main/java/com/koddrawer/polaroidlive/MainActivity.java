@@ -361,6 +361,12 @@ public class MainActivity extends Activity {
     }
 
     private static final String PENDING = new String("__pending__");
+    /** element i of a JSON array, serialised back to JSON (strings keep their quotes) */
+    private static String jsonOf(JSONArray a, int i) throws Exception {
+        if (a.isNull(i)) return "null";
+        Object v = a.get(i);
+        return v instanceof String ? JSONObject.quote((String) v) : v.toString();
+    }
 
     private String handle(WebView view, String id, String method, JSONArray a) throws Exception {
         switch (method) {
@@ -371,13 +377,13 @@ public class MainActivity extends Activity {
                 return s;
             }
             case "settings:replace": {
-                String s = store.replace(a.getString(0), a.isNull(1) ? "null" : a.get(1).toString());
+                String s = store.replace(a.getString(0), jsonOf(a, 1));
                 broadcast("settings:changed", s);
                 return s;
             }
             case "image:fetch": return JSONObject.quote(fetchImage(a.optString(0, null)));
             case "state:load": return store.loadState(a.getString(0));
-            case "state:save": store.saveState(a.getString(0), a.isNull(1) ? "null" : a.get(1).toString()); return "true";
+            case "state:save": store.saveState(a.getString(0), jsonOf(a, 1)); return "true";
             case "update:check": {
                 JSONObject r = runUpdate(true);
                 return r.toString();

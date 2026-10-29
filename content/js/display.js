@@ -32,16 +32,20 @@ const heroScene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(25, 9 / 16, 0.1, 200);
 let viewport = { x: 0, y: 0, w: 2, h: 2, cw: 2, ch: 2 };
 
+let resScale = 1; // adaptive resolution (drops when the device can't keep up)
 function resize() {
   const q = S.display.quality;
   const dpr = window.devicePixelRatio || 1;
-  const pr = q === 'low' ? Math.min(dpr, 1) : q === 'medium' ? Math.min(dpr, 1.5) : Math.min(dpr, 2);
+  let pr = q === 'low' ? Math.min(dpr, 1) : q === 'medium' ? Math.min(dpr, 1.5) : Math.min(dpr, 2);
+  pr = Math.max(0.6, pr * resScale);
   const W = window.innerWidth, H = window.innerHeight;
   renderer.setPixelRatio(pr);
   renderer.setSize(W, H, false);
-  // letterbox to 9:16
   let cw = W, ch = Math.round(W * 16 / 9);
-  if (ch > H) { ch = H; cw = Math.round(H * 9 / 16); }
+  if (S.display.fit === 'cover') {
+    // fill the (taller) phone screen: crop at most ~6% on each side, any rest becomes thin bars top/bottom
+    if (ch < H) { cw = Math.round(Math.min(H * 9 / 16, W / 0.88)); ch = Math.round(cw * 16 / 9); }
+  } else if (ch > H) { ch = H; cw = Math.round(H * 9 / 16); }      // letterbox to 9:16
   const x = Math.floor((W - cw) / 2), y = Math.floor((H - ch) / 2);
   viewport = { x, y, cw, ch, w: Math.max(2, Math.round(cw * pr)), h: Math.max(2, Math.round(ch * pr)) };
   renderer.setRenderTarget(null); renderer.setViewport(0, 0, W, H); renderer.setClearColor(0, 1); renderer.clear();
@@ -711,9 +715,11 @@ api.onUpdateReady?.(() => { if (!busy && !queue.length) location.reload(); else 
 // ---------------------------------------------------------------- settings
 let fpsCap = 60;
 function applySettings(s) {
-  const prevQ = S.display.quality;
+  const prevQ = S.display.quality, prevFit = S.display.fit;
   S = merge(DEFAULTS, s || {});
-  if (prevQ !== S.display.quality) { pipe.setQuality(S.display.quality); resize(); }
+  if (prevQ !== S.display.quality) { resScale = 1; pipe.setQuality(S.display.quality); resize(); }
+  else if (prevFit !== S.display.fit) resize();
+  if (!S.display.autoRes && resScale !== 1) { resScale = 1; resize(); }
   fpsCap = Number(S.display.fps) || 60;
   $('fps').hidden = !S.display.showFps;
   for (const f of LED_FONTS) for (const face of f.faces) ensureFont(f.family, face.url, face.weight);
@@ -733,6 +739,14 @@ let acc = 0, frames = 0, fpsT = 0, fps = 0;
 function report() { api.report?.({ fps, queue: queue.length, busy, gallery: gallery.items.length }); }
 setInterval(report, 1000);
 
+// adaptive resolution: if the device can't hold the FPS cap, render fewer pixels; recover when it can
+let slowSecs = 0, fastSecs = 0;
+function adaptRes() {
+  if (!S.display.autoRes || document.hidden) return;
+  if (fps < fpsCap * 0.8) { fastSecs = 0; if (++slowSecs >= 3 && resScale > 0.55) { resScale = Math.max(0.55, resScale * 0.85); slowSecs = 0; resize(); } }
+  else if (fps >= fpsCap * 0.95) { slowSecs = 0; if (++fastSecs >= 20 && resScale < 1) { resScale = Math.min(1, resScale / 0.85); fastSecs = 0; resize(); } }
+  else { slowSecs = 0; fastSecs = 0; }
+}
 function frame() {
   requestAnimationFrame(frame);
   const dt0 = clock.getDelta();
@@ -741,7 +755,7 @@ function frame() {
   if (acc < minDt) return;
   const dt = Math.min(acc, 0.1); acc = 0;
   const t = clock.elapsedTime;
-  frames++; fpsT += dt; if (fpsT >= 1) { fps = Math.round(frames / fpsT); frames = 0; fpsT = 0; if (S.display.showFps) $('fps').textContent = `${fps} fps\nhàng chờ: ${queue.length}`; }
+  frames++; fpsT += dt; if (fpsT >= 1) { fps = Math.round(frames / fpsT); frames = 0; fpsT = 0; adaptRes(); if (S.display.showFps) $('fps').textContent = `${fps} fps · ${Math.round(resScale * 100)}%\nhàng chờ: ${queue.length}`; }
 
   // sprites
   const now = new Date(), zp = zonedParts(now, S.clock?.timeZone);

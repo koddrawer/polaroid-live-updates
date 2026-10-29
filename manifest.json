@@ -1,17 +1,17 @@
 {
- "version": "1.3.6",
- "notes": "Chữ chạy trên bảng LED chạy vòng liên tục, không khựng lại",
+ "version": "1.3.7",
+ "notes": "Chuẩn bị cho bản Android: tự giảm độ phân giải khi máy chậm, khung tràn màn hình điện thoại, sửa lỗi đổi kích thước",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
  "files": {
   "control.css": {
-   "sha256": "053c1f52589b5fd0323a7570dc5ee3d96890ba8bc495e325bcd0e32de0f31cb3",
-   "size": 6176
+   "sha256": "fd2aa5f84f480658123be26cfcd6a325d1d985e836680ae014339e983fb128cd",
+   "size": 6281
   },
   "control.html": {
-   "sha256": "6590d40dd33534c69ef5d63fe8f74721ff6f94ef4f8b34224fec3afbd5189941",
-   "size": 13832
+   "sha256": "30e3c7e0a2f43e96299e5cb0052fbf58afd7ea17e592e23c331b62f217528701",
+   "size": 14621
   },
   "display.html": {
    "sha256": "72822fa3b626f0758331bf68914654e88f5ecf92c3133afeafe38b53739d9316",
@@ -86,28 +86,28 @@
    "size": 10710
   },
   "js/control.js": {
-   "sha256": "e24c1508cf8f4998ec158a362ec6c43751ec8f100ef36747b7e0e2e18d366bfa",
-   "size": 28910
+   "sha256": "1b5977ae757247c6c76bbb3717c4e52be0a1d634474cc4bda6b89a925e549a76",
+   "size": 29143
   },
   "js/cutout.js": {
    "sha256": "2aec5541a446f219f568751271ec49e03e6b156dd2021d4b55327217744d66ee",
    "size": 5364
   },
   "js/defaults.js": {
-   "sha256": "8e7d1651057ed984eebc2f79ca7d4d389b47e2f7c5628723ccfff86d62e5e9d1",
-   "size": 7705
+   "sha256": "461a134cfd33d019905f850ee8d571a929869981bb95321cc2dfaf5c91e61139",
+   "size": 7940
   },
   "js/display.js": {
-   "sha256": "912f5c85980b6f66d1b154a9d29652179ac4770ae3f4288c84fb0b38c66009ed",
-   "size": 43333
+   "sha256": "3f65e99892b19f6c96dceeb5db2e1636776bfa05215fe3915db3dd090bfa57b5",
+   "size": 44469
   },
   "js/led.js": {
    "sha256": "d2c3c2f5234208e4622d17597b3b9784b894e9a7eb56774d583ea2b56a61bf67",
    "size": 4012
   },
   "js/pipeline.js": {
-   "sha256": "7cf4feea7789982d5804d8040af4ee55ad6a6e2747f0a9ca8769e37c41a39367",
-   "size": 6831
+   "sha256": "4aed4d42a2eeb464c759267f98ddb73954d777346b9c0daf432b276f27afc853",
+   "size": 7283
   },
   "js/print.js": {
    "sha256": "63d06f7b12709c7157df585882f9c7ea1ec46f082c09697a9914e850d5298edf",

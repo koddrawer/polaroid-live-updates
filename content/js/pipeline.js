@@ -54,6 +54,10 @@ export class Pipeline {
   constructor(renderer) {
     this.r = renderer;
     this.quality = 'medium';
+    // HDR targets need a renderable half-float format; phones without it fall back to 8-bit targets
+    const gl = renderer.getContext();
+    this.hdr = !!(gl.getExtension('EXT_color_buffer_half_float') || gl.getExtension('EXT_color_buffer_float'));
+    this.mobile = globalThis.api?.platform === 'android';
     const mk = (fs, uniforms) => quad(new THREE.ShaderMaterial({ vertexShader: QUAD_VS, fragmentShader: fs, uniforms, depthTest: false, depthWrite: false }));
     this.blurQ = mk(BLUR_FS, { tDiffuse: { value: null }, dir: { value: new THREE.Vector2(1, 0) }, texel: { value: new THREE.Vector2() } });
     this.brightQ = mk(BRIGHT_FS, { tDiffuse: { value: null }, threshold: { value: 2.3 } });
@@ -65,21 +69,23 @@ export class Pipeline {
     this.blur = 0; this.flash = 0; this.dim = 1; this.crop = new THREE.Vector4(0, 0, 1, 1);
   }
   setQuality(q) { this.quality = q; this.dispose(); }
-  dispose() { if (this.targets) Object.values(this.targets).forEach(t => t.dispose()); this.targets = null; }
+  dispose() { if (this.targets) Object.values(this.targets).forEach(t => t && t.dispose && t.dispose()); this.targets = null; }
   ensure(w, h) {
     if (this.targets && this.targets.w === w && this.targets.h === h) return;
     this.dispose();
     const q = this.quality;
-    const opt = { type: THREE.HalfFloatType, depthBuffer: true, colorSpace: THREE.NoColorSpace };
-    const msaa = (globalThis.__noMSAA ? 0 : (q === 'high' ? 4 : q === 'medium' ? 2 : 0));
+    const type = this.hdr ? THREE.HalfFloatType : THREE.UnsignedByteType;
+    const opt = { type, depthBuffer: true, colorSpace: THREE.NoColorSpace };
+    // phones: MSAA only on "high" (multisampled targets + resolve cost a lot of bandwidth on mobile GPUs)
+    const msaa = globalThis.__noMSAA ? 0 : this.mobile ? (q === 'high' ? 2 : 0) : (q === 'high' ? 4 : q === 'medium' ? 2 : 0);
     const t = {
       w, h,
       bg: new THREE.WebGLRenderTarget(w, h, { ...opt, samples: 0 }),
       comp: new THREE.WebGLRenderTarget(w, h, { ...opt, samples: msaa }),
-      bA: new THREE.WebGLRenderTarget(Math.max(2, w >> 1), Math.max(2, h >> 1), { type: THREE.HalfFloatType, depthBuffer: false }),
-      bB: new THREE.WebGLRenderTarget(Math.max(2, w >> 1), Math.max(2, h >> 1), { type: THREE.HalfFloatType, depthBuffer: false }),
-      gA: new THREE.WebGLRenderTarget(Math.max(2, w >> 2), Math.max(2, h >> 2), { type: THREE.HalfFloatType, depthBuffer: false }),
-      gB: new THREE.WebGLRenderTarget(Math.max(2, w >> 2), Math.max(2, h >> 2), { type: THREE.HalfFloatType, depthBuffer: false }),
+      bA: new THREE.WebGLRenderTarget(Math.max(2, w >> 1), Math.max(2, h >> 1), { type, depthBuffer: false }),
+      bB: new THREE.WebGLRenderTarget(Math.max(2, w >> 1), Math.max(2, h >> 1), { type, depthBuffer: false }),
+      gA: new THREE.WebGLRenderTarget(Math.max(2, w >> 2), Math.max(2, h >> 2), { type, depthBuffer: false }),
+      gB: new THREE.WebGLRenderTarget(Math.max(2, w >> 2), Math.max(2, h >> 2), { type, depthBuffer: false }),
     };
     this.targets = t;
   }
@@ -105,7 +111,7 @@ export class Pipeline {
     r.render(bgScene, camera);
     // 2. bloom (quarter res)
     let bloomTex = this.black;
-    if (this.quality !== 'low') {
+    if (this.quality !== 'low' && this.hdr) {
       this.brightQ.mesh.material.uniforms.tDiffuse.value = t.bg.texture;
       this.pass(this.brightQ, t.gA);
       bloomTex = this.blurInto(t.gA.texture, t.gB, t.gA, 2, 1.6);

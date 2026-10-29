@@ -97,6 +97,11 @@ export const DEFAULTS = {
   customFonts: [],
 };
 
+// phones (Android app): lighter defaults — TikTok screen sharing runs at 30 fps anyway
+if (globalThis.api?.platform === 'android') {
+  Object.assign(DEFAULTS.display, { quality: 'medium', fps: 30, fit: 'cover', autoRes: true });
+}
+
 export function merge(base, over) {
   if (Array.isArray(over)) return over;
   if (typeof over !== 'object' || over === null) return over === undefined ? base : over;

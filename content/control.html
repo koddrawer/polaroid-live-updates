@@ -97,6 +97,18 @@
   </div>
   <p id="tierHint" class="muted"></p>
   <label class="check"><input id="countByCoins" type="checkbox"> Tính theo tổng xu cả combo</label>
+  <h2>Chụp người vào live</h2>
+  <div class="field row"><label class="check"><input id="guestOn" type="checkbox"> Chụp ảnh người vừa vào live (không đóng dấu, chụp xong ảnh tự biến mất)</label></div>
+  <div class="grid3">
+    <div class="field"><label for="guestCd">Cách nhau ít nhất (giây)</label><input id="guestCd" type="number" min="5" max="600"></div>
+    <div class="field"><label for="guestSame">Không chụp lại cùng người trong (phút)</label><input id="guestSame" type="number" min="1" max="1440"></div>
+  </div>
+  <p class="muted">Chỉ chụp khi đang không có ảnh của người tặng quà; có người tặng quà thì ảnh người vào live bị bỏ qua. Nền ảnh dùng nền của khung nhỏ.</p>
+  <h2>Câu nói khi chụp</h2>
+  <div class="field row"><label class="check"><input id="capOn" type="checkbox"> Hiện câu nói phía dưới màn hình</label></div>
+  <div class="field"><label for="phrasesTx">Câu thợ ảnh nói trước khi bấm máy (mỗi dòng một câu)</label><textarea id="phrasesTx" rows="6" spellcheck="false"></textarea></div>
+  <div class="field"><label for="wishesTx">Câu khen / chúc khi ảnh hiện lên — chọn ngẫu nhiên, {name} = tên người (mỗi dòng một câu)</label><textarea id="wishesTx" rows="8" spellcheck="false"></textarea></div>
+  <div class="row"><button id="btnCapReset">Khôi phục danh sách mặc định</button></div>
   <h2>Thời gian (giây)</h2>
   <div class="grid3">
     <div class="field"><label for="tmApproach">Máy tiến lại</label><input id="tmApproach" type="number" min="0.3" max="6" step="0.1"></div>

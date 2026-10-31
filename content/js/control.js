@@ -414,6 +414,17 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   bindCheck('winFrame', () => S.display.frame, v => ({ display: { frame: v } }));
   bindCheck('onTop', () => S.display.alwaysOnTop, v => ({ display: { alwaysOnTop: v } }));
   bindCheck('showFps', () => S.display.showFps, v => ({ display: { showFps: v } }));
+  // join-photos + captions
+  bindCheck('guestOn', () => S.photo.guest?.enabled !== false, v => ({ photo: { guest: { enabled: v } } }));
+  bindNum('guestCd', () => S.photo.guest?.cooldown ?? 20, v => ({ photo: { guest: { cooldown: v } } }));
+  bindNum('guestSame', () => S.photo.guest?.sameUserMinutes ?? 30, v => ({ photo: { guest: { sameUserMinutes: v } } }));
+  bindCheck('capOn', () => S.photo.captions?.enabled !== false, v => ({ photo: { captions: { enabled: v } } }));
+  const toLines = (v) => v.split('\n').map(s => s.trim()).filter(Boolean);
+  const showCaps = () => { $('phrasesTx').value = (S.photo.captions?.phrases || []).join('\n'); $('wishesTx').value = (S.photo.captions?.wishes || []).join('\n'); };
+  showCaps();
+  $('phrasesTx').addEventListener('input', debounce(() => save({ photo: { captions: { phrases: toLines($('phrasesTx').value) } } }), 600));
+  $('wishesTx').addEventListener('input', debounce(() => save({ photo: { captions: { wishes: toLines($('wishesTx').value) } } }), 600));
+  $('btnCapReset').onclick = async () => { await save({ photo: { captions: { phrases: DEFAULTS.photo.captions.phrases, wishes: DEFAULTS.photo.captions.wishes } } }); showCaps(); };
   bindCheck('autoRes', () => !!S.display.autoRes, v => ({ display: { autoRes: v } }));
   $('fitMode').value = S.display.fit || 'contain'; $('fitMode').addEventListener('change', () => save({ display: { fit: $('fitMode').value } }));
 

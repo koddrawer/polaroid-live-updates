@@ -48,6 +48,9 @@ function resize() {
   } else if (ch > H) { ch = H; cw = Math.round(H * 9 / 16); }      // letterbox to 9:16
   const x = Math.floor((W - cw) / 2), y = Math.floor((H - ch) / 2);
   viewport = { x, y, cw, ch, w: Math.max(2, Math.round(cw * pr)), h: Math.max(2, Math.round(ch * pr)) };
+  // caption overlay follows the 9:16 picture (CSS px)
+  const ov = $('ov');
+  if (ov) { Object.assign(ov.style, { left: x + 'px', top: y + 'px', width: cw + 'px', height: ch + 'px' }); ov.style.setProperty('--fs1', Math.round(cw * 0.075) + 'px'); ov.style.setProperty('--fs2', Math.round(cw * 0.07) + 'px'); }
   renderer.setRenderTarget(null); renderer.setViewport(0, 0, W, H); renderer.setClearColor(0, 1); renderer.clear();
 }
 window.addEventListener('resize', resize);
@@ -331,7 +334,36 @@ function tierOf(coins) {
   if (coins >= (t.small || 1)) return 'small';
   return null;
 }
+// ---------------------------------------------------------------- captions (photographer lines / compliments)
+const pick = (list) => list[Math.floor(Math.random() * list.length)];
+function lines(key) { return (S.photo.captions?.[key] || DEFAULTS.photo.captions[key] || []).map(s => String(s).trim()).filter(Boolean); }
+function caption(id, text) {
+  const el = $(id); if (!el) return;
+  if (!text || S.photo.captions?.enabled === false) { el.classList.remove('on'); return; }
+  el.firstElementChild.textContent = text;
+  el.classList.add('on');
+}
+const shortName = (n) => { n = String(n || '').trim(); return n.length > 22 ? n.slice(0, 21) + '…' : n; };
+
+// ---------------------------------------------------------------- photos of people joining the live
+let lastGuestAt = 0;
+const guestSeen = new Map();
+async function maybeGuest(ev) {
+  const g = S.photo.guest || {};
+  if (!g.enabled || busy || queue.length) return;
+  const now = Date.now(), k = ev.uniqueId || ev.nickname;
+  if (now - lastGuestAt < Math.max(5, Number(g.cooldown) || 20) * 1000) return;
+  if (guestSeen.has(k) && now - guestSeen.get(k) < Math.max(1, Number(g.sameUserMinutes) || 30) * 60000) return;
+  lastGuestAt = now; guestSeen.set(k, now);
+  if (guestSeen.size > 5000) guestSeen.clear();
+  const avatarLocal = ev.avatarLocal || (ev.avatar && api.fetchImage ? await api.fetchImage(ev.avatar) : null);
+  if (busy || queue.length) return;
+  enqueuePhoto({ kind: 'guest', coins: 0, nickname: ev.nickname, uniqueId: ev.uniqueId, avatarLocal });
+}
+
 function enqueuePhoto(job) {
+  // a donor always goes before people who just joined
+  if (job.kind !== 'guest') for (let i = queue.length - 1; i >= 0; i--) if (queue[i].kind === 'guest') queue.splice(i, 1);
   const pending = queue.find(j => j.uniqueId && j.uniqueId === job.uniqueId);
   if (pending) { pending.coins += job.coins; pending.kind = tierOf(pending.coins) || pending.kind; return; }
   queue.push(job);
@@ -406,6 +438,7 @@ function resetShow() {
   if (activePrint) { heroScene.remove(activePrint.mesh); activePrint = null; }
   heroPivot.position.copy(heroRest.pos); heroPivot.quaternion.copy(heroRest.quat);
   anim.blur = 0; anim.dim = 1; if (stampModel) stampModel.visible = false; musicDuck(false);
+  caption('phrase', null); caption('wish', null);
 }
 
 // ---------------------------------------------------------------- wax-seal stamp (3D)
@@ -491,8 +524,10 @@ async function stampPrint(print, entry, dur) {
 async function shoot(job) {
   const kind = job.kind;
   const tm = T();
+  const guest = kind === 'guest';
   const entry = { id: Date.now() + Math.random(), kind, name: job.nickname, uniqueId: job.uniqueId, avatar: job.avatarLocal || null, coins: job.coins, t: Date.now(),
-    font: S.photo.font, fontUrl: S.photo.fontUrl, paper: paperFor(kind), seal: sealFor(kind) };
+    font: S.photo.font, fontUrl: S.photo.fontUrl, paper: paperFor(guest ? 'small' : kind), seal: guest ? null : sealFor(kind) };
+  caption('phrase', pick(lines('phrases')));
   report();
   musicDuck(true);
   const printP = makePrint(entry, false);
@@ -514,6 +549,7 @@ async function shoot(job) {
   playShutter();
   await sleep(40);
   if (S.photo.flash !== false) { anim.flash = 0.85; anim.flashLight = 1; }
+  setTimeout(() => caption('phrase', null), 450);
   const recoilQ = heroPivot.quaternion.clone();
   tween(0.25, (k) => { const a = Math.sin(k * Math.PI) * 0.02; heroPivot.quaternion.copy(recoilQ).multiply(tmpQ.setFromEuler(new THREE.Euler(-a, 0, 0))); });
 
@@ -544,11 +580,31 @@ async function shoot(job) {
     print.mesh.position.y += Math.sin(e * Math.PI) * 0.18;
     print.mesh.quaternion.slerpQuaternions(from.quat, show.quat, e);
   });
-  // 5. hold on screen, stamp the seal, hold again
+  // 5. hold on screen (with a compliment underneath), stamp the seal, hold again
+  caption('wish', fill(pick(lines('wishes')) || '', { name: shortName(entry.name) }));
   await tween(sec('hold1'), () => {});
   print.develop = 1;
   if (hasSeal) await stampPrint(print, entry, sec('stamp'));
   await tween(sec('hold2'), () => {});
+  caption('wish', null);
+  if (guest) {
+    // people who just joined: the photo drops away and disappears (it is not hung on the wall)
+    const g0 = { pos: print.mesh.position.clone(), scale: print.mesh.scale.x, quat: print.mesh.quaternion.clone() };
+    const spin = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.5, 0, (Math.random() - 0.5) * 1.2));
+    await tween(sec('fly'), (k) => {
+      const e = ease(k);
+      print.mesh.position.copy(g0.pos); print.mesh.position.y -= e * 0.9; print.mesh.position.z -= e * 0.4;
+      print.mesh.quaternion.slerpQuaternions(g0.quat, g0.quat.clone().multiply(spin), e);
+      print.mesh.scale.setScalar(g0.scale * (1 - 0.35 * e));
+      print.opacity = 1 - clamp01((k - 0.25) / 0.75);
+      anim.blur = 1 - clamp01(k * 1.6); anim.dim = lerp(0.82, 1, clamp01(k * 1.6));
+    });
+    heroScene.remove(print.mesh); print.dispose();
+    activePrint = null;
+    anim.blur = 0; anim.dim = 1;
+    musicDuck(false);
+    return;
+  }
   // 6. fly to destination
   let pose, replace = null;
   if (kind === 'big') { entry.slot = 0; replace = gallery.items.find(i => i.entry.kind === 'big') || null; pose = slotPose('big', 0); }
@@ -661,6 +717,7 @@ async function onLive(ev) {
     lastGreet.set(k, now);
     if (lastGreet.size > 3000) lastGreet.clear();
     leds.bottom?.push(ev);
+    maybeGuest(ev);
     return;
   }
   if (ev.type === 'follow') { leds.bottom?.push(ev); return; }

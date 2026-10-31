@@ -82,3 +82,4 @@ main{overflow-x:hidden}
 
 .android .desktop-only{display:none!important}
 html:not(.android) .android-only{display:none!important}
+textarea{width:100%;box-sizing:border-box;background:#0f0c09;border:1px solid var(--line);color:var(--ink);padding:7px 8px;border-radius:4px;font:13px/1.45 var(--ui);resize:vertical}

@@ -1,6 +1,6 @@
 {
- "version": "1.3.10",
- "notes": "Chỉnh thời gian chụp riêng cho từng mức donate và người vào live",
+ "version": "1.3.11",
+ "notes": "Mọi khung thời gian chụp giới hạn 0,1–3 giây",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
@@ -10,8 +10,8 @@
    "size": 6801
   },
   "control.html": {
-   "sha256": "dabbc1081354cb75e21291e3a6af2c1bcaa0736fdb3c69a995ee6f743cb28e64",
-   "size": 16026
+   "sha256": "4a6c05f38080d1d31eefc21528a7343c07b159cf7521c27c649a1818257d72ac",
+   "size": 16043
   },
   "display.html": {
    "sha256": "d9fe49bddb30159385d80aafcd58b02b957a82a0dc9247071136cae993285e59",
@@ -86,20 +86,20 @@
    "size": 10710
   },
   "js/control.js": {
-   "sha256": "fbcabf35d4142971d403a5a4b50ec5535e43731cf8bd39f67a337f6e486a38e1",
-   "size": 31293
+   "sha256": "3c17b8cfdec0ec86e93d90d977010fcc103026074b3f17f31320111ca7e1fa24",
+   "size": 31343
   },
   "js/cutout.js": {
    "sha256": "2aec5541a446f219f568751271ec49e03e6b156dd2021d4b55327217744d66ee",
    "size": 5364
   },
   "js/defaults.js": {
-   "sha256": "47f22090842b466c798036765985b3fcd8b9897142fc83ca65ff5d48fd6a71bd",
+   "sha256": "b07de5c2b7a986a425244147db1dd00f94887981977d594bb9ecd3779c5cb743",
    "size": 9398
   },
   "js/display.js": {
-   "sha256": "93f2aad409ab1ea9c12a0bf02d2227f4fce88c21bc01299c5a3ba7e2e4e7cfae",
-   "size": 47988
+   "sha256": "799a03ef1424e65d7a8e8dae5dbb1613ae58add783071f5ccb6a861c2d9aa23b",
+   "size": 48215
   },
   "js/led.js": {
    "sha256": "d2c3c2f5234208e4622d17597b3b9784b894e9a7eb56774d583ea2b56a61bf67",

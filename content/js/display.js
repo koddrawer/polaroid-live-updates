@@ -417,7 +417,11 @@ function tween(dur, fn) {
 }
 const speed = () => queue.length > 6 ? 1.8 : queue.length > 2 ? 1.3 : 1;
 // timing per kind (small / medium / big / guest), falling back to the shared timing
-const T = (kind) => merge(merge(merge(DEFAULTS.photo.timing, S.photo.timing || {}), DEFAULTS.photo.timingTier?.[kind] || {}), S.photo.timingTier?.[kind] || {});
+const clampT = (v, d) => Math.min(3, Math.max(0.1, Number.isFinite(Number(v)) ? Number(v) : d)); // every timing: 0.1 – 3 s
+const T = (kind) => {
+  const t = merge(merge(merge(DEFAULTS.photo.timing, S.photo.timing || {}), DEFAULTS.photo.timingTier?.[kind] || {}), S.photo.timingTier?.[kind] || {});
+  return { approach: clampT(t.approach, 1.15), shutter: clampT(t.shutter, 0.35), total: clampT(t.total, 3) };
+};
 
 function slotWorld() {
   heroPivot.updateMatrixWorld(true);
@@ -555,7 +559,7 @@ async function shoot(job) {
   tween(0.25, (k) => { const a = Math.sin(k * Math.PI) * 0.02; heroPivot.quaternion.copy(recoilQ).multiply(tmpQ.setFromEuler(new THREE.Euler(-a, 0, 0))); });
 
   // phase lengths: everything from the shutter until the photo lands = tm.total seconds
-  const total = Math.max(3, Number(tm.total) || 9);
+  const total = tm.total;
   const hasSeal = !!entry.seal;
   const P = { print: 0.2, toScreen: 0.11, hold1: 0.12, stamp: hasSeal ? 0.24 : 0, hold2: hasSeal ? 0.13 : 0.37, fly: 0.2 };
   const sec = (k) => P[k] * total;

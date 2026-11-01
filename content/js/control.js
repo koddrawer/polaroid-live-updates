@@ -375,14 +375,14 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   // timing per kind
   const tmOf = (kind) => merge(merge(merge(DEFAULTS.photo.timing, S.photo.timing || {}), DEFAULTS.photo.timingTier?.[kind] || {}), S.photo.timingTier?.[kind] || {});
   const TM_ROWS = [['small', 'Khung nhỏ'], ['medium', 'Khung vừa'], ['big', 'Khung to nhất'], ['guest', 'Người vào live']];
-  const TM_COLS = [['approach', 0.3, 6, 0.1], ['shutter', 0, 5, 0.1], ['total', 3, 40, 0.5]];
+  const TM_COLS = [['approach', 0.1, 3, 0.05], ['shutter', 0.1, 3, 0.05], ['total', 0.1, 3, 0.1]];
   for (const [kind, label] of TM_ROWS) {
     const tr = document.createElement('tr');
     const th = document.createElement('th'); th.textContent = label; tr.append(th);
     const tm = tmOf(kind);
     for (const [key, min, max, step] of TM_COLS) {
       const td = document.createElement('td');
-      const inp = Object.assign(document.createElement('input'), { type: 'number', min, max, step, value: tm[key] });
+      const inp = Object.assign(document.createElement('input'), { type: 'number', min, max, step, value: Math.min(max, Math.max(min, Number(tm[key]) || min)) });
       inp.setAttribute('aria-label', label + ' — ' + key);
       inp.addEventListener('change', () => { const v = Math.min(max, Math.max(min, Number(inp.value) || min)); inp.value = v; save({ photo: { timingTier: { [kind]: { [key]: v } } } }); });
       td.append(inp); tr.append(td);

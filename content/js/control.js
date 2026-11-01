@@ -109,8 +109,9 @@ async function openPicker(i) {
   renderPick();
   if (!giftCache) {
     try { giftCache = await api.giftList(); } catch { giftCache = []; }
-    $('pickMsg').textContent = giftCache.length ? `${giftCache.length} quà TikTok` : 'Chưa lấy được danh sách quà TikTok (kết nối kênh đang live để tải). Vẫn có icon sẵn bên dưới.';
+    $('pickMsg').textContent = giftCache.length ? `${giftCache.length} quà TikTok đã nhận trong buổi live` : 'Chưa có quà TikTok nào (danh sách đầy đủ cần gói trả phí của Euler Stream; quà nhận được trong buổi live sẽ tự hiện ở đây). Vẫn có icon sẵn bên dưới.';
     renderPick();
+    if (!giftCache.length) giftCache = null; // try again next time
   } else $('pickMsg').textContent = '';
 }
 function renderPick() {

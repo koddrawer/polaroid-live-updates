@@ -414,7 +414,12 @@ function quoteTick(dt) {
     quoteNextAt = Math.max(quoteNextAt, now + Math.max(1500, qGap() * 1000));
   } else if (quoteFX.done() && now >= quoteNextAt) showQuote(nextQuote());
   quoteFX.update(dt);
+  // blur + darken the scene behind the quote so the words stand out
+  const strength = Math.max(0, Math.min(100, Number(S.photo.quotes?.blur ?? 70))) / 100;
+  const f = quoteFX.focus * strength;
+  quoteFocus += (f - quoteFocus) * Math.min(1, dt * 8);
 }
+let quoteFocus = 0;
 
 const tmpQ = new THREE.Quaternion();
 const anim = { blur: 0, dim: 1, flash: 0, flashLight: 0 };
@@ -916,7 +921,8 @@ function frame() {
   }
   if (flashSprite) { flashSprite.material.opacity = Math.min(1, anim.flashLight * 1.4); flashSprite.scale.setScalar(0.5 + anim.flashLight * 0.9); }
   plateMat && (plateMat.uniforms.light.value = 1 + anim.flash * 0.35);
-  pipe.blur = anim.blur; pipe.dim = anim.dim; pipe.flash = anim.flash * 0.75;
+  pipe.heroInBg = !busy && !activePrint && quoteFocus > 0.02;
+  pipe.blur = Math.max(anim.blur, quoteFocus * 0.85); pipe.dim = Math.min(anim.dim, 1 - quoteFocus * 0.22); pipe.flash = anim.flash * 0.75;
   music.duck += (music.duckTarget - music.duck) * Math.min(1, dt * 3);
   if (music.routed) { music.el.volume = 1; music.gain.gain.value = Math.min(1, musicVolume()); if (audio.ctx.state === 'suspended' && !music.el.paused) audio.ctx.resume(); }
   else if (!music.el.paused) music.el.volume = Math.min(1, musicVolume());

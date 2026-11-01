@@ -1,6 +1,6 @@
 {
- "version": "1.3.17",
- "notes": "Bỏ chụp kho ảnh khi rảnh; thay bằng câu quote/chúc/khen phát sáng giữa khung hình, hiện ra và tan biến bằng các đốm sáng",
+ "version": "1.3.18",
+ "notes": "Câu phát sáng: làm mờ hậu cảnh và tập trung vào dòng chữ",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
@@ -10,8 +10,8 @@
    "size": 7309
   },
   "control.html": {
-   "sha256": "fc3af9d71c47aa0cdb11bb8980e7404825d96c25fd960f24912cad121a34eda0",
-   "size": 17514
+   "sha256": "63fab3f990830f90535b9979c9d056c4635003f682b3f4b20aa697657441d2c4",
+   "size": 17660
   },
   "display.html": {
    "sha256": "4a5c4583aeb654c41f835fe7bd0d3a09e1b441942de6d0438539543ad50af9f5",
@@ -86,36 +86,36 @@
    "size": 10710
   },
   "js/control.js": {
-   "sha256": "68dc68b935929f01f62fb162978b5cd485b4b8451c434416083726048aa0969b",
-   "size": 32858
+   "sha256": "e8b263878e58051b0b0ab4b59901732826dc5d58dda7b88480354064945ab27e",
+   "size": 33131
   },
   "js/cutout.js": {
    "sha256": "2aec5541a446f219f568751271ec49e03e6b156dd2021d4b55327217744d66ee",
    "size": 5364
   },
   "js/defaults.js": {
-   "sha256": "f2f29acb244dfd65c3fbce25f5d5ceb1d9632a63d16dbfbade5e2a545e4ded5d",
-   "size": 10579
+   "sha256": "756a162ae11c5a1de573c8af4073535cb719e8f261f01b1d46ebe325247b5288",
+   "size": 10589
   },
   "js/display.js": {
-   "sha256": "3a420f30858e239a83246bfdd345501cd1bac7eb4bc3e9e381b2cfa1b4dcef64",
-   "size": 52491
+   "sha256": "f5f5d0f49fdf82fb6f34c8f468f4a7a148e409a41414c2b1b3c16f7a9b254909",
+   "size": 52887
   },
   "js/led.js": {
    "sha256": "d2c3c2f5234208e4622d17597b3b9784b894e9a7eb56774d583ea2b56a61bf67",
    "size": 4012
   },
   "js/pipeline.js": {
-   "sha256": "4aed4d42a2eeb464c759267f98ddb73954d777346b9c0daf432b276f27afc853",
-   "size": 7283
+   "sha256": "2710241a3893cb58abb191be01d89d3bcc5cd69aa21ca6d1506d66cc9b8efa33",
+   "size": 7497
   },
   "js/print.js": {
    "sha256": "63d06f7b12709c7157df585882f9c7ea1ec46f082c09697a9914e850d5298edf",
    "size": 7469
   },
   "js/quotes.js": {
-   "sha256": "c7b02f8b5d9a50e8de3c13a28d99f5a9b93aa4dc8737b7ee7cf6a1a28444c193",
-   "size": 9247
+   "sha256": "5bbafafd994e534a9e073a14284233d683ec61e1405cf8f0e29506ef8c1580a1",
+   "size": 9587
   },
   "js/screens.js": {
    "sha256": "19a01e157535bbfa4ffb80449016b1175e240ef9ead259f169f9217c3297a1c8",

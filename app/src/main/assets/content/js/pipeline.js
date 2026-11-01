@@ -109,6 +109,8 @@ export class Pipeline {
     // 1. background layer
     r.setRenderTarget(t.bg); r.setClearColor(0x000000, 1); r.clear(true, true, true);
     r.render(bgScene, camera);
+    // hero inside the background layer → it gets blurred with the scene (used while a quote is in focus)
+    if (this.heroInBg) { r.clearDepth(); r.render(heroScene, heroCamera || camera); }
     // 2. bloom (quarter res)
     let bloomTex = this.black;
     if (this.quality !== 'low' && this.hdr) {
@@ -130,7 +132,7 @@ export class Pipeline {
     r.setRenderTarget(t.comp); r.clear(true, true, true);
     r.render(this.compQ.scene, this.cam);
     r.clearDepth();
-    r.render(heroScene, heroCamera || camera);
+    if (!this.heroInBg) r.render(heroScene, heroCamera || camera);
     // 5. output
     const ou = this.outQ.mesh.material.uniforms;
     ou.tDiffuse.value = t.comp.texture; ou.flash.value = this.flash;

@@ -443,6 +443,9 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   $('qList').addEventListener('input', debounce(() => save({ photo: { quotes: { list: $('qList').value.split('\n').map(s => s.trim()).filter(Boolean) } } }), 600));
   for (const f of BUNDLED_FONTS) { const o = document.createElement('option'); o.value = o.textContent = f.family; $('qFont').append(o); }
   $('qFont').value = S.photo.quotes?.font || 'Dancing Script'; $('qFont').onchange = () => save({ photo: { quotes: { font: $('qFont').value } } });
+  const qbv = () => { const v = Number($('qBlur').value); $('qBlurV').textContent = v ? v + '%' : 'tắt'; };
+  bindText('qBlur', () => S.photo.quotes?.blur ?? 70, v => ({ photo: { quotes: { blur: Number(v) } } }), 150);
+  qbv(); $('qBlur').addEventListener('input', qbv);
   bindText('qColor', () => S.photo.quotes?.color || '#ffd78a', v => ({ photo: { quotes: { color: v } } }), 200);
   $('qTest').onclick = () => api.command({ type: 'quoteTest' });
   $('qReset').onclick = async () => { await save({ photo: { quotes: { list: DEFAULTS.photo.quotes.list } } }); $('qList').value = DEFAULTS.photo.quotes.list.join('\n'); };

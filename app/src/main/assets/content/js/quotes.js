@@ -24,6 +24,13 @@ export class QuoteFX {
     if (this.state !== 'idle' && this.lastArgs) this.build(...this.lastArgs, true);
   }
   get visible() { return this.state !== 'idle'; }
+  // 0..1: how much the background should be blurred for this quote (eases in with the sparks, out with them)
+  get focus() {
+    if (this.state === 'in') return easeInOut(this.t / (this.tIn * 0.8));
+    if (this.state === 'hold') return 1;
+    if (this.state === 'out') return 1 - easeInOut(this.t / (this.tOut * 0.85));
+    return 0;
+  }
 
   // glow dot sprite in the quote colour
   makeSprite(color) {

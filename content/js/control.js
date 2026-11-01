@@ -372,8 +372,23 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   bindText('capSize', () => S.photo.captionSize, v => ({ photo: { captionSize: Number(v) } }), 150);
   for (const [id, key] of [['tSmall', 'small'], ['tMedium', 'medium'], ['tBig', 'big']])
     bindNum(id, () => S.photo.tierCoins[key], v => ({ photo: { tierCoins: { [key]: Math.max(1, Math.round(v) || 1) } } }));
-  for (const [id, key] of [['tmApproach', 'approach'], ['tmShutter', 'shutter'], ['tmTotal', 'total']])
-    bindNum(id, () => S.photo.timing[key], v => ({ photo: { timing: { [key]: v } } }));
+  // timing per kind
+  const tmOf = (kind) => merge(merge(merge(DEFAULTS.photo.timing, S.photo.timing || {}), DEFAULTS.photo.timingTier?.[kind] || {}), S.photo.timingTier?.[kind] || {});
+  const TM_ROWS = [['small', 'Khung nhỏ'], ['medium', 'Khung vừa'], ['big', 'Khung to nhất'], ['guest', 'Người vào live']];
+  const TM_COLS = [['approach', 0.3, 6, 0.1], ['shutter', 0, 5, 0.1], ['total', 3, 40, 0.5]];
+  for (const [kind, label] of TM_ROWS) {
+    const tr = document.createElement('tr');
+    const th = document.createElement('th'); th.textContent = label; tr.append(th);
+    const tm = tmOf(kind);
+    for (const [key, min, max, step] of TM_COLS) {
+      const td = document.createElement('td');
+      const inp = Object.assign(document.createElement('input'), { type: 'number', min, max, step, value: tm[key] });
+      inp.setAttribute('aria-label', label + ' — ' + key);
+      inp.addEventListener('change', () => { const v = Math.min(max, Math.max(min, Number(inp.value) || min)); inp.value = v; save({ photo: { timingTier: { [kind]: { [key]: v } } } }); });
+      td.append(inp); tr.append(td);
+    }
+    $('tmRows').append(tr);
+  }
   bindCheck('sealOn', () => S.photo.seal.enabled !== false, v => ({ photo: { seal: { enabled: v } } }));
   bindText('sealSize', () => S.photo.seal.size, v => ({ photo: { seal: { size: Number(v) } } }), 200);
   $('sealSize').addEventListener('input', debounce(renderPreview, 400));

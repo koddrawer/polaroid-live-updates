@@ -416,7 +416,8 @@ function tween(dur, fn) {
   });
 }
 const speed = () => queue.length > 6 ? 1.8 : queue.length > 2 ? 1.3 : 1;
-const T = () => merge(DEFAULTS.photo.timing, S.photo.timing || {});
+// timing per kind (small / medium / big / guest), falling back to the shared timing
+const T = (kind) => merge(merge(merge(DEFAULTS.photo.timing, S.photo.timing || {}), DEFAULTS.photo.timingTier?.[kind] || {}), S.photo.timingTier?.[kind] || {});
 
 function slotWorld() {
   heroPivot.updateMatrixWorld(true);
@@ -523,7 +524,7 @@ async function stampPrint(print, entry, dur) {
 
 async function shoot(job) {
   const kind = job.kind;
-  const tm = T();
+  const tm = T(kind);
   const guest = kind === 'guest';
   const entry = { id: Date.now() + Math.random(), kind, name: job.nickname, uniqueId: job.uniqueId, avatar: job.avatarLocal || null, coins: job.coins, t: Date.now(),
     font: S.photo.font, fontUrl: S.photo.fontUrl, paper: paperFor(guest ? 'small' : kind), seal: guest ? null : sealFor(kind) };

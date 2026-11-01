@@ -97,13 +97,24 @@
   </div>
   <p id="tierHint" class="muted"></p>
   <label class="check"><input id="countByCoins" type="checkbox"> Tính theo tổng xu cả combo</label>
-  <h2>Thời gian (giây)</h2>
+  <h2>Chụp người vào live</h2>
+  <div class="field row"><label class="check"><input id="guestOn" type="checkbox"> Chụp ảnh người vừa vào live (không đóng dấu, chụp xong ảnh tự biến mất)</label></div>
   <div class="grid3">
-    <div class="field"><label for="tmApproach">Máy tiến lại</label><input id="tmApproach" type="number" min="0.3" max="6" step="0.1"></div>
-    <div class="field"><label for="tmShutter">Chờ trước khi chụp</label><input id="tmShutter" type="number" min="0" max="5" step="0.1"></div>
-    <div class="field"><label for="tmTotal">Từ lúc chụp đến khi ảnh về chỗ</label><input id="tmTotal" type="number" min="3" max="40" step="0.5"></div>
+    <div class="field"><label for="guestCd">Cách nhau ít nhất (giây)</label><input id="guestCd" type="number" min="5" max="600"></div>
+    <div class="field"><label for="guestSame">Không chụp lại cùng người trong (phút)</label><input id="guestSame" type="number" min="1" max="1440"></div>
   </div>
-  <p class="muted">Trong khoảng này ảnh được in ra, hiện lên giữa màn hình, đóng dấu rồi bay về chỗ. Các bước tự chia theo tỉ lệ.</p>
+  <p class="muted">Chỉ chụp khi đang không có ảnh của người tặng quà; có người tặng quà thì ảnh người vào live bị bỏ qua. Nền ảnh dùng nền của khung nhỏ.</p>
+  <h2>Câu nói khi chụp</h2>
+  <div class="field row"><label class="check"><input id="capOn" type="checkbox"> Hiện câu nói phía dưới màn hình</label></div>
+  <div class="field"><label for="phrasesTx">Câu thợ ảnh nói trước khi bấm máy (mỗi dòng một câu)</label><textarea id="phrasesTx" rows="6" spellcheck="false"></textarea></div>
+  <div class="field"><label for="wishesTx">Câu khen / chúc khi ảnh hiện lên — chọn ngẫu nhiên, {name} = tên người (mỗi dòng một câu)</label><textarea id="wishesTx" rows="8" spellcheck="false"></textarea></div>
+  <div class="row"><button id="btnCapReset">Khôi phục danh sách mặc định</button></div>
+  <h2>Thời gian (giây)</h2>
+  <table class="tmtable">
+    <thead><tr><th>(0,1 – 3 giây)</th><th>Máy tiến lại</th><th>Chờ trước khi chụp</th><th>Từ lúc chụp đến khi ảnh về chỗ / biến mất</th></tr></thead>
+    <tbody id="tmRows"></tbody>
+  </table>
+  <p class="muted">Trong khoảng cuối, ảnh được in ra, hiện lên giữa màn hình (kèm câu khen), đóng dấu rồi bay về chỗ — với người vào live thì ảnh biến mất. Các bước tự chia theo tỉ lệ.</p>
   <h2>Con dấu</h2>
   <div class="field row"><label class="check"><input id="sealOn" type="checkbox"> Đóng dấu lên góc ảnh</label>
     <label for="sealSize">Cỡ dấu</label><input id="sealSize" type="range" min="18" max="50"></div>

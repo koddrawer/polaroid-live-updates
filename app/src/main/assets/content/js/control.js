@@ -109,8 +109,9 @@ async function openPicker(i) {
   renderPick();
   if (!giftCache) {
     try { giftCache = await api.giftList(); } catch { giftCache = []; }
-    $('pickMsg').textContent = giftCache.length ? `${giftCache.length} quà TikTok` : 'Chưa lấy được danh sách quà TikTok (kết nối kênh đang live để tải). Vẫn có icon sẵn bên dưới.';
+    $('pickMsg').textContent = giftCache.length ? `${giftCache.length} quà TikTok đã nhận trong buổi live` : 'Chưa có quà TikTok nào (danh sách đầy đủ cần gói trả phí của Euler Stream; quà nhận được trong buổi live sẽ tự hiện ở đây). Vẫn có icon sẵn bên dưới.';
     renderPick();
+    if (!giftCache.length) giftCache = null; // try again next time
   } else $('pickMsg').textContent = '';
 }
 function renderPick() {
@@ -372,8 +373,23 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   bindText('capSize', () => S.photo.captionSize, v => ({ photo: { captionSize: Number(v) } }), 150);
   for (const [id, key] of [['tSmall', 'small'], ['tMedium', 'medium'], ['tBig', 'big']])
     bindNum(id, () => S.photo.tierCoins[key], v => ({ photo: { tierCoins: { [key]: Math.max(1, Math.round(v) || 1) } } }));
-  for (const [id, key] of [['tmApproach', 'approach'], ['tmShutter', 'shutter'], ['tmTotal', 'total']])
-    bindNum(id, () => S.photo.timing[key], v => ({ photo: { timing: { [key]: v } } }));
+  // timing per kind
+  const tmOf = (kind) => merge(merge(merge(DEFAULTS.photo.timing, S.photo.timing || {}), DEFAULTS.photo.timingTier?.[kind] || {}), S.photo.timingTier?.[kind] || {});
+  const TM_ROWS = [['small', 'Khung nhỏ'], ['medium', 'Khung vừa'], ['big', 'Khung to nhất'], ['guest', 'Người vào live']];
+  const TM_COLS = [['approach', 0.1, 3, 0.05], ['shutter', 0.1, 3, 0.05], ['total', 0.1, 3, 0.1]];
+  for (const [kind, label] of TM_ROWS) {
+    const tr = document.createElement('tr');
+    const th = document.createElement('th'); th.textContent = label; tr.append(th);
+    const tm = tmOf(kind);
+    for (const [key, min, max, step] of TM_COLS) {
+      const td = document.createElement('td');
+      const inp = Object.assign(document.createElement('input'), { type: 'number', min, max, step, value: Math.min(max, Math.max(min, Number(tm[key]) || min)) });
+      inp.setAttribute('aria-label', label + ' — ' + key);
+      inp.addEventListener('change', () => { const v = Math.min(max, Math.max(min, Number(inp.value) || min)); inp.value = v; save({ photo: { timingTier: { [kind]: { [key]: v } } } }); });
+      td.append(inp); tr.append(td);
+    }
+    $('tmRows').append(tr);
+  }
   bindCheck('sealOn', () => S.photo.seal.enabled !== false, v => ({ photo: { seal: { enabled: v } } }));
   bindText('sealSize', () => S.photo.seal.size, v => ({ photo: { seal: { size: Number(v) } } }), 200);
   $('sealSize').addEventListener('input', debounce(renderPreview, 400));
@@ -414,6 +430,17 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   bindCheck('winFrame', () => S.display.frame, v => ({ display: { frame: v } }));
   bindCheck('onTop', () => S.display.alwaysOnTop, v => ({ display: { alwaysOnTop: v } }));
   bindCheck('showFps', () => S.display.showFps, v => ({ display: { showFps: v } }));
+  // join-photos + captions
+  bindCheck('guestOn', () => S.photo.guest?.enabled !== false, v => ({ photo: { guest: { enabled: v } } }));
+  bindNum('guestCd', () => S.photo.guest?.cooldown ?? 20, v => ({ photo: { guest: { cooldown: v } } }));
+  bindNum('guestSame', () => S.photo.guest?.sameUserMinutes ?? 30, v => ({ photo: { guest: { sameUserMinutes: v } } }));
+  bindCheck('capOn', () => S.photo.captions?.enabled !== false, v => ({ photo: { captions: { enabled: v } } }));
+  const toLines = (v) => v.split('\n').map(s => s.trim()).filter(Boolean);
+  const showCaps = () => { $('phrasesTx').value = (S.photo.captions?.phrases || []).join('\n'); $('wishesTx').value = (S.photo.captions?.wishes || []).join('\n'); };
+  showCaps();
+  $('phrasesTx').addEventListener('input', debounce(() => save({ photo: { captions: { phrases: toLines($('phrasesTx').value) } } }), 600));
+  $('wishesTx').addEventListener('input', debounce(() => save({ photo: { captions: { wishes: toLines($('wishesTx').value) } } }), 600));
+  $('btnCapReset').onclick = async () => { await save({ photo: { captions: { phrases: DEFAULTS.photo.captions.phrases, wishes: DEFAULTS.photo.captions.wishes } } }); showCaps(); };
   bindCheck('autoRes', () => !!S.display.autoRes, v => ({ display: { autoRes: v } }));
   $('fitMode').value = S.display.fit || 'contain'; $('fitMode').addEventListener('change', () => save({ display: { fit: $('fitMode').value } }));
 

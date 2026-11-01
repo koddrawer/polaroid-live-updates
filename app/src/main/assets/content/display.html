@@ -10,6 +10,14 @@
   html,body{margin:0;height:100%;background:#000;overflow:hidden}
   canvas{display:block;width:100%;height:100%}
   #fps{position:fixed;left:6px;top:6px;font:12px/1.3 Consolas,monospace;color:#9f9;background:rgba(0,0,0,.55);padding:3px 6px;border-radius:3px;white-space:pre}
+  #ov{position:fixed;pointer-events:none;overflow:hidden}
+  .cap{position:absolute;left:6%;right:6%;text-align:center;opacity:0;transform:translateY(12px) scale(.96);transition:opacity .35s ease,transform .35s ease}
+  .cap.on{opacity:1;transform:none}
+  .cap span{display:inline-block;padding:.35em .9em .4em;border-radius:.6em;background:linear-gradient(#2b1d12e6,#160e08e6);
+    border:max(2px,.12em) solid #c9944a;box-shadow:0 0 0 max(1px,.05em) #5a3a1a,0 .3em 1.2em #000a,inset 0 0 .8em #000a;color:#ffe9c2;text-shadow:0 0 .4em #ffb34788}
+  #phrase{bottom:7%;font:700 var(--fs1,34px)/1.1 Oswald,'Arial Narrow',sans-serif;letter-spacing:.04em;text-transform:uppercase}
+  #phrase span{color:#ffd27a}
+  #wish{bottom:7%;font:400 var(--fs2,30px)/1.15 'Dancing Script',Pacifico,cursive}
   #boot{position:fixed;inset:0;display:grid;place-items:center;color:#d4a24c;font:600 18px 'Segoe UI',sans-serif;background:#000;text-align:center;padding:20px}
 </style>
 <script type="importmap">
@@ -19,6 +27,7 @@
 <body>
 <canvas id="c"></canvas>
 <div id="fps" hidden></div>
+<div id="ov"><div id="phrase" class="cap"><span></span></div><div id="wish" class="cap"><span></span></div></div>
 <div id="boot">Đang tải cảnh…</div>
 <script type="module" src="js/display.js"></script>
 </body>

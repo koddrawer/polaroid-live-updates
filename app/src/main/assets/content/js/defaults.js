@@ -75,7 +75,8 @@ export const DEFAULTS = {
     tiers: { table: 1, small: 5, big: 10 }, // (v1.2, unused)
     tierCoins: { small: 1, medium: 10, big: 40 },
     holdSeconds: 2.5, countByCoins: true, volume: 80, flash: true,
-    timing: { approach: 1.15, shutter: 0.35, total: 9 },
+    timing: { approach: 1.15, shutter: 0.35, total: 3 },
+    timingTier: { guest: { total: 2 } }, // per kind overrides: small | medium | big | guest
     seal: {
       enabled: true, size: 34,
       small: { url: 'app://content/seals/heart.png' },
@@ -84,6 +85,26 @@ export const DEFAULTS = {
     },
     sounds: { shutter: null, shutterName: '', stampSound: null, stampName: '', charge: true, stamp: true },
     paperAll: { url: null, caption: '#2a2420' },
+    // photos of people joining the live (no seal, not hung on the wall)
+    guest: { enabled: true, cooldown: 20, sameUserMinutes: 30 },
+    captions: {
+      enabled: true,
+      phrases: [
+        'Say cheese!', 'Everybody smile!', 'Big smile now!', 'Look at the camera!', 'Ready? Say cheese!',
+        'Smile on three… 1, 2, 3!', 'Say "Whiskey"!', 'Show me those pearly whites!', 'Chin up, big smile!',
+        'Everyone say "Money"!', 'Strike a pose!', 'Say "Pizza"!', 'Cheeeeese!', 'Hold it… and smile!',
+        'Bigger smile!', 'Say "Cheesecake"!', 'Eyes on me… smile!', 'Here we go, say cheese!',
+      ],
+      wishes: [
+        'Looking fabulous, {name}!', 'What a beautiful smile, {name}!', 'Picture perfect, {name}!',
+        'You light up the room, {name}!', 'Stunning shot, {name}!', 'Wishing you a wonderful day, {name}!',
+        'Stay awesome, {name}!', 'Thank you for the love, {name}!', 'Born to shine, {name}!',
+        'Pure sunshine, {name}!', 'May all your dreams come true, {name}!', 'Good vibes only, {name}!',
+        "You're a star, {name}!", 'Keep smiling, {name} — it suits you!', 'Wishing you luck and happiness, {name}!',
+        'Absolutely gorgeous, {name}!', 'Have a fantastic week, {name}!', 'So photogenic, {name}!',
+        'Health, wealth and happiness to you, {name}!', 'Never stop smiling, {name}!',
+      ],
+    },
     paperTier: {}, // { small|medium|big: { url, caption } } — falls back to paperAll
     paper: {
       table: { url: null, caption: '#2a2420' },

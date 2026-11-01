@@ -26,7 +26,7 @@ async function connect(opts = {}) {
   await disconnect(true);
   setState('connecting', `Đang kết nối @${username}…`);
   const c = new WebcastPushConnection(username, {
-    enableExtendedGiftInfo: true, processInitialData: false,
+    enableExtendedGiftInfo: false, processInitialData: false, // gift list endpoint is paid-only now
     ...(opts.signApiKey ? { signApiKey: opts.signApiKey } : {})
   });
   conn = c;
@@ -36,6 +36,7 @@ async function connect(opts = {}) {
     const unit = Number(d.diamondCount ?? d.extendedGiftInfo?.diamond_count ?? 0);
     const repeat = Number(d.repeatCount || 1);
     const img = d.giftPictureUrl || d.extendedGiftInfo?.image?.url_list?.[0] || null;
+    if (d.giftId && img && !gifts.some(g => g.id === d.giftId)) gifts = [...gifts, { id: d.giftId, name: d.giftName || 'quà', coins: unit, image: img }].sort((a, b) => a.coins - b.coins);
     emit({ type: streaking ? 'gift-streak' : 'gift', ...user(d), giftId: d.giftId, giftName: d.giftName || d.extendedGiftInfo?.name || 'quà',
       giftImage: img, unit, repeat, coins: unit * repeat, t: Date.now() });
   });
@@ -48,13 +49,6 @@ async function connect(opts = {}) {
   try {
     const st = await c.connect();
     setState('connected', `Đã kết nối @${username}`, { roomId: st?.roomId });
-    try {
-      const list = await c.fetchAvailableGifts();
-      gifts = (Array.isArray(list) ? list : (list?.gifts || [])).map(g => ({
-        id: g.id, name: g.name, coins: g.diamond_count, image: g.image?.url_list?.[0] || g.icon?.url_list?.[0] || null
-      })).filter(g => g.image).sort((a, b) => a.coins - b.coins);
-      send('tiktok:status', { ...state, gifts: gifts.length });
-    } catch (e) { console.warn('gift list', e.message); }
     return { ok: true };
   } catch (e) {
     const msg = String(e?.message || e);

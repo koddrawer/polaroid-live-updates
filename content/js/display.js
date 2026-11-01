@@ -5,6 +5,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { Pipeline } from './pipeline.js';
 import { TopBoard, BottomBoard } from './boards.js';
 import { ClockScreen, SpeakerScreen, zonedParts } from './screens.js';
+import { QuoteFX } from './quotes.js';
 import { Print, drawPrint, sealCenter, PRINT_ASPECT, PRINT_W, PRINT_H as PRINT_H_PX } from './print.js';
 import { DEFAULTS, BUNDLED_FONTS, LED_FONTS, merge, fill, sealSetOf } from './defaults.js';
 
@@ -51,6 +52,7 @@ function resize() {
   // caption overlay follows the 9:16 picture (CSS px)
   const ov = $('ov');
   if (ov) { Object.assign(ov.style, { left: x + 'px', top: y + 'px', width: cw + 'px', height: ch + 'px' }); ov.style.setProperty('--fs1', Math.round(cw * 0.075) + 'px'); ov.style.setProperty('--fs2', Math.round(cw * 0.07) + 'px'); }
+  quoteFX?.resize(cw, ch);
   renderer.setRenderTarget(null); renderer.setViewport(0, 0, W, H); renderer.setClearColor(0, 1); renderer.clear();
 }
 window.addEventListener('resize', resize);
@@ -384,29 +386,35 @@ async function runQueue() {
   if (pendingReload) location.reload();
 }
 
-// ---------------------------------------------------------------- idle: shoot photos from the user's library
-let lastShotEnd = Date.now(), idleLib = null, idleOrder = [], idleBusy = false;
-async function loadIdleLib() { try { const st = await api.loadState?.('idlePhotos'); idleLib = Array.isArray(st?.items) ? st.items.filter(i => i && i.data) : []; } catch { idleLib = []; } idleOrder = []; }
-function nextIdlePhoto() {
-  if (!idleLib?.length) return null;
-  if (S.photo.idle?.order === 'sequence') { idleOrder.idx = ((idleOrder.idx ?? -1) + 1) % idleLib.length; return idleLib[idleOrder.idx]; }
-  if (!idleOrder.length) { idleOrder = idleLib.map((_, i) => i).sort(() => Math.random() - 0.5); }   // shuffled, no repeats until all were shown
-  return idleLib[idleOrder.pop()] || idleLib[0];
+let lastShotEnd = Date.now();
+
+// ---------------------------------------------------------------- idle: glowing quotes floating in mid-air
+// sparks gather into the words when a quote appears, and the words burst into fading sparks when it leaves
+let quoteFX = null, quoteNextAt = performance.now() + 3000, quoteBag = [], quoteForced = false;
+function nextQuote() {
+  const list = (S.photo.quotes?.list || DEFAULTS.photo.quotes.list).map(x => String(x).trim()).filter(Boolean);
+  if (!list.length) return null;
+  if (!quoteBag.length) quoteBag = list.slice().sort(() => Math.random() - 0.5);   // no repeats until all were shown
+  return quoteBag.pop();
 }
-async function idleShot(force) {
-  if (idleBusy) return;
-  idleBusy = true;
-  try {
-    if (!idleLib) await loadIdleLib();
-    const ph = nextIdlePhoto();
-    if (ph && (force || (!busy && !queue.length))) enqueuePhoto({ kind: 'idle', coins: 0, nickname: ph.caption || '', uniqueId: 'idle:' + ph.id, avatarLocal: ph.data });
-  } finally { idleBusy = false; }
+const qShow = () => Math.max(1, Number(S.photo.quotes?.show) || 6);
+const qGap = () => Math.max(0, Number.isFinite(Number(S.photo.quotes?.gap)) ? Number(S.photo.quotes.gap) : 4);
+function showQuote(text) {
+  if (!quoteFX || !text) return;
+  const q = S.photo.quotes || {};
+  quoteFX.show(text, { font: q.font || 'Dancing Script', color: q.color || '#ffd78a', sizePct: q.size || 100, hold: qShow(), y: 0.47 });
+  quoteNextAt = performance.now() + (quoteFX.tIn + qShow() + quoteFX.tOut + qGap()) * 1000;
 }
-setInterval(() => {
-  const c = S.photo.idle || {};
-  if (!c.enabled || !window.__ready || busy || queue.length) return;
-  if (Date.now() - lastShotEnd >= Math.max(5, Number(c.interval) || 25) * 1000) { lastShotEnd = Date.now(); idleShot(false); }
-}, 1000);
+function quoteTick(dt) {
+  if (!quoteFX) return;
+  const now = performance.now();
+  if (quoteForced && quoteFX.done()) quoteForced = false;
+  if (busy || queue.length || (!S.photo.quotes?.enabled && !quoteForced)) {
+    quoteFX.hide();                                                     // dissolve right away when a photo starts
+    quoteNextAt = Math.max(quoteNextAt, now + Math.max(1500, qGap() * 1000));
+  } else if (quoteFX.done() && now >= quoteNextAt) showQuote(nextQuote());
+  quoteFX.update(dt);
+}
 
 const tmpQ = new THREE.Quaternion();
 const anim = { blur: 0, dim: 1, flash: 0, flashLight: 0 };
@@ -802,11 +810,10 @@ async function onLive(ev) {
 // ---------------------------------------------------------------- commands from control panel
 api.onCommand?.((cmd) => {
   if (!cmd) return;
-  if (cmd.type === 'idleLib') { loadIdleLib(); return; }
+  if (cmd.type === 'quoteTest') { if (quoteFX && !busy && !queue.length) { quoteFX.state = 'idle'; quoteForced = true; showQuote(cmd.text || nextQuote()); } return; }
   if (cmd.type === 'test') {
     const name = cmd.name || 'Khách';
     if (cmd.kind === 'join') onLive({ type: 'join', nickname: name, uniqueId: name + Math.random() });
-    else if (cmd.kind === 'idle') idleShot(true);
     else if (cmd.kind === 'follow') onLive({ type: 'follow', nickname: name, uniqueId: name });
     else if (cmd.kind === 'burst') {
       const names = ['Lan Anh', 'Minh Tú', 'Bảo Ngọc', 'Quốc Huy', 'Thảo Vy', 'Đức Anh', 'Hà My', 'Gia Bảo', 'Khánh Linh', 'Tuấn Kiệt'];
@@ -897,6 +904,7 @@ function frame() {
   leds.top?.update(dt, t);
   leds.bottom?.update(dt, t);
   leds.clock?.update(dt, t);
+  quoteTick(dt);
   leds.speaker?.update(dt, t, !music.el.paused && music.routed);
 
   // flash decay
@@ -927,6 +935,7 @@ function frame() {
     await Promise.all(LED_FONTS.flatMap(f => f.faces.map(face => ensureFont(f.family, face.url, face.weight))));
     console.log('boot: scene');
     for (const f of (S.customFonts || [])) await ensureFont(f.family, f.url);
+    quoteFX = new QuoteFX($('fx')); resize();
     await buildScene();
     await loadStamp();
     console.log('boot: scene ok');

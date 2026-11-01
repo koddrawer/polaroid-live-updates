@@ -18,6 +18,16 @@
   #phrase{bottom:7%;font:700 var(--fs1,34px)/1.1 Oswald,'Arial Narrow',sans-serif;letter-spacing:.04em;text-transform:uppercase}
   #phrase span{color:#ffd27a}
   #wish{bottom:7%;font:400 var(--fs2,30px)/1.15 'Dancing Script',Pacifico,cursive}
+  #quote{position:absolute;left:5%;right:5%;top:50%;transform:translateY(-50%);text-align:center;pointer-events:none;
+    font:400 var(--fs3,40px)/1.18 'Dancing Script',Pacifico,cursive;color:#fff6dc;opacity:0;transition:opacity 1s ease,filter 1s ease}
+  #quote.on{opacity:1;filter:none}
+  #quote.out{opacity:0;filter:blur(6px);transition-duration:.9s}
+  #quote.out.fast{transition-duration:.3s}
+  #quote .qw{display:inline-block;opacity:0;animation:qin 1.1s ease forwards,qglow 2.6s ease-in-out 1.1s infinite alternate;
+    text-shadow:0 0 .06em #fff,0 0 .18em #ffe2a0,0 0 .45em #ffbf5a,0 0 .9em #ff9a2a,0 0 1.6em #ff7a00b0}
+  @keyframes qin{0%{opacity:0;filter:blur(10px);transform:translateY(.25em) scale(.92)}60%{opacity:1}100%{opacity:1;filter:blur(0);transform:none}}
+  @keyframes qglow{from{text-shadow:0 0 .06em #fff,0 0 .18em #ffe2a0,0 0 .45em #ffbf5a,0 0 .9em #ff9a2a,0 0 1.6em #ff7a00b0}
+    to{text-shadow:0 0 .08em #fff,0 0 .26em #fff0c8,0 0 .65em #ffcf70,0 0 1.25em #ffa83c,0 0 2.2em #ff8a10d0}}
   #boot{position:fixed;inset:0;display:grid;place-items:center;color:#d4a24c;font:600 18px 'Segoe UI',sans-serif;background:#000;text-align:center;padding:20px}
 </style>
 <script type="importmap">
@@ -27,7 +37,7 @@
 <body>
 <canvas id="c"></canvas>
 <div id="fps" hidden></div>
-<div id="ov"><div id="phrase" class="cap"><span></span></div><div id="wish" class="cap"><span></span></div></div>
+<div id="ov"><canvas id="fx" style="position:absolute;left:0;top:0;pointer-events:none"></canvas><div id="phrase" class="cap"><span></span></div><div id="wish" class="cap"><span></span></div></div>
 <div id="boot">Đang tải cảnh…</div>
 <script type="module" src="js/display.js"></script>
 </body>

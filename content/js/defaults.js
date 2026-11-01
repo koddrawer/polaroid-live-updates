@@ -76,8 +76,23 @@ export const DEFAULTS = {
     tierCoins: { small: 1, medium: 10, big: 40 },
     holdSeconds: 2.5, countByCoins: true, volume: 80, flash: true,
     timing: { approach: 1.15, shutter: 0.35, total: 3 },
-    timingTier: { guest: { total: 2 }, idle: { total: 2.5 } },
-    idle: { enabled: false, interval: 25, order: 'random', hang: 'none', seal: false }, // hang: none | small | medium | big | random // shoot photos from the user's library while nothing happens // per kind overrides: small | medium | big | guest
+    timingTier: { guest: { total: 2 } }, // per kind overrides: small | medium | big | guest
+    // glowing quotes floating in mid-air while nothing happens
+    quotes: {
+      enabled: true, show: 6, gap: 4, size: 100, font: 'Dancing Script', color: '#ffd78a',
+      list: [
+        'Smile, it looks good on you', 'Every moment is a fresh beginning', 'Good vibes only',
+        'You are somebody\'s reason to smile', 'Collect moments, not things', 'Stay golden',
+        'Life is better when you\'re laughing', 'Be the reason someone smiles today', 'Today is a gift',
+        'Shine like the whole universe is yours', 'Make today amazing', 'Happiness looks gorgeous on you',
+        'Wishing you love and light', 'Dream big, sparkle more', 'You are stronger than you think',
+        'Choose joy', 'Keep shining, beautiful soul', 'Life is short, take the photo',
+        'Thank you for being here', 'You make this live brighter', 'May your day be as lovely as your smile',
+        'Every picture tells a story', 'Capture the moment', 'Be kind, be brave, be you',
+        'Sending you happiness', 'Stay wild, stay kind', 'Do more of what makes you happy',
+        'Here\'s to you, superstar', 'The best is yet to come', 'Smile and the world smiles with you',
+      ],
+    },
     seal: {
       enabled: true, size: 34,
       small: { url: 'app://content/seals/heart.png' },

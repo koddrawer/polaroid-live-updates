@@ -1,6 +1,6 @@
 {
- "version": "1.3.13",
- "notes": "Kho ảnh: khi rảnh máy tự chụp các ảnh trong kho bạn chọn",
+ "version": "1.3.14",
+ "notes": "Sửa: ảnh chụp có avatar người xem; số xu quà đọc đúng (định dạng mới của TikTok)",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
@@ -118,8 +118,8 @@
    "size": 10821
   },
   "node/tiktok.js": {
-   "sha256": "45c1acb12c59f63786d79ac12b1276bcb9218b2c21ec8183d227db98ce287112",
-   "size": 5322
+   "sha256": "b844afe2d0cf0024d86a52a07ca103bf10f63287472864dcf0c05a1d9b1fd4c2",
+   "size": 6571
   },
   "papers/black.jpg": {
    "sha256": "58f9f7329a0a0fcc65dc901d317976ccea26c373eaf7d4389a489e25419072a8",

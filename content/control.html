@@ -108,12 +108,13 @@
   <div class="field row"><label class="check"><input id="idleOn" type="checkbox"> Khi không có ai tặng quà / vào live, máy tự chụp các ảnh trong kho</label></div>
   <div class="grid3">
     <div class="field"><label for="idleSec">Rảnh bao lâu thì chụp (giây)</label><input id="idleSec" type="number" min="5" max="3600"></div>
+    <div class="field"><label for="idleHang">Chụp xong thì</label><select id="idleHang"><option value="none">Ảnh biến mất</option><option value="small">Treo vào khung nhỏ</option><option value="medium">Treo vào khung vừa</option><option value="big">Treo vào khung to nhất</option></select></div>
     <div class="field"><label for="idleOrder">Thứ tự</label><select id="idleOrder"><option value="random">Ngẫu nhiên (hết lượt mới lặp lại)</option><option value="sequence">Lần lượt theo danh sách</option></select></div>
   </div>
   <div class="row"><button id="idleAdd">+ Thêm ảnh vào kho…</button><button id="idleTest">Chụp thử 1 ảnh</button><button id="idleClear">Xoá hết kho</button><span id="idleMsg" class="muted"></span></div>
   <input id="idleFiles" type="file" accept="image/*" multiple hidden>
   <div id="idleGrid" class="idlegrid"></div>
-  <p class="muted">Ảnh trong kho không đóng dấu và chụp xong sẽ biến mất. Chữ dưới ảnh lấy từ ô tên của từng ảnh (để trống thì ảnh không có chữ).</p>
+  <p class="muted">Ảnh trong kho không đóng dấu. Nếu chọn treo lên tường: ảnh chỉ vào khung còn trống hoặc thay ảnh kho cũ hơn — không bao giờ thay ảnh của người tặng quà (hết chỗ thì ảnh biến mất). Ngược lại, khi khung đầy, ảnh người tặng quà sẽ thay ảnh kho trước. Chữ dưới ảnh lấy từ ô tên của từng ảnh.</p>
   <h2>Câu nói khi chụp</h2>
   <div class="field row"><label class="check"><input id="capOn" type="checkbox"> Hiện câu nói phía dưới màn hình</label></div>
   <div class="field"><label for="phrasesTx">Câu thợ ảnh nói trước khi bấm máy (mỗi dòng một câu)</label><textarea id="phrasesTx" rows="6" spellcheck="false"></textarea></div>

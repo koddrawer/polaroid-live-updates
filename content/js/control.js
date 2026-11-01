@@ -492,6 +492,7 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   bindCheck('capOn', () => S.photo.captions?.enabled !== false, v => ({ photo: { captions: { enabled: v } } }));
   bindCheck('idleOn', () => !!S.photo.idle?.enabled, v => ({ photo: { idle: { enabled: v } } }));
   bindNum('idleSec', () => S.photo.idle?.interval ?? 25, v => ({ photo: { idle: { interval: Math.max(5, v) } } }));
+  $('idleHang').value = S.photo.idle?.hang || 'none'; $('idleHang').onchange = () => save({ photo: { idle: { hang: $('idleHang').value } } });
   $('idleOrder').value = S.photo.idle?.order || 'random'; $('idleOrder').onchange = () => save({ photo: { idle: { order: $('idleOrder').value } } });
   loadIdle();
   const toLines = (v) => v.split('\n').map(s => s.trim()).filter(Boolean);

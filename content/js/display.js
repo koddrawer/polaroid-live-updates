@@ -317,11 +317,14 @@ async function restoreGallery() {
     } catch (err) { console.warn(err); }
   }
 }
-function nextSlot(kind, n) {
+// free slot first; when full, replace a library photo before replacing a donor's photo (oldest first)
+function nextSlot(kind, n, libOnly = false) {
   const used = new Set(gallery.items.filter(i => i.entry.kind === kind).map(i => i.entry.slot));
   for (let k = 0; k < n; k++) if (!used.has(k)) return { slot: k, replace: null };
-  const oldest = gallery.items.filter(i => i.entry.kind === kind).sort((a, b) => a.entry.t - b.entry.t)[0];
-  return { slot: oldest.entry.slot, replace: oldest };
+  const cands = gallery.items.filter(i => i.entry.kind === kind && (!libOnly || i.entry.lib))
+    .sort((a, b) => (b.entry.lib ? 1 : 0) - (a.entry.lib ? 1 : 0) || a.entry.t - b.entry.t);
+  const oldest = cands[0];
+  return oldest ? { slot: oldest.entry.slot, replace: oldest } : null;
 }
 
 // ---------------------------------------------------------------- photo show (queue + timeline)
@@ -619,7 +622,15 @@ async function shoot(job) {
   if (hasSeal) await stampPrint(print, entry, sec('stamp'));
   await tween(sec('hold2'), () => {});
   caption('wish', null);
-  if (guest) {
+  // library photo with "hang on the wall": takes a free frame (or another library photo's frame) of the chosen size
+  let target = null;
+  if (kind === 'idle' && ['small', 'medium', 'big'].includes(S.photo.idle?.hang)) {
+    const tk = S.photo.idle.hang;
+    const n = tk === 'big' ? 1 : (slotsOf(tk).length ? slotsOf(tk) : slotsOf('small')).length;
+    const s = nextSlot(tk, n, true);   // never pushes a donor's photo off the wall
+    if (s) target = { kind: tk, ...s };
+  }
+  if (guest && !target) {
     // people who just joined: the photo drops away and disappears (it is not hung on the wall)
     const g0 = { pos: print.mesh.position.clone(), scale: print.mesh.scale.x, quat: print.mesh.quaternion.clone() };
     const spin = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.5, 0, (Math.random() - 0.5) * 1.2));
@@ -639,7 +650,8 @@ async function shoot(job) {
   }
   // 6. fly to destination
   let pose, replace = null;
-  if (kind === 'big') { entry.slot = 0; replace = gallery.items.find(i => i.entry.kind === 'big') || null; pose = slotPose('big', 0); }
+  if (target) { entry.kind = target.kind; entry.lib = true; entry.slot = target.slot; replace = target.replace; pose = slotPose(target.kind, target.slot); }
+  else if (kind === 'big') { entry.slot = 0; replace = gallery.items.find(i => i.entry.kind === 'big') || null; pose = slotPose('big', 0); }
   else { const n = (slotsOf(kind).length ? slotsOf(kind) : slotsOf('small')).length; const s = nextSlot(kind, n); entry.slot = s.slot; replace = s.replace; pose = slotPose(kind, s.slot); }
   if (replace) removeGalleryItem(replace, true);
   const f2 = { pos: print.mesh.position.clone(), quat: print.mesh.quaternion.clone(), scale: print.mesh.scale.x };

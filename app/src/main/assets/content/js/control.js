@@ -265,61 +265,6 @@ function renderTiers() {
   }
 }
 
-// ---------- photo library shot while idle ----------
-let idleItems = [];
-async function loadIdle() { try { const st = await api.loadState('idlePhotos'); idleItems = Array.isArray(st?.items) ? st.items : []; } catch { idleItems = []; } renderIdle(); }
-async function saveIdle() { await api.saveState('idlePhotos', { items: idleItems }); api.command({ type: 'idleLib' }); }
-function renderIdle() {
-  const g = $('idleGrid'); g.innerHTML = '';
-  $('idleMsg').textContent = idleItems.length ? `${idleItems.length} ảnh trong kho` : 'Kho đang trống';
-  idleItems.forEach((it, i) => {
-    const d = document.createElement('div'); d.className = 'idleitem';
-    const im = document.createElement('img'); im.src = it.data; im.alt = '';
-    const cap = Object.assign(document.createElement('input'), { type: 'text', value: it.caption || '', placeholder: 'chữ dưới ảnh' });
-    cap.setAttribute('aria-label', 'Chữ dưới ảnh ' + (i + 1));
-    cap.addEventListener('input', debounce(() => { it.caption = cap.value; saveIdle(); }, 500));
-    const del = Object.assign(document.createElement('button'), { textContent: '✕', title: 'Xoá ảnh này' });
-    del.className = 'del';
-    del.onclick = () => { idleItems.splice(i, 1); saveIdle(); renderIdle(); };
-    d.append(im, cap, del); g.append(d);
-  });
-}
-// shrink to a square-ish 640 px JPEG so the library stays light
-function shrinkImage(src) {
-  return new Promise((res) => {
-    const im = new Image(); im.crossOrigin = 'anonymous';
-    im.onload = () => {
-      const k = Math.min(1, 640 / Math.max(im.naturalWidth, im.naturalHeight));
-      const c = document.createElement('canvas'); c.width = Math.round(im.naturalWidth * k); c.height = Math.round(im.naturalHeight * k);
-      c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
-      res(c.toDataURL('image/jpeg', 0.86));
-    };
-    im.onerror = () => res(null);
-    im.src = src;
-  });
-}
-const stem = (n) => String(n || '').replace(/\.[^.]+$/, '').replace(/[_-]+/g, ' ').trim().slice(0, 40);
-async function addIdle(list) {
-  let added = 0;
-  for (const { src, name } of list) {
-    if (idleItems.length >= 300) { $('idleMsg').textContent = 'Kho tối đa 300 ảnh'; break; }
-    $('idleMsg').textContent = `Đang thêm ảnh… ${added + 1}/${list.length}`;
-    const data = await shrinkImage(src);
-    if (data) { idleItems.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), caption: stem(name), data }); added++; }
-  }
-  await saveIdle(); renderIdle();
-}
-$('idleAdd').onclick = async () => {
-  if (api.platform === 'android') { const f = await api.pickFile('image'); if (f) addIdle([{ src: f.url, name: f.name }]); return; }
-  $('idleFiles').value = ''; $('idleFiles').click();
-};
-$('idleFiles').addEventListener('change', () => {
-  const files = [...$('idleFiles').files];
-  addIdle(files.map(f => ({ src: URL.createObjectURL(f), name: f.name })));
-});
-$('idleClear').onclick = () => { if (!idleItems.length) return; idleItems = []; saveIdle(); renderIdle(); };
-$('idleTest').onclick = () => api.command({ type: 'test', kind: 'idle' });
-
 // ---------- clock ----------
 function renderClock() {
   const sel = $('tzSel'); sel.innerHTML = '';
@@ -430,7 +375,7 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
     bindNum(id, () => S.photo.tierCoins[key], v => ({ photo: { tierCoins: { [key]: Math.max(1, Math.round(v) || 1) } } }));
   // timing per kind
   const tmOf = (kind) => merge(merge(merge(DEFAULTS.photo.timing, S.photo.timing || {}), DEFAULTS.photo.timingTier?.[kind] || {}), S.photo.timingTier?.[kind] || {});
-  const TM_ROWS = [['small', 'Khung nhỏ'], ['medium', 'Khung vừa'], ['big', 'Khung to nhất'], ['guest', 'Người vào live'], ['idle', 'Ảnh trong kho']];
+  const TM_ROWS = [['small', 'Khung nhỏ'], ['medium', 'Khung vừa'], ['big', 'Khung to nhất'], ['guest', 'Người vào live']];
   const TM_COLS = [['approach', 0.1, 3, 0.05], ['shutter', 0.1, 3, 0.05], ['total', 0.1, 3, 0.1]];
   for (const [kind, label] of TM_ROWS) {
     const tr = document.createElement('tr');
@@ -490,12 +435,17 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   bindNum('guestCd', () => S.photo.guest?.cooldown ?? 20, v => ({ photo: { guest: { cooldown: v } } }));
   bindNum('guestSame', () => S.photo.guest?.sameUserMinutes ?? 30, v => ({ photo: { guest: { sameUserMinutes: v } } }));
   bindCheck('capOn', () => S.photo.captions?.enabled !== false, v => ({ photo: { captions: { enabled: v } } }));
-  bindCheck('idleOn', () => !!S.photo.idle?.enabled, v => ({ photo: { idle: { enabled: v } } }));
-  bindNum('idleSec', () => S.photo.idle?.interval ?? 25, v => ({ photo: { idle: { interval: Math.max(5, v) } } }));
-  bindCheck('idleSeal', () => !!S.photo.idle?.seal, v => ({ photo: { idle: { seal: v } } }));
-  $('idleHang').value = S.photo.idle?.hang || 'none'; $('idleHang').onchange = () => save({ photo: { idle: { hang: $('idleHang').value } } });
-  $('idleOrder').value = S.photo.idle?.order || 'random'; $('idleOrder').onchange = () => save({ photo: { idle: { order: $('idleOrder').value } } });
-  loadIdle();
+  bindCheck('qOn', () => S.photo.quotes?.enabled !== false, v => ({ photo: { quotes: { enabled: v } } }));
+  bindNum('qShow', () => S.photo.quotes?.show ?? 6, v => ({ photo: { quotes: { show: Math.min(120, Math.max(1, v)) } } }));
+  bindNum('qGap', () => S.photo.quotes?.gap ?? 4, v => ({ photo: { quotes: { gap: Math.min(600, Math.max(0, v)) } } }));
+  bindNum('qSize', () => S.photo.quotes?.size ?? 100, v => ({ photo: { quotes: { size: Math.min(200, Math.max(50, v)) } } }));
+  $('qList').value = (S.photo.quotes?.list || []).join('\n');
+  $('qList').addEventListener('input', debounce(() => save({ photo: { quotes: { list: $('qList').value.split('\n').map(s => s.trim()).filter(Boolean) } } }), 600));
+  for (const f of BUNDLED_FONTS) { const o = document.createElement('option'); o.value = o.textContent = f.family; $('qFont').append(o); }
+  $('qFont').value = S.photo.quotes?.font || 'Dancing Script'; $('qFont').onchange = () => save({ photo: { quotes: { font: $('qFont').value } } });
+  bindText('qColor', () => S.photo.quotes?.color || '#ffd78a', v => ({ photo: { quotes: { color: v } } }), 200);
+  $('qTest').onclick = () => api.command({ type: 'quoteTest' });
+  $('qReset').onclick = async () => { await save({ photo: { quotes: { list: DEFAULTS.photo.quotes.list } } }); $('qList').value = DEFAULTS.photo.quotes.list.join('\n'); };
   const toLines = (v) => v.split('\n').map(s => s.trim()).filter(Boolean);
   const showCaps = () => { $('phrasesTx').value = (S.photo.captions?.phrases || []).join('\n'); $('wishesTx').value = (S.photo.captions?.wishes || []).join('\n'); };
   showCaps();

@@ -1,17 +1,17 @@
 {
- "version": "1.3.12",
- "notes": "Sửa lỗi kết nối TikTok (Euler Stream đổi danh sách quà sang gói trả phí)",
+ "version": "1.3.13",
+ "notes": "Kho ảnh: khi rảnh máy tự chụp các ảnh trong kho bạn chọn",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
  "files": {
   "control.css": {
-   "sha256": "87a0d192308e0124b448ac71f0302626303f9e70ff65a7050cf39ead16d76304",
-   "size": 6801
+   "sha256": "180a3bd0a6ef11632fa08476095570ca6e4db6ef069880dd2b51816799d1146b",
+   "size": 7309
   },
   "control.html": {
-   "sha256": "4a6c05f38080d1d31eefc21528a7343c07b159cf7521c27c649a1818257d72ac",
-   "size": 16043
+   "sha256": "9f23bbb110c07961a62699297f23f35d647ef5e7b4e87b4828405366a83e148c",
+   "size": 17216
   },
   "display.html": {
    "sha256": "d9fe49bddb30159385d80aafcd58b02b957a82a0dc9247071136cae993285e59",
@@ -86,20 +86,20 @@
    "size": 10710
   },
   "js/control.js": {
-   "sha256": "44334bbb35e7fbef9f495b0291a86c6332c19e25d9f06d023537cee6ef4b9afd",
-   "size": 31515
+   "sha256": "01f8de3fb0f905191964d0461eab43cc9361fa1aacf7245d0636b3459eef2e58",
+   "size": 35016
   },
   "js/cutout.js": {
    "sha256": "2aec5541a446f219f568751271ec49e03e6b156dd2021d4b55327217744d66ee",
    "size": 5364
   },
   "js/defaults.js": {
-   "sha256": "b07de5c2b7a986a425244147db1dd00f94887981977d594bb9ecd3779c5cb743",
-   "size": 9398
+   "sha256": "fca8ec9c8a09a736dc009cc19aade311f5f72d95c73c3059e878fd50fe848466",
+   "size": 9543
   },
   "js/display.js": {
-   "sha256": "799a03ef1424e65d7a8e8dae5dbb1613ae58add783071f5ccb6a861c2d9aa23b",
-   "size": 48215
+   "sha256": "78f8b333d9edc413ba2041cc7675457d6a0b99f5a2e4778ed0dfa5a79d9d8c7e",
+   "size": 50069
   },
   "js/led.js": {
    "sha256": "d2c3c2f5234208e4622d17597b3b9784b894e9a7eb56774d583ea2b56a61bf67",

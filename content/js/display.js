@@ -363,7 +363,7 @@ async function maybeGuest(ev) {
 
 function enqueuePhoto(job) {
   // a donor always goes before people who just joined
-  if (job.kind !== 'guest') for (let i = queue.length - 1; i >= 0; i--) if (queue[i].kind === 'guest') queue.splice(i, 1);
+  if (job.kind !== 'guest' && job.kind !== 'idle') for (let i = queue.length - 1; i >= 0; i--) if (queue[i].kind === 'guest' || queue[i].kind === 'idle') queue.splice(i, 1);
   const pending = queue.find(j => j.uniqueId && j.uniqueId === job.uniqueId);
   if (pending) { pending.coins += job.coins; pending.kind = tierOf(pending.coins) || pending.kind; return; }
   queue.push(job);
@@ -377,8 +377,33 @@ async function runQueue() {
     await sleep(350);
   }
   busy = false;
+  lastShotEnd = Date.now();
   if (pendingReload) location.reload();
 }
+
+// ---------------------------------------------------------------- idle: shoot photos from the user's library
+let lastShotEnd = Date.now(), idleLib = null, idleOrder = [], idleBusy = false;
+async function loadIdleLib() { try { const st = await api.loadState?.('idlePhotos'); idleLib = Array.isArray(st?.items) ? st.items.filter(i => i && i.data) : []; } catch { idleLib = []; } idleOrder = []; }
+function nextIdlePhoto() {
+  if (!idleLib?.length) return null;
+  if (S.photo.idle?.order === 'sequence') { idleOrder.idx = ((idleOrder.idx ?? -1) + 1) % idleLib.length; return idleLib[idleOrder.idx]; }
+  if (!idleOrder.length) { idleOrder = idleLib.map((_, i) => i).sort(() => Math.random() - 0.5); }   // shuffled, no repeats until all were shown
+  return idleLib[idleOrder.pop()] || idleLib[0];
+}
+async function idleShot(force) {
+  if (idleBusy) return;
+  idleBusy = true;
+  try {
+    if (!idleLib) await loadIdleLib();
+    const ph = nextIdlePhoto();
+    if (ph && (force || (!busy && !queue.length))) enqueuePhoto({ kind: 'idle', coins: 0, nickname: ph.caption || '', uniqueId: 'idle:' + ph.id, avatarLocal: ph.data });
+  } finally { idleBusy = false; }
+}
+setInterval(() => {
+  const c = S.photo.idle || {};
+  if (!c.enabled || !window.__ready || busy || queue.length) return;
+  if (Date.now() - lastShotEnd >= Math.max(5, Number(c.interval) || 25) * 1000) { lastShotEnd = Date.now(); idleShot(false); }
+}, 1000);
 
 const tmpQ = new THREE.Quaternion();
 const anim = { blur: 0, dim: 1, flash: 0, flashLight: 0 };
@@ -529,7 +554,7 @@ async function stampPrint(print, entry, dur) {
 async function shoot(job) {
   const kind = job.kind;
   const tm = T(kind);
-  const guest = kind === 'guest';
+  const guest = kind === 'guest' || kind === 'idle';   // not stamped, not hung on the wall
   const entry = { id: Date.now() + Math.random(), kind, name: job.nickname, uniqueId: job.uniqueId, avatar: job.avatarLocal || null, coins: job.coins, t: Date.now(),
     font: S.photo.font, fontUrl: S.photo.fontUrl, paper: paperFor(guest ? 'small' : kind), seal: guest ? null : sealFor(kind) };
   caption('phrase', pick(lines('phrases')));
@@ -586,7 +611,9 @@ async function shoot(job) {
     print.mesh.quaternion.slerpQuaternions(from.quat, show.quat, e);
   });
   // 5. hold on screen (with a compliment underneath), stamp the seal, hold again
-  caption('wish', fill(pick(lines('wishes')) || '', { name: shortName(entry.name) }));
+  { let w = pick(lines('wishes')) || '';
+    if (kind === 'idle' || !String(entry.name || '').trim()) w = w.replace(/,?\s*\{name\}/g, '').replace(/\s+([!.?])/g, '$1');   // library photos: compliment without a name
+    caption('wish', fill(w, { name: shortName(entry.name) })); }
   await tween(sec('hold1'), () => {});
   print.develop = 1;
   if (hasSeal) await stampPrint(print, entry, sec('stamp'));
@@ -742,9 +769,11 @@ async function onLive(ev) {
 // ---------------------------------------------------------------- commands from control panel
 api.onCommand?.((cmd) => {
   if (!cmd) return;
+  if (cmd.type === 'idleLib') { loadIdleLib(); return; }
   if (cmd.type === 'test') {
     const name = cmd.name || 'Khách';
     if (cmd.kind === 'join') onLive({ type: 'join', nickname: name, uniqueId: name + Math.random() });
+    else if (cmd.kind === 'idle') idleShot(true);
     else if (cmd.kind === 'follow') onLive({ type: 'follow', nickname: name, uniqueId: name });
     else if (cmd.kind === 'burst') {
       const names = ['Lan Anh', 'Minh Tú', 'Bảo Ngọc', 'Quốc Huy', 'Thảo Vy', 'Đức Anh', 'Hà My', 'Gia Bảo', 'Khánh Linh', 'Tuấn Kiệt'];

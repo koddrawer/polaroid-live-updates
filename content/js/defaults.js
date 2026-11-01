@@ -76,7 +76,8 @@ export const DEFAULTS = {
     tierCoins: { small: 1, medium: 10, big: 40 },
     holdSeconds: 2.5, countByCoins: true, volume: 80, flash: true,
     timing: { approach: 1.15, shutter: 0.35, total: 3 },
-    timingTier: { guest: { total: 2 } }, // per kind overrides: small | medium | big | guest
+    timingTier: { guest: { total: 2 }, idle: { total: 2.5 } },
+    idle: { enabled: false, interval: 25, order: 'random' }, // shoot photos from the user's library while nothing happens // per kind overrides: small | medium | big | guest
     seal: {
       enabled: true, size: 34,
       small: { url: 'app://content/seals/heart.png' },

@@ -104,6 +104,16 @@
     <div class="field"><label for="guestSame">Không chụp lại cùng người trong (phút)</label><input id="guestSame" type="number" min="1" max="1440"></div>
   </div>
   <p class="muted">Chỉ chụp khi đang không có ảnh của người tặng quà; có người tặng quà thì ảnh người vào live bị bỏ qua. Nền ảnh dùng nền của khung nhỏ.</p>
+  <h2>Kho ảnh — chụp khi rảnh</h2>
+  <div class="field row"><label class="check"><input id="idleOn" type="checkbox"> Khi không có ai tặng quà / vào live, máy tự chụp các ảnh trong kho</label></div>
+  <div class="grid3">
+    <div class="field"><label for="idleSec">Rảnh bao lâu thì chụp (giây)</label><input id="idleSec" type="number" min="5" max="3600"></div>
+    <div class="field"><label for="idleOrder">Thứ tự</label><select id="idleOrder"><option value="random">Ngẫu nhiên (hết lượt mới lặp lại)</option><option value="sequence">Lần lượt theo danh sách</option></select></div>
+  </div>
+  <div class="row"><button id="idleAdd">+ Thêm ảnh vào kho…</button><button id="idleTest">Chụp thử 1 ảnh</button><button id="idleClear">Xoá hết kho</button><span id="idleMsg" class="muted"></span></div>
+  <input id="idleFiles" type="file" accept="image/*" multiple hidden>
+  <div id="idleGrid" class="idlegrid"></div>
+  <p class="muted">Ảnh trong kho không đóng dấu và chụp xong sẽ biến mất. Chữ dưới ảnh lấy từ ô tên của từng ảnh (để trống thì ảnh không có chữ).</p>
   <h2>Câu nói khi chụp</h2>
   <div class="field row"><label class="check"><input id="capOn" type="checkbox"> Hiện câu nói phía dưới màn hình</label></div>
   <div class="field"><label for="phrasesTx">Câu thợ ảnh nói trước khi bấm máy (mỗi dòng một câu)</label><textarea id="phrasesTx" rows="6" spellcheck="false"></textarea></div>

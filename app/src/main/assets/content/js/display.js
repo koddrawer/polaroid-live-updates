@@ -485,6 +485,26 @@ async function loadStamp() {
     heroScene.add(stampModel);
   } catch (e) { console.warn('stamp model', e); }
 }
+// library photo: which frame it will hang in (decided when the shot starts), and its seal
+function idleTarget() {
+  const h = S.photo.idle?.hang;
+  const kinds = h === 'random' ? ['small', 'medium', 'big'].sort(() => Math.random() - 0.5) : ['small', 'medium', 'big'].includes(h) ? [h] : [];
+  for (const tk of kinds) {
+    const n = tk === 'big' ? 1 : (slotsOf(tk).length ? slotsOf(tk) : slotsOf('small')).length;
+    const s = nextSlot(tk, n, true);   // never pushes a donor's photo off the wall
+    if (s) return { kind: tk, ...s };
+  }
+  return null;
+}
+function idleSeal(target) {
+  if (!S.photo.idle?.seal) return null;
+  if (target) return sealFor(target.kind);                       // random among the seals of that frame size
+  const se = S.photo.seal || {};
+  if (se.enabled === false) return null;
+  const all = [...new Set(['small', 'medium', 'big'].flatMap(k => sealSetOf(S, k)))];
+  if (!all.length) return null;
+  return { url: all[Math.floor(Math.random() * all.length)], size: se.size || 34, angle: (Math.random() - 0.5) * 0.5 };
+}
 function sealFor(kind) {
   const se = S.photo.seal || {};
   if (se.enabled === false) return null;
@@ -559,7 +579,10 @@ async function shoot(job) {
   const tm = T(kind);
   const guest = kind === 'guest' || kind === 'idle';   // not stamped, not hung on the wall
   const entry = { id: Date.now() + Math.random(), kind, name: job.nickname, uniqueId: job.uniqueId, avatar: job.avatarLocal || null, coins: job.coins, t: Date.now(),
-    font: S.photo.font, fontUrl: S.photo.fontUrl, paper: paperFor(guest ? 'small' : kind), seal: guest ? null : sealFor(kind) };
+    font: S.photo.font, fontUrl: S.photo.fontUrl, paper: paperFor(guest ? 'small' : kind), seal: null };
+  let target = kind === 'idle' ? idleTarget() : null;
+  entry.seal = kind === 'idle' ? idleSeal(target) : guest ? null : sealFor(kind);
+  if (target) entry.paper = paperFor(target.kind);
   caption('phrase', pick(lines('phrases')));
   report();
   musicDuck(true);
@@ -622,13 +645,11 @@ async function shoot(job) {
   if (hasSeal) await stampPrint(print, entry, sec('stamp'));
   await tween(sec('hold2'), () => {});
   caption('wish', null);
-  // library photo with "hang on the wall": takes a free frame (or another library photo's frame) of the chosen size
-  let target = null;
-  if (kind === 'idle' && ['small', 'medium', 'big'].includes(S.photo.idle?.hang)) {
-    const tk = S.photo.idle.hang;
-    const n = tk === 'big' ? 1 : (slotsOf(tk).length ? slotsOf(tk) : slotsOf('small')).length;
-    const s = nextSlot(tk, n, true);   // never pushes a donor's photo off the wall
-    if (s) target = { kind: tk, ...s };
+  // library photo hanging on the wall: re-check the frame (a donor may have taken it meanwhile)
+  if (target) {
+    const still = gallery.items.find(i => i.entry.kind === target.kind && i.entry.slot === target.slot);
+    if (still && !still.entry.lib) target = idleTarget();
+    else if (still && still !== target.replace) target.replace = still;
   }
   if (guest && !target) {
     // people who just joined: the photo drops away and disappears (it is not hung on the wall)

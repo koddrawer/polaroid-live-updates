@@ -79,7 +79,7 @@ export const DEFAULTS = {
     timingTier: { guest: { total: 2 } }, // per kind overrides: small | medium | big | guest
     // glowing quotes floating in mid-air while nothing happens
     quotes: {
-      enabled: true, show: 6, gap: 4, size: 100, font: 'Dancing Script', color: '#ffd78a',
+      enabled: true, show: 6, gap: 4, size: 100, font: 'Dancing Script', color: '#ffd78a', blur: 70,
       list: [
         'Smile, it looks good on you', 'Every moment is a fresh beginning', 'Good vibes only',
         'You are somebody\'s reason to smile', 'Collect moments, not things', 'Stay golden',

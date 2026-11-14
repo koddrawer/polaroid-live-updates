@@ -375,7 +375,7 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
     bindNum(id, () => S.photo.tierCoins[key], v => ({ photo: { tierCoins: { [key]: Math.max(1, Math.round(v) || 1) } } }));
   // timing per kind
   const tmOf = (kind) => merge(merge(merge(DEFAULTS.photo.timing, S.photo.timing || {}), DEFAULTS.photo.timingTier?.[kind] || {}), S.photo.timingTier?.[kind] || {});
-  const TM_ROWS = [['small', 'Khung nhỏ'], ['medium', 'Khung vừa'], ['big', 'Khung to nhất'], ['guest', 'Người vào live']];
+  const TM_ROWS = [['small', 'Khung nhỏ'], ['medium', 'Khung vừa'], ['big', 'Khung to nhất'], ['guest', 'Người vào live'], ['like', 'Ảnh thả tim']];
   const TM_COLS = [['approach', 0.1, 3, 0.05], ['shutter', 0.1, 3, 0.05], ['total', 0.1, 3, 0.1]];
   for (const [kind, label] of TM_ROWS) {
     const tr = document.createElement('tr');
@@ -431,6 +431,13 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   bindCheck('onTop', () => S.display.alwaysOnTop, v => ({ display: { alwaysOnTop: v } }));
   bindCheck('showFps', () => S.display.showFps, v => ({ display: { showFps: v } }));
   // join-photos + captions
+  bindCheck('lkPhoto', () => S.likes?.photo !== false, v => ({ likes: { photo: v } }));
+  bindNum('lkPer', () => S.likes?.perPhoto ?? 50, v => ({ likes: { perPhoto: Math.max(1, Math.round(v) || 50) } }));
+  $('lkHang').value = S.likes?.hang || 'small'; $('lkHang').onchange = () => save({ likes: { hang: $('lkHang').value } });
+  bindText('lkLabel', () => S.likes?.label ?? 'TIM', v => ({ likes: { label: v } }), 400);
+  bindText('lkHeart', () => S.likes?.heartColor || '#ff2d6f', v => ({ likes: { heartColor: v } }), 150);
+  bindText('lkNum', () => S.likes?.numberColor || '#ffe08a', v => ({ likes: { numberColor: v } }), 150);
+  bindText('lkLab', () => S.likes?.labelColor || '#ffb347', v => ({ likes: { labelColor: v } }), 150);
   bindCheck('guestOn', () => S.photo.guest?.enabled !== false, v => ({ photo: { guest: { enabled: v } } }));
   bindNum('guestCd', () => S.photo.guest?.cooldown ?? 20, v => ({ photo: { guest: { cooldown: v } } }));
   bindNum('guestSame', () => S.photo.guest?.sameUserMinutes ?? 30, v => ({ photo: { guest: { sameUserMinutes: v } } }));

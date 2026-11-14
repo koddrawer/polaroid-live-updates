@@ -1,6 +1,6 @@
 {
- "version": "1.3.18",
- "notes": "Câu phát sáng: làm mờ hậu cảnh và tập trung vào dòng chữ",
+ "version": "1.4.0",
+ "notes": "Cảnh mới với bảng LED trái tim: đếm tim + trái tim đập theo nhịp thả tim; thả 50 tim được chụp ảnh thường (không dấu); bảng dưới chào người vào live",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
@@ -10,8 +10,8 @@
    "size": 7309
   },
   "control.html": {
-   "sha256": "63fab3f990830f90535b9979c9d056c4635003f682b3f4b20aa697657441d2c4",
-   "size": 17660
+   "sha256": "8109bfcde0b4afbdedac221cc3435eb0cfe48d9d1cb3d1473af4d7ca644fd5bf",
+   "size": 19180
   },
   "display.html": {
    "sha256": "4a5c4583aeb654c41f835fe7bd0d3a09e1b441942de6d0438539543ad50af9f5",
@@ -86,24 +86,28 @@
    "size": 10710
   },
   "js/control.js": {
-   "sha256": "e8b263878e58051b0b0ab4b59901732826dc5d58dda7b88480354064945ab27e",
-   "size": 33131
+   "sha256": "25da9dd0ab6f9db715ffcbae73251962a151889ba0804cfe7a4f17cd0f2e52f9",
+   "size": 33892
   },
   "js/cutout.js": {
    "sha256": "2aec5541a446f219f568751271ec49e03e6b156dd2021d4b55327217744d66ee",
    "size": 5364
   },
   "js/defaults.js": {
-   "sha256": "756a162ae11c5a1de573c8af4073535cb719e8f261f01b1d46ebe325247b5288",
-   "size": 10589
+   "sha256": "bb412e7515ea84e57822121ff89814fb7dd635131894a36f0d7f7467cae1888b",
+   "size": 10867
   },
   "js/display.js": {
-   "sha256": "f5f5d0f49fdf82fb6f34c8f468f4a7a148e409a41414c2b1b3c16f7a9b254909",
-   "size": 52887
+   "sha256": "d7de949266a469b6b0a56b84bba765831573a8cbaf6617d9b695ca60653a7aec",
+   "size": 54664
+  },
+  "js/heart.js": {
+   "sha256": "3aec7b71a9f5d9872cc7aa09e6c40db9b7039587b6e919ecfbf5bbf36525a77d",
+   "size": 4365
   },
   "js/led.js": {
-   "sha256": "d2c3c2f5234208e4622d17597b3b9784b894e9a7eb56774d583ea2b56a61bf67",
-   "size": 4012
+   "sha256": "2a44987e22e1c2d2932accb16f0de49eaa00cb24ebd46e0707a027429d926cd3",
+   "size": 5401
   },
   "js/pipeline.js": {
    "sha256": "2710241a3893cb58abb191be01d89d3bcc5cd69aa21ca6d1506d66cc9b8efa33",
@@ -122,8 +126,8 @@
    "size": 10821
   },
   "node/tiktok.js": {
-   "sha256": "b844afe2d0cf0024d86a52a07ca103bf10f63287472864dcf0c05a1d9b1fd4c2",
-   "size": 6571
+   "sha256": "a4b42436f06eb9da5ece51fc26ec1a72cef4767b023503cdd13d7a63decd9ed2",
+   "size": 6773
   },
   "papers/black.jpg": {
    "sha256": "58f9f7329a0a0fcc65dc901d317976ccea26c373eaf7d4389a489e25419072a8",
@@ -150,172 +154,124 @@
    "size": 58442
   },
   "scene/hero.glb": {
-   "sha256": "6fc05f04a75f377e9e1e69f67b721722b0eaa1671afdb22a1929b535181c730e",
-   "size": 1769592
+   "sha256": "f7058ea08a666b5982babb0b3c100ea060175748c0ed67d21058d34c3f8908b3",
+   "size": 1798020
   },
   "scene/plate.jpg": {
-   "sha256": "e09b94f86cd56616da5766236703dd7addcdb4f70881f8eac9cbff1cdef94610",
-   "size": 370006
+   "sha256": "d5038642211e3ce8bf51ada693adbec945dcbe14d0963f75a0b0442e8c302ed0",
+   "size": 364983
   },
   "scene/scene.json": {
-   "sha256": "8f32503f4f5579c5c7f9252c5cd967ebf44671370a71ee50faef116057428a3e",
-   "size": 14030
+   "sha256": "4cf6ba972dfc80a320d748b59c2702fc881f1cf664608762378622399b3d60f2",
+   "size": 24040
   },
   "scene/sprites/Clock_Hand_Hour.png": {
-   "sha256": "a8a553084acfe56129097f3945cdfc0c227b30509443737c8ec0ecbdab3c6870",
-   "size": 1089
-  },
-  "scene/sprites/Clock_Hand_Hour_001.png": {
-   "sha256": "21a7ba421174dbbd1e158ff2fa5846ecc74261b7d7891f95e5400541c0a8e4a3",
-   "size": 1187
+   "sha256": "bf733326e6f808ee9e1d2e7f90daa3375213727e83c8d2c79aed16d9b1f43ca0",
+   "size": 1103
   },
   "scene/sprites/Clock_Hand_Minute.png": {
-   "sha256": "01da78db863fc7e5462874b680819371144cea8cf51d60ddebec91210f998334",
-   "size": 1147
-  },
-  "scene/sprites/Clock_Hand_Minute_001.png": {
-   "sha256": "5aac799ae6414799c700c164634ff78014de26c82fe8834cec145b17bfab02ce",
-   "size": 1258
+   "sha256": "db53e3ddc94467221578eb684036a44678a954b2b055d331649a3b7c36574417",
+   "size": 1156
   },
   "scene/sprites/Clock_Hand_Second.png": {
-   "sha256": "c4932c6b9aa8eef85b9442b191ab4afdc76a0ebda9af09b5e29c9257e01ddd6c",
-   "size": 1102
-  },
-  "scene/sprites/Clock_Hand_Second_001.png": {
-   "sha256": "46547fe8e593cb0f7cbf3eec77394ea0d8448ed9e63feb56196cd13ef118412f",
-   "size": 1107
+   "sha256": "19330d963a5569cddbeb3d29f6f577b030afefde2e52f717fe72f87bec09acbf",
+   "size": 1100
   },
   "scene/sprites/Gear_B1.png": {
-   "sha256": "5427ebee1468615a2a1aa16531d096760937013284e66b4690f2477ba9773dfe",
-   "size": 14180
+   "sha256": "b94f2d2b9a807b40b92c1f413662a60bae4849dfbb3d9cea4ccbc51ec5b35416",
+   "size": 14269
   },
   "scene/sprites/Gear_B2.png": {
-   "sha256": "eae0f8e22c48c0f172d69094fe44d5393147e06ffb54af53d2b073ed7605b133",
-   "size": 6087
+   "sha256": "bbdf4549e4c8a25fe43ff0e0f5e22e2174f84d6e239cebafbf1088d0358f9091",
+   "size": 6099
   },
   "scene/sprites/Gear_B3.png": {
-   "sha256": "e7c5ada21502a6619d475008edd622515a7374a8e5aec75ec145b430b9eb4b1c",
-   "size": 6204
+   "sha256": "24b388f9a145309b8d1d3711897c39ac4d46ee55d759089da5fef82e48b0d74d",
+   "size": 6150
   },
   "scene/sprites/Gear_B4.png": {
-   "sha256": "2538c8138a1b750900a44f07446a4dfac8ad9da0ec6ab6f07cc924f433b4704e",
-   "size": 8874
+   "sha256": "438555c35020c9b83de81d1032a65377cc92a82bdae42634f4acaacbf404c67c",
+   "size": 8863
   },
   "scene/sprites/Gear_B5.png": {
-   "sha256": "72bef08a4c1a161c6fd86030c549594f7b03a1f235c119bfd6a20aabc386f16b",
-   "size": 5119
-  },
-  "scene/sprites/Gear_BotCenter.png": {
-   "sha256": "36f00784a67f64f52267f236f4c7fe58d76c5b287601eeca2f3b430c9272d22d",
-   "size": 11485
-  },
-  "scene/sprites/Gear_BotCenter2.png": {
-   "sha256": "bfad0cf1281bfc770908e06706fdf406be8aeb8cbea8334f32c7923c0e0a19e7",
-   "size": 4979
-  },
-  "scene/sprites/Gear_BotRight.png": {
-   "sha256": "e9ed824b23be42ebf3b2e5466d2cfec7e2a293fdf573ed4fef9e86e8df89b2b7",
-   "size": 8853
-  },
-  "scene/sprites/Gear_BotRight2.png": {
-   "sha256": "5f820f255b6cf8c2adad3a480798b6fa4f84019c804a5e6840c8f1cb5e624b87",
-   "size": 5002
+   "sha256": "83ef8c6814b0a4a2d03ac936db25a1d7b7a8c98a5a7c8cea6d00f85f7b4d1cb4",
+   "size": 5137
   },
   "scene/sprites/Gear_F1.png": {
-   "sha256": "73588b6938df3c23668c919beafa2c0d934773e215f9c383d6fe9feecf02fd02",
-   "size": 6247
+   "sha256": "5295b71cc2ccc183b20ae407230217ae327c026f46f0fab3aa4a98f8ac60494d",
+   "size": 6288
   },
   "scene/sprites/Gear_F2.png": {
-   "sha256": "c815049160332417a944240f480753c6822ad284093e43d58c454fd96f78f80f",
-   "size": 5225
+   "sha256": "9f9802fd0359fbab1cf8dca0385299806faea442585800476e5a33f3ea453f8d",
+   "size": 5289
   },
   "scene/sprites/Gear_F3.png": {
-   "sha256": "199e67beaba67f42f127e2cdcbbf87cd00e9045f048e3a0dde506760d2d928d6",
-   "size": 8959
+   "sha256": "a54a5e5ce4daac78c23f2df6d2cf085512e26c8be7111ee82d6f9ebd5e7240e7",
+   "size": 8930
   },
   "scene/sprites/Gear_F4.png": {
-   "sha256": "a6555453b634d4e3f3aaf75771a7e90406c5f597e71ca406545247067a4b3aa5",
-   "size": 5069
+   "sha256": "2e49c66b6eb3a985703bc3fdb9591e00f1006ad06849f992a145f0a7dc7b72c6",
+   "size": 5078
   },
   "scene/sprites/Gear_F5.png": {
-   "sha256": "2390a5e2d55f624688c5e93fa585d416f69e6d28b6dcdabf1b2526b0fb76e67d",
-   "size": 7626
+   "sha256": "e3b370e267a4173f3b22417a3763dccfb38cf615dc18dda5f7ee0e962b3a2b3c",
+   "size": 7649
   },
   "scene/sprites/Gear_F6.png": {
-   "sha256": "5ecffe6c26e02f33b5320ee406792f18e5f240af16ad15239e2f64be35421ae3",
-   "size": 5051
+   "sha256": "1f4aba7259bcf43e7d8f1613f2cd04b08a8925f1a6e45ffe5b9a4bf66071b2f8",
+   "size": 5060
   },
   "scene/sprites/Gear_FL_2.png": {
-   "sha256": "86272c696f691ff1d3d3c213a71f3e7450a9aedcebf839088bd50600680a245b",
-   "size": 5450
+   "sha256": "9648b8d4f80140f8c0167f099bcbd585e08abbbef01b6b2dc457a7deef9d5ed0",
+   "size": 5061
   },
   "scene/sprites/Gear_FL_3.png": {
-   "sha256": "c258179bef18f78724d660516566b00d01b013eb9b1066248d1406926957b294",
-   "size": 4671
-  },
-  "scene/sprites/Gear_Left.png": {
-   "sha256": "2fe74f18604ff9916c37f6b9de63e6a29296b7fc0cb92978ea1b507e5cd5357b",
-   "size": 11792
-  },
-  "scene/sprites/Gear_LeftSmall.png": {
-   "sha256": "70414eb3bba842df362e5d6b1a42c77a9d05b23442ee9938c002fe82b6697198",
-   "size": 5181
-  },
-  "scene/sprites/Gear_Right.png": {
-   "sha256": "9286144c15859334c838476dbc7202260ee60e9ebb73cc34701efa688e6d3c1d",
-   "size": 10706
+   "sha256": "a8fcd6c9506436f144d623fca27b36e078ba55312432ee24a647d4cd9348304d",
+   "size": 4283
   },
   "scene/sprites/Gear_T1.png": {
-   "sha256": "202817dd6d9f8ba41289db93d1f9c497161b6ce9143ef0ea6f75b97589b6756c",
-   "size": 10153
-  },
-  "scene/sprites/Gear_TopLeft.png": {
-   "sha256": "891312e967a7d1cf9a3578c905acf928ebf646b4254e21265f6e6713af9e596b",
-   "size": 6206
-  },
-  "scene/sprites/Gear_TopRight.png": {
-   "sha256": "f2d29d10fe02b75afb132d722549e9e3a7b1386911184d9961e411371883a0a6",
-   "size": 6226
+   "sha256": "9308bafc73aa31059b28c84728a7dea3d4b4194d157d763e545f3b4a295f851f",
+   "size": 10161
   },
   "scene/sprites/Gear_Top_1.png": {
-   "sha256": "9aeb44930581e2142205810c77506d9b55e0babbb4134b0800caa07bae547d35",
-   "size": 3565
+   "sha256": "8ba9645c642dadf51433d471a75ec33c67ccd74bdaf0cfc26da8a3f80bf358b7",
+   "size": 3346
   },
   "scene/sprites/Gear_Top_1_001.png": {
-   "sha256": "58384056911b3da67e3c23417c00f5512ab812a539b77126a9a7d5956950a84c",
-   "size": 3060
+   "sha256": "195c177c4a3896622fb06ee5e9e4ebda4b50ecf5630ba8fe53180c29d9678ec3",
+   "size": 3063
   },
   "scene/sprites/Gear_Top_2_001.png": {
-   "sha256": "823be82b6e23d623f4562862039385c3d87b5ebc754f32a974f93c825080c3be",
-   "size": 2692
+   "sha256": "f829814e211e10ddde4bd47b80e27e880f5d05b42eb1dd6ef651dc6bf3dd9a84",
+   "size": 2695
   },
   "scene/sprites/Gear_Top_3.png": {
-   "sha256": "b5eb0f0c07455a9ac2f8cebf44b2ca929c87c9223f6988a1fea234b7812be26e",
-   "size": 3557
+   "sha256": "59aeb091c425bb606d76dfb35a7f54450a31b03eda87e97fa36081390956e364",
+   "size": 3187
   },
   "scene/sprites/Gear_Top_3_001.png": {
-   "sha256": "c1c7038d5a8dc32c4a2d3fc08d5b836d2a2a391a460cb5057ba9da132322bd3e",
-   "size": 3758
+   "sha256": "067e1eecbc3ffa97db0a4d3c268559d0fefda2f5039db70b1cfc4ade25b8db43",
+   "size": 3747
   },
   "scene/sprites/Gear_Top_4.png": {
-   "sha256": "7fe244583c7f4b91dc2e56c636efdf67a960e1d2f7dba6c5263bef81cc9460fd",
-   "size": 2425
+   "sha256": "8b07e9910bee1a0b8b596a09fa5dc65f1508c0a8721a371f9185af3608835134",
+   "size": 2416
   },
   "scene/sprites/Gear_Top_Big.png": {
-   "sha256": "5c43e5e36ff01827033bb797a4d9723d22e25f6a88fc5397aab051d3a9e3a1a7",
-   "size": 7123
+   "sha256": "2ced0ab9ed93580b2b227172416cbad79edb53186fe5bcc7d36319bf6d46eb78",
+   "size": 7155
   },
   "scene/sprites/Handwheel_Front.png": {
-   "sha256": "aa38e438b27756a5135a369fa339151979960aa24362489220da10ca40114647",
-   "size": 8965
+   "sha256": "c33f3142ca86f1d6100a7494365d10b8e17a9f4efd30f4625e72a0b518fdbcf5",
+   "size": 8300
   },
   "scene/sprites/Valve_L.png": {
-   "sha256": "3770b4a67addea44888aa5cf37eee570b55307ae69ab33e5e63b2fe13352866e",
-   "size": 1923
+   "sha256": "54969d5de4eda6f523acb9f7d77ed4c16f19295f12e8e09335bb3367cd1ce7aa",
+   "size": 1926
   },
   "scene/sprites/Valve_R.png": {
-   "sha256": "c3438f0003d3e04d8ac93918b279a55a9f4d0c35199d45c0fcad295a8c066898",
-   "size": 1940
+   "sha256": "5bf41a67c41f8d80944433e482e9417f681b82ef7297d0d8a906fa150719c02c",
+   "size": 1948
   },
   "seals/heart.png": {
    "sha256": "cf23d73ddbad5819eaf4860e184ee2adcf31e08a7e992cab3e90e992d1b8c82c",

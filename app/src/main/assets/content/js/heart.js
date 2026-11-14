@@ -75,12 +75,6 @@ export class HeartBoard {
     const idle = Math.sin(performance.now() / 1000 * 2.2) * 0.5 + 0.5;
     const thick = 2 + Math.round(Math.max(this.beat * this.beat * 2.4, idle * 0.6));     // border 2 LEDs, thicker on a beat
     this.led.draw((g) => {
-      g.fillStyle = heartCol;
-      const rings = this.ripples.map(r => Math.round(thick + 1 + r * (this.maxDist * 0.55)));
-      for (let y = 0; y < R; y++) for (let x = 0; x < C; x++) {
-        const v = D[y * C + x]; if (v >= INF) continue;
-        if (v < thick || rings.includes(v)) g.fillRect(x, y, 1, 1);
-      }
       // number + beating heart icon beside it
       const F = fam(this.font), W = this.weight;
       const txt = fmt(this.shown);

@@ -1,6 +1,6 @@
 {
- "version": "1.4.1",
- "notes": "Bảng tim: icon trái tim đập cạnh số, viền khớp màn hình, đủ 50 tim đếm lại",
+ "version": "1.4.2",
+ "notes": "Bảng tim: bỏ viền màu tím",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
@@ -10,8 +10,8 @@
    "size": 7309
   },
   "control.html": {
-   "sha256": "9fe5586a2b2d1d359fd82ce742f6785b84885c06ac455f696a9efa74d45b3f6a",
-   "size": 19137
+   "sha256": "14789a37ca72a599c3c65bbaee15f65ad0cda38efa82c6d81fe1e0fbd5cc8b8f",
+   "size": 19064
   },
   "display.html": {
    "sha256": "4a5c4583aeb654c41f835fe7bd0d3a09e1b441942de6d0438539543ad50af9f5",
@@ -86,8 +86,8 @@
    "size": 10710
   },
   "js/control.js": {
-   "sha256": "2a2c8ad3ecade07db8aa5e1eb64af748698db1ca2f841dcdf5c63a7960a9ba9b",
-   "size": 33799
+   "sha256": "35f17cd5d60c68ec899f0e07c799a8d2abf07c46c4a07dce4dac057ac2a843a0",
+   "size": 33694
   },
   "js/cutout.js": {
    "sha256": "2aec5541a446f219f568751271ec49e03e6b156dd2021d4b55327217744d66ee",
@@ -102,8 +102,8 @@
    "size": 54623
   },
   "js/heart.js": {
-   "sha256": "c951b39730819759f2d92cffce4e54119cfdfea83505c9bfd7128f0fd077783b",
-   "size": 5880
+   "sha256": "c839dd0d31d5bef8bc2bef32145ff66037fc5c03476847c3be4833add3356496",
+   "size": 5560
   },
   "js/led.js": {
    "sha256": "2a44987e22e1c2d2932accb16f0de49eaa00cb24ebd46e0707a027429d926cd3",

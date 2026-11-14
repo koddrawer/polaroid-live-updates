@@ -434,7 +434,6 @@ $('btnReloadDisplay').onclick = () => api.reloadDisplay();
   bindCheck('lkPhoto', () => S.likes?.photo !== false, v => ({ likes: { photo: v } }));
   bindNum('lkPer', () => S.likes?.perPhoto ?? 50, v => ({ likes: { perPhoto: Math.max(1, Math.round(v) || 50) } }));
   $('lkHang').value = S.likes?.hang || 'small'; $('lkHang').onchange = () => save({ likes: { hang: $('lkHang').value } });
-  bindText('lkHeart', () => S.likes?.heartColor || '#ff2d6f', v => ({ likes: { heartColor: v } }), 150);
   bindText('lkNum', () => S.likes?.numberColor || '#ffe08a', v => ({ likes: { numberColor: v } }), 150);
   bindText('lkLab', () => S.likes?.iconColor || '#ff2d6f', v => ({ likes: { iconColor: v } }), 150);
   bindCheck('guestOn', () => S.photo.guest?.enabled !== false, v => ({ photo: { guest: { enabled: v } } }));

@@ -29,6 +29,7 @@ function userOf(u) {
 function handleRaw(method, d, c) {
   switch (method) {
     case 'WebcastMemberMessage': emit({ type: 'join', ...userOf(d.user), t: Date.now() }); break;
+    case 'WebcastLikeMessage': emit({ type: 'like', ...userOf(d.user), count: Math.max(1, Number(d.count || d.likeCount || 1)), total: Number(d.total || d.totalLikeCount || 0), t: Date.now() }); break;
     case 'WebcastChatMessage': emit({ type: 'chat', ...userOf(d.user), comment: d.content || d.comment || '', t: Date.now() }); break;
     case 'WebcastGiftMessage': {
       const g = d.gift || d.giftDetails || {};

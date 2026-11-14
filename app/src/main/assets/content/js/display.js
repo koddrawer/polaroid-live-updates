@@ -6,6 +6,7 @@ import { Pipeline } from './pipeline.js';
 import { TopBoard, BottomBoard } from './boards.js';
 import { ClockScreen, SpeakerScreen, zonedParts } from './screens.js';
 import { QuoteFX } from './quotes.js';
+import { HeartBoard } from './heart.js';
 import { Print, drawPrint, sealCenter, PRINT_ASPECT, PRINT_W, PRINT_H as PRINT_H_PX } from './print.js';
 import { DEFAULTS, BUNDLED_FONTS, LED_FONTS, merge, fill, sealSetOf } from './defaults.js';
 
@@ -165,6 +166,7 @@ async function buildScene() {
   }
   // screens built into the props: desk clock + wall speaker equalizer
   if (meta.screens?.clock) { leds.clock = new ClockScreen(); mount(leds.clock, meta.screens.clock.corners); }
+  if (meta.heart) { leds.heart = new HeartBoard(meta.heart); mount(leds.heart, meta.heart.corners); }
   if (meta.screens?.speaker) { leds.speaker = new SpeakerScreen(); mount(leds.speaker, meta.screens.speaker.corners); if (music.analyser) leds.speaker.setAnalyser(music.analyser); }
 
   // gear + clock-hand sprites (screen space, rotate around their pivots)
@@ -371,7 +373,9 @@ function enqueuePhoto(job) {
   if (job.kind !== 'guest' && job.kind !== 'idle') for (let i = queue.length - 1; i >= 0; i--) if (queue[i].kind === 'guest' || queue[i].kind === 'idle') queue.splice(i, 1);
   const pending = queue.find(j => j.uniqueId && j.uniqueId === job.uniqueId);
   if (pending) { pending.coins += job.coins; pending.kind = tierOf(pending.coins) || pending.kind; return; }
-  queue.push(job);
+  // donors also go before photos earned with likes
+  const firstLike = ['small', 'medium', 'big'].includes(job.kind) ? queue.findIndex(j => j.kind === 'like') : -1;
+  if (firstLike >= 0) queue.splice(firstLike, 0, job); else queue.push(job);
   if (!busy) runQueue();
 }
 async function runQueue() {
@@ -499,8 +503,7 @@ async function loadStamp() {
   } catch (e) { console.warn('stamp model', e); }
 }
 // library photo: which frame it will hang in (decided when the shot starts), and its seal
-function idleTarget() {
-  const h = S.photo.idle?.hang;
+function idleTarget(h = S.photo.idle?.hang) {
   const kinds = h === 'random' ? ['small', 'medium', 'big'].sort(() => Math.random() - 0.5) : ['small', 'medium', 'big'].includes(h) ? [h] : [];
   for (const tk of kinds) {
     const n = tk === 'big' ? 1 : (slotsOf(tk).length ? slotsOf(tk) : slotsOf('small')).length;
@@ -590,10 +593,10 @@ async function stampPrint(print, entry, dur) {
 async function shoot(job) {
   const kind = job.kind;
   const tm = T(kind);
-  const guest = kind === 'guest' || kind === 'idle';   // not stamped, not hung on the wall
+  const guest = kind === 'guest' || kind === 'idle' || kind === 'like';   // not stamped; only hung when a free frame is allowed
   const entry = { id: Date.now() + Math.random(), kind, name: job.nickname, uniqueId: job.uniqueId, avatar: job.avatarLocal || null, coins: job.coins, t: Date.now(),
     font: S.photo.font, fontUrl: S.photo.fontUrl, paper: paperFor(guest ? 'small' : kind), seal: null };
-  let target = kind === 'idle' ? idleTarget() : null;
+  let target = kind === 'idle' ? idleTarget() : kind === 'like' ? idleTarget(S.likes?.hang ?? 'small') : null;
   entry.seal = kind === 'idle' ? idleSeal(target) : guest ? null : sealFor(kind);
   if (target) entry.paper = paperFor(target.kind);
   caption('phrase', pick(lines('phrases')));
@@ -661,7 +664,7 @@ async function shoot(job) {
   // library photo hanging on the wall: re-check the frame (a donor may have taken it meanwhile)
   if (target) {
     const still = gallery.items.find(i => i.entry.kind === target.kind && i.entry.slot === target.slot);
-    if (still && !still.entry.lib) target = idleTarget();
+    if (still && !still.entry.lib) target = kind === 'like' ? idleTarget(S.likes?.hang ?? 'small') : idleTarget();
     else if (still && still !== target.replace) target.replace = still;
   }
   if (guest && !target) {
@@ -786,6 +789,25 @@ function reportMusic() {
 }
 
 // ---------------------------------------------------------------- live events
+// ---------------------------------------------------------------- likes (tim): counter on the heart board + photo every N likes
+const likesBy = new Map();
+async function onLike(ev) {
+  const n = Math.max(1, Number(ev.count) || 1);
+  leds.heart?.like(n);
+  if (ev.total) leds.heart?.setCount(Number(ev.total));
+  const per = Math.max(1, Number(S.likes?.perPhoto) || 50);
+  if (S.likes?.photo === false) return;
+  const k = ev.uniqueId || ev.nickname; if (!k) return;
+  let acc = (likesBy.get(k) || 0) + n;
+  let earned = 0;
+  while (acc >= per) { acc -= per; earned++; }
+  likesBy.set(k, acc);
+  if (likesBy.size > 20000) likesBy.clear();
+  if (earned) {
+    const avatarLocal = ev.avatarLocal || (ev.avatar && api.fetchImage ? await api.fetchImage(ev.avatar) : null);
+    enqueuePhoto({ kind: 'like', coins: 0, nickname: ev.nickname, uniqueId: ev.uniqueId || ev.nickname, avatarLocal });
+  }
+}
 const lastGreet = new Map();
 async function onLive(ev) {
   if (!ev) return;
@@ -799,6 +821,7 @@ async function onLive(ev) {
     return;
   }
   if (ev.type === 'follow') { leds.bottom?.push(ev); return; }
+  if (ev.type === 'like') { onLike(ev); return; }
   if (ev.type === 'gift') {
     if (ev.giftImage && api.fetchImage && !ev.giftImage.startsWith('app://')) ev.giftImageLocal = await api.fetchImage(ev.giftImage);
     else ev.giftImageLocal = ev.giftImage || null;
@@ -819,6 +842,10 @@ api.onCommand?.((cmd) => {
   if (cmd.type === 'test') {
     const name = cmd.name || 'Khách';
     if (cmd.kind === 'join') onLive({ type: 'join', nickname: name, uniqueId: name + Math.random() });
+    else if (cmd.kind === 'like10' || cmd.kind === 'like50') {
+      const n = cmd.kind === 'like10' ? 10 : 50;
+      for (let i = 0; i < n / 5; i++) setTimeout(() => onLive({ type: 'like', nickname: name, uniqueId: name, count: 5 }), i * 180);
+    }
     else if (cmd.kind === 'follow') onLive({ type: 'follow', nickname: name, uniqueId: name });
     else if (cmd.kind === 'burst') {
       const names = ['Lan Anh', 'Minh Tú', 'Bảo Ngọc', 'Quốc Huy', 'Thảo Vy', 'Đức Anh', 'Hà My', 'Gia Bảo', 'Khánh Linh', 'Tuấn Kiệt'];
@@ -863,6 +890,7 @@ function applySettings(s) {
   leds.bottom?.configure(S.bottomBoard, S.topBoard);
   leds.clock?.configure(S.clock, S.topBoard);
   leds.speaker?.configure(S.speaker, S.topBoard);
+  leds.heart?.configure(S.likes, S.topBoard);
   ensureFont(S.photo.font, S.photo.fontUrl);
   musicSet(S.music);
   for (const u of [S.photo.sounds?.shutter, S.photo.sounds?.stampSound]) if (u) loadCustomSound(u);
@@ -909,6 +937,7 @@ function frame() {
   leds.top?.update(dt, t);
   leds.bottom?.update(dt, t);
   leds.clock?.update(dt, t);
+  leds.heart?.update(dt);
   quoteTick(dt);
   leds.speaker?.update(dt, t, !music.el.paused && music.routed);
 

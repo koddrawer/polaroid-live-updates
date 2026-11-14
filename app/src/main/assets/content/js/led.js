@@ -11,8 +11,11 @@ uniform vec2 grid;
 uniform float boost;
 uniform vec3 offColor;
 uniform float dotSize;
+uniform sampler2D mask;
+uniform float useMask;
 varying vec2 vUv;
 void main(){
+  if (useMask > 0.5 && texture2D(mask, vUv).r < 0.5) discard;   // shaped boards (heart)
   vec2 g = vUv * grid;
   vec2 cell = floor(g);
   vec2 f = fract(g) - 0.5;
@@ -45,12 +48,29 @@ export class LedBoard {
     this.threshold = 0.5;
     this.material = new THREE.ShaderMaterial({
       uniforms: { map: { value: this.tex }, grid: { value: new THREE.Vector2(cols, rows) }, boost: { value: boost },
-        offColor: { value: new THREE.Color(offColor) }, dotSize: { value: 0.41 } },
+        offColor: { value: new THREE.Color(offColor) }, dotSize: { value: 0.41 }, mask: { value: null }, useMask: { value: 0 } },
       vertexShader: VERT, fragmentShader: FRAG, toneMapped: false
     });
     this.mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height), this.material);
   }
   set brightness(v) { this.material.uniforms.boost.value = v; }
+  // shape the board: mask rows of '0'/'1' (top row first); LEDs outside are not drawn at all
+  setMask(rows) {
+    const h = rows.length, w = rows[0].length, c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d'), img = g.createImageData(w, h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const v = rows[y][x] === '1' ? 255 : 0, i = (y * w + x) * 4; img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255; }
+    g.putImageData(img, 0, 0);
+    const t = new THREE.CanvasTexture(c); t.minFilter = THREE.LinearFilter; t.magFilter = THREE.LinearFilter; t.generateMipmaps = false; t.flipY = true;
+    this.material.uniforms.mask.value = t; this.material.uniforms.useMask.value = 1;
+    this.maskCanvas = c;
+  }
+  // is LED (col,row) inside the mask?
+  inside(col, row) {
+    const c = this.maskCanvas; if (!c) return true;
+    if (!this._md) this._md = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+    const x = Math.min(c.width - 1, Math.floor((col + 0.5) / this.cols * c.width)), y = Math.min(c.height - 1, Math.floor((row + 0.5) / this.rows * c.height));
+    return this._md[(y * c.width + x) * 4] > 127;
+  }
   // draw(fn) gives a 2D context in "LED units" (1 unit = 1 LED)
   draw(fn) {
     const g = this.bg, S = this.SS;

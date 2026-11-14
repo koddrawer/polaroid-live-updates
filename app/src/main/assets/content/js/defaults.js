@@ -76,7 +76,7 @@ export const DEFAULTS = {
     tierCoins: { small: 1, medium: 10, big: 40 },
     holdSeconds: 2.5, countByCoins: true, volume: 80, flash: true,
     timing: { approach: 1.15, shutter: 0.35, total: 3 },
-    timingTier: { guest: { total: 2 } }, // per kind overrides: small | medium | big | guest
+    timingTier: { guest: { total: 2 }, like: { total: 2.5 } }, // per kind overrides: small | medium | big | guest | like
     // glowing quotes floating in mid-air while nothing happens
     quotes: {
       enabled: true, show: 6, gap: 4, size: 100, font: 'Dancing Script', color: '#ffd78a', blur: 70,
@@ -130,6 +130,8 @@ export const DEFAULTS = {
   },
   clock: { timeZone: 'Asia/Ho_Chi_Minh', format: '24h', blink: true, color: '#ff9628', temp: '28°C', showTemp: true },
   speaker: { low: '#ffaa26', high: '#ff4a0c' },
+  // likes (tim): heart LED board counter + a plain photo (no seal) every perPhoto likes from the same viewer
+  likes: { photo: true, perPhoto: 50, hang: 'small', label: 'TIM', heartColor: '#ff2d6f', numberColor: '#ffe08a', labelColor: '#ffb347' },
   music: { enabled: false, volume: 35, shuffle: true, duck: true, tracks: [] },
   customFonts: [],
 };

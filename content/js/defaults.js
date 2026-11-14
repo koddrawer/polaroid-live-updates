@@ -131,7 +131,7 @@ export const DEFAULTS = {
   clock: { timeZone: 'Asia/Ho_Chi_Minh', format: '24h', blink: true, color: '#ff9628', temp: '28°C', showTemp: true },
   speaker: { low: '#ffaa26', high: '#ff4a0c' },
   // likes (tim): heart LED board counter + a plain photo (no seal) every perPhoto likes from the same viewer
-  likes: { photo: true, perPhoto: 50, hang: 'small', label: 'TIM', heartColor: '#ff2d6f', numberColor: '#ffe08a', labelColor: '#ffb347' },
+  likes: { photo: true, perPhoto: 50, hang: 'small', heartColor: '#ff2d6f', numberColor: '#ffe08a', iconColor: '#ff2d6f' },
   music: { enabled: false, volume: 35, shuffle: true, duck: true, tracks: [] },
   customFonts: [],
 };

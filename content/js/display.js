@@ -789,24 +789,20 @@ function reportMusic() {
 }
 
 // ---------------------------------------------------------------- live events
-// ---------------------------------------------------------------- likes (tim): counter on the heart board + photo every N likes
-const likesBy = new Map();
+// ---------------------------------------------------------------- likes (tim): shared counter on the heart board.
+// Every like adds to the board; when it reaches perPhoto (50) the viewer whose like completed it gets a photo
+// and the board starts again from 0.
+let likeCount = 0;
 async function onLike(ev) {
   const n = Math.max(1, Number(ev.count) || 1);
-  leds.heart?.like(n);
-  if (ev.total) leds.heart?.setCount(Number(ev.total));
   const per = Math.max(1, Number(S.likes?.perPhoto) || 50);
-  if (S.likes?.photo === false) return;
-  const k = ev.uniqueId || ev.nickname; if (!k) return;
-  let acc = (likesBy.get(k) || 0) + n;
-  let earned = 0;
-  while (acc >= per) { acc -= per; earned++; }
-  likesBy.set(k, acc);
-  if (likesBy.size > 20000) likesBy.clear();
-  if (earned) {
-    const avatarLocal = ev.avatarLocal || (ev.avatar && api.fetchImage ? await api.fetchImage(ev.avatar) : null);
-    enqueuePhoto({ kind: 'like', coins: 0, nickname: ev.nickname, uniqueId: ev.uniqueId || ev.nickname, avatarLocal });
-  }
+  likeCount += n;
+  let earned = false;
+  if (likeCount >= per) { likeCount %= per; earned = true; }
+  leds.heart?.setCount(likeCount); leds.heart?.like(n);
+  if (!earned || S.likes?.photo === false) return;
+  const avatarLocal = ev.avatarLocal || (ev.avatar && api.fetchImage ? await api.fetchImage(ev.avatar) : null);
+  enqueuePhoto({ kind: 'like', coins: 0, nickname: ev.nickname, uniqueId: ev.uniqueId || ev.nickname, avatarLocal });
 }
 const lastGreet = new Map();
 async function onLive(ev) {
@@ -844,7 +840,7 @@ api.onCommand?.((cmd) => {
     if (cmd.kind === 'join') onLive({ type: 'join', nickname: name, uniqueId: name + Math.random() });
     else if (cmd.kind === 'like10' || cmd.kind === 'like50') {
       const n = cmd.kind === 'like10' ? 10 : 50;
-      for (let i = 0; i < n / 5; i++) setTimeout(() => onLive({ type: 'like', nickname: name, uniqueId: name, count: 5 }), i * 180);
+      for (let i = 0; i < n; i++) setTimeout(() => onLive({ type: 'like', nickname: name, uniqueId: name, count: 1 }), i * 90);
     }
     else if (cmd.kind === 'follow') onLive({ type: 'follow', nickname: name, uniqueId: name });
     else if (cmd.kind === 'burst') {

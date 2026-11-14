@@ -1,6 +1,6 @@
 {
- "version": "1.4.0",
- "notes": "Cảnh mới với bảng LED trái tim: đếm tim + trái tim đập theo nhịp thả tim; thả 50 tim được chụp ảnh thường (không dấu); bảng dưới chào người vào live",
+ "version": "1.4.1",
+ "notes": "Bảng tim: icon trái tim đập cạnh số, viền khớp màn hình, đủ 50 tim đếm lại",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
@@ -10,8 +10,8 @@
    "size": 7309
   },
   "control.html": {
-   "sha256": "8109bfcde0b4afbdedac221cc3435eb0cfe48d9d1cb3d1473af4d7ca644fd5bf",
-   "size": 19180
+   "sha256": "9fe5586a2b2d1d359fd82ce742f6785b84885c06ac455f696a9efa74d45b3f6a",
+   "size": 19137
   },
   "display.html": {
    "sha256": "4a5c4583aeb654c41f835fe7bd0d3a09e1b441942de6d0438539543ad50af9f5",
@@ -86,24 +86,24 @@
    "size": 10710
   },
   "js/control.js": {
-   "sha256": "25da9dd0ab6f9db715ffcbae73251962a151889ba0804cfe7a4f17cd0f2e52f9",
-   "size": 33892
+   "sha256": "2a2c8ad3ecade07db8aa5e1eb64af748698db1ca2f841dcdf5c63a7960a9ba9b",
+   "size": 33799
   },
   "js/cutout.js": {
    "sha256": "2aec5541a446f219f568751271ec49e03e6b156dd2021d4b55327217744d66ee",
    "size": 5364
   },
   "js/defaults.js": {
-   "sha256": "bb412e7515ea84e57822121ff89814fb7dd635131894a36f0d7f7467cae1888b",
-   "size": 10867
+   "sha256": "1fe81db9671ae629114ae44e16998ebbbb4f8c897ae94de3b2d968ba9abc4556",
+   "size": 10852
   },
   "js/display.js": {
-   "sha256": "d7de949266a469b6b0a56b84bba765831573a8cbaf6617d9b695ca60653a7aec",
-   "size": 54664
+   "sha256": "98d32153b0c9d0eb2d76c146211cfa30a061469f858def7f2ee25b3f8490d925",
+   "size": 54623
   },
   "js/heart.js": {
-   "sha256": "3aec7b71a9f5d9872cc7aa09e6c40db9b7039587b6e919ecfbf5bbf36525a77d",
-   "size": 4365
+   "sha256": "c951b39730819759f2d92cffce4e54119cfdfea83505c9bfd7128f0fd077783b",
+   "size": 5880
   },
   "js/led.js": {
    "sha256": "2a44987e22e1c2d2932accb16f0de49eaa00cb24ebd46e0707a027429d926cd3",

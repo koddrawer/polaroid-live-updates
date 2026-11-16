@@ -81,8 +81,9 @@ export class QuoteFX {
       tg.shadowColor = `rgba(${r},${gg},${b},1)`; tg.shadowBlur = size * 0.6;
       tg.fillStyle = `rgba(${r},${gg},${b},0.9)`; tg.beginPath(); tg.arc(avC.x, avC.y, avC.r + size * 0.09, 0, Math.PI * 2); tg.fill();
       tg.shadowBlur = 0; tg.beginPath(); tg.arc(avC.x, avC.y, avC.r, 0, Math.PI * 2); tg.clip();
-      const k = Math.max(avD / avatar.naturalWidth, avD / avatar.naturalHeight);
-      tg.drawImage(avatar, avC.x - avatar.naturalWidth * k / 2, avC.y - avatar.naturalHeight * k / 2, avatar.naturalWidth * k, avatar.naturalHeight * k);
+      const iw = avatar.naturalWidth || avatar.width, ih = avatar.naturalHeight || avatar.height;
+      const k = Math.max(avD / iw, avD / ih);
+      tg.drawImage(avatar, avC.x - iw * k / 2, avC.y - ih * k / 2, iw * k, ih * k);
       tg.restore();
     }
     // soft dark halo behind the letters so they stay readable on the light wall

@@ -18,8 +18,8 @@
 
 <nav class="tabs" role="tablist">
   <button role="tab" data-tab="live" aria-selected="true">Kết nối</button>
-  <button role="tab" data-tab="top">LED trên</button>
-  <button role="tab" data-tab="bottom">LED dưới</button>
+  <button role="tab" data-tab="tiers">Mức donate</button>
+  <button role="tab" data-tab="bottom">Bảng LED</button>
   <button role="tab" data-tab="photo">Ảnh</button>
   <button role="tab" data-tab="music">Nhạc</button>
   <button role="tab" data-tab="clock">Đồng hồ</button>
@@ -52,19 +52,24 @@
   <h2>Dòng trên</h2>
   <div class="field"><label for="l1Text">Nội dung</label><input id="l1Text" type="text"></div>
   <div class="field row"><label for="l1Color">Màu</label><input id="l1Color" type="color"><label class="check"><input id="l1Scroll" type="checkbox"> Luôn chạy chữ</label></div>
-  <h2>Chữ LED</h2>
-  <div class="field"><label for="ledFont">Font LED</label><select id="ledFont"></select></div>
-  <div class="grid3">
-    <div class="field"><label for="ledWeight">Độ đậm</label><select id="ledWeight"><option value="700">Đậm</option><option value="800">Rất đậm</option></select></div>
-    <div class="field"><label for="scrollSpeed">Tốc độ chạy chữ</label><input id="scrollSpeed" type="number" min="8" max="80"></div>
-    <div class="field"><label for="ledBright">Độ sáng LED %</label><input id="ledBright" type="number" min="40" max="200" step="10"></div>
-  </div>
-  <p class="muted">Chữ tự thu nhỏ cho vừa bảng; chỉ chạy chữ khi quá dài.</p>
   <h2>Dòng quà (thay phiên lần lượt)</h2>
   <p class="muted">Mỗi dòng: icon quà + nội dung. Bấm vào ô icon để chọn quà TikTok, icon có sẵn hoặc ảnh của bạn.</p>
   <ol id="itemList" class="items"></ol>
   <div class="row"><button id="btnAddItem">+ Thêm dòng</button>
     <label for="itemSec">Mỗi dòng hiện</label><input id="itemSec" type="number" min="1" max="60" step="0.5" style="width:70px"><span>giây</span></div>
+</section>
+
+<!-- ============ DONATE TIERS ============ -->
+<section data-panel="tiers" hidden>
+  <h2>Mức xu của từng mức donate</h2>
+  <p class="muted">Mỗi mức tính từ số xu ghi ở ô đến trước mức kế tiếp. Ít hơn mức nhỏ nhất thì chỉ cảm ơn trên bảng LED, không chụp ảnh.</p>
+  <div class="grid3">
+    <div class="field"><label for="tSmall">Khung nhỏ từ</label><input id="tSmall" type="number" min="1"></div>
+    <div class="field"><label for="tMedium">Khung vừa từ</label><input id="tMedium" type="number" min="1"></div>
+    <div class="field"><label for="tBig">Khung to nhất từ</label><input id="tBig" type="number" min="1"></div>
+  </div>
+  <p id="tierHint" class="muted"></p>
+  <label class="check"><input id="countByCoins" type="checkbox"> Tính theo tổng xu cả combo</label>
 </section>
 
 <!-- ============ BOTTOM LED ============ -->
@@ -78,6 +83,14 @@
   <div class="field row"><label class="check"><input id="showJoins" type="checkbox"> Chào người vào live</label>
     <label for="joinSec">Mỗi lời chào</label><input id="joinSec" type="number" min="1" max="20" step="0.5" style="width:70px"><span>giây</span></div>
   <div class="field row"><label for="b2Color">Màu chào</label><input id="b2Color" type="color"><label for="b2GiftColor">Màu cảm ơn</label><input id="b2GiftColor" type="color"></div>
+  <h2>Chữ LED</h2>
+  <div class="field"><label for="ledFont">Font LED</label><select id="ledFont"></select></div>
+  <div class="grid3">
+    <div class="field"><label for="ledWeight">Độ đậm</label><select id="ledWeight"><option value="700">Đậm</option><option value="800">Rất đậm</option></select></div>
+    <div class="field"><label for="scrollSpeed">Tốc độ chạy chữ</label><input id="scrollSpeed" type="number" min="8" max="80"></div>
+    <div class="field"><label for="ledBright">Độ sáng LED %</label><input id="ledBright" type="number" min="40" max="200" step="10"></div>
+  </div>
+  <p class="muted">Chữ tự thu nhỏ cho vừa bảng; chỉ chạy chữ khi quá dài.</p>
 </section>
 
 <!-- ============ PHOTO ============ -->
@@ -89,14 +102,6 @@
     <label for="capSize">Cỡ</label><input id="capSize" type="range" min="50" max="150"></div>
   <div class="field"><label for="capTpl">Mẫu chữ ({name})</label><input id="capTpl" type="text"></div>
   <canvas id="printPreview" width="300" height="360" aria-label="Xem trước ảnh polaroid"></canvas>
-  <h2>Mốc xu</h2>
-  <div class="grid3">
-    <div class="field"><label for="tSmall">Khung nhỏ từ</label><input id="tSmall" type="number" min="1"></div>
-    <div class="field"><label for="tMedium">Khung vừa từ</label><input id="tMedium" type="number" min="1"></div>
-    <div class="field"><label for="tBig">Khung to nhất từ</label><input id="tBig" type="number" min="1"></div>
-  </div>
-  <p id="tierHint" class="muted"></p>
-  <label class="check"><input id="countByCoins" type="checkbox"> Tính theo tổng xu cả combo</label>
   <h2>Thả tim</h2>
   <div class="field row"><label class="check"><input id="lkPhoto" type="checkbox"> Cứ đủ số tim thì chụp 1 tấm ảnh thường (không đóng dấu) cho người thả tim cuối cùng, rồi bảng đếm lại từ 0</label></div>
   <div class="grid3">

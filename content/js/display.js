@@ -420,6 +420,7 @@ let lastShotEnd = Date.now();
 
 // ---------------------------------------------------------------- idle: glowing quotes floating in mid-air
 // sparks gather into the words when a quote appears, and the words burst into fading sparks when it leaves
+let photoComing = 0;   // a photo was earned (gift / likes) and is being prepared → quotes dissolve now
 let quoteFX = null, quoteNextAt = performance.now() + 3000, quoteBag = [], quoteForced = false;
 function nextQuote() {
   const list = (S.photo.quotes?.list || DEFAULTS.photo.quotes.list).map(x => String(x).trim()).filter(Boolean);
@@ -457,8 +458,8 @@ function quoteTick(dt) {
   const now = performance.now();
   if (quoteForced && quoteFX.done()) quoteForced = false;
   while (greetQ.length && now - greetQ[0].t > 30000) greetQ.shift();
-  if (busy || queue.length) {
-    quoteFX.hide();                                                     // dissolve right away when a photo starts
+  if (busy || queue.length || photoComing) {
+    quoteFX.hide(true);                                                 // dissolve right away when a photo starts
     quoteNextAt = Math.max(quoteNextAt, now + Math.max(1500, qGap() * 1000));
   } else if (greetQ.length) {
     if (quoteFX.done()) showGreet(greetQ.shift());
@@ -880,7 +881,9 @@ async function onLike(ev) {
   if (likeCount >= per) { likeCount %= per; earned = true; }
   leds.heart?.setCount(likeCount); leds.heart?.like(n);
   if (!earned || S.likes?.photo === false) return;
-  const avatarLocal = ev.avatarLocal || (ev.avatar && api.fetchImage ? await api.fetchImage(ev.avatar) : null);
+  photoComing++; quoteFX?.hide(true);
+  let avatarLocal = null;
+  try { avatarLocal = ev.avatarLocal || (ev.avatar && api.fetchImage ? await api.fetchImage(ev.avatar) : null); } finally { photoComing--; }
   enqueuePhoto({ kind: 'like', coins: 0, nickname: ev.nickname, uniqueId: ev.uniqueId || ev.nickname, avatarLocal });
 }
 const lastGreet = new Map();
@@ -907,7 +910,9 @@ async function onLive(ev) {
     const coins = S.photo.countByCoins !== false ? ev.coins : ev.unit;
     const kind = tierOf(coins);
     if (!kind) return;
-    const avatarLocal = ev.avatarLocal || (ev.avatar && api.fetchImage ? await api.fetchImage(ev.avatar) : null);
+    photoComing++; quoteFX?.hide(true);
+    let avatarLocal = null;
+    try { avatarLocal = ev.avatarLocal || (ev.avatar && api.fetchImage ? await api.fetchImage(ev.avatar) : null); } finally { photoComing--; }
     enqueuePhoto({ kind, coins, nickname: ev.nickname, uniqueId: ev.uniqueId, avatarLocal });
   }
 }

@@ -28,7 +28,7 @@ export class QuoteFX {
   get focus() {
     if (this.state === 'in') return easeInOut(this.t / (this.tIn * 0.8));
     if (this.state === 'hold') return 1;
-    if (this.state === 'out') return 1 - easeInOut(this.t / (this.tOut * 0.85));
+    if (this.state === 'out') return 1 - easeInOut(this.t / ((this.tOutCur || this.tOut) * 0.85));
     return 0;
   }
 
@@ -124,7 +124,11 @@ export class QuoteFX {
     this.hold = Math.max(0.5, Number(opts?.hold) || 6);
     this.state = 'in'; this.t = 0;
   }
-  hide() { if (this.state === 'in' || this.state === 'hold') { this.state = 'out'; this.t = 0; } }
+  // fast = interrupted by a photo: the words burst into sparks right away and vanish quickly
+  hide(fast = false) {
+    if (this.state === 'in' || this.state === 'hold') { this.state = 'out'; this.t = 0; this.tOutCur = fast ? 0.7 : this.tOut; }
+    else if (fast && this.state === 'out' && (this.tOutCur || this.tOut) > 0.7) { this.t *= 0.7 / (this.tOutCur || this.tOut); this.tOutCur = 0.7; }
+  }
   done() { return this.state === 'idle'; }
 
   update(dt) {
@@ -162,7 +166,7 @@ export class QuoteFX {
       }
       if (this.t >= this.hold) { this.state = 'out'; this.t = 0; }
     } else if (this.state === 'out') {
-      const T = this.tOut;
+      const T = this.tOutCur || this.tOut;
       g.globalAlpha = 1 - easeOut(this.t / (T * 0.3));
       if (g.globalAlpha > 0) g.drawImage(this.textImg, 0, 0);
       for (const p of this.parts) {

@@ -1,6 +1,6 @@
 {
- "version": "1.5.1",
- "notes": "Người vào live: lời chào phát sáng kèm tên + avatar nhỏ; sửa lỗi robot đứng dậy lại sau khi ảnh đã treo lên tường",
+ "version": "1.5.2",
+ "notes": "Bỏ cài đặt LED trên; thêm tab Mức donate chỉnh mức xu; chữ phát sáng tan biến ngay khi có donate hoặc đủ tim",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
@@ -10,8 +10,8 @@
    "size": 7309
   },
   "control.html": {
-   "sha256": "322add8718a1f646621d9b2d3c8ac8370b47c415d1610548b7aa3d599453a8a8",
-   "size": 19002
+   "sha256": "6c18eeab75194b3b75fa6bb07bc5d2e4586831ea4fea727da49cb44aab50ab59",
+   "size": 19316
   },
   "display.html": {
    "sha256": "4a5c4583aeb654c41f835fe7bd0d3a09e1b441942de6d0438539543ad50af9f5",
@@ -106,8 +106,8 @@
    "size": 11069
   },
   "js/display.js": {
-   "sha256": "0d550c16737c25f491d1bded62fde20e086a0c36ddc808af4f6735e6aa12836f",
-   "size": 60433
+   "sha256": "9f3533cf6458c8528402443ced5591e4d5380240a2f8dfce5e3fbb241ba25a00",
+   "size": 60744
   },
   "js/heart.js": {
    "sha256": "c839dd0d31d5bef8bc2bef32145ff66037fc5c03476847c3be4833add3356496",
@@ -126,8 +126,8 @@
    "size": 7469
   },
   "js/quotes.js": {
-   "sha256": "c558a44f14d7465e8f2896bed176c3cafde0b2f55c7f9cf4d60e876ad4e1c70a",
-   "size": 10735
+   "sha256": "99ebb77dcccdde7967f169a188082c54547031df17b9f74dd151e1708a7e27cc",
+   "size": 11069
   },
   "js/screens.js": {
    "sha256": "19a01e157535bbfa4ffb80449016b1175e240ef9ead259f169f9217c3297a1c8",

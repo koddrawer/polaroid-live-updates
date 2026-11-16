@@ -18,7 +18,7 @@ export class Actor {
       this.a = this.mixer.clipAction(clip); this.b = this.mixer.clipAction(clip.clone());
       for (const x of [this.a, this.b]) { x.setLoop(THREE.LoopOnce, 1); x.clampWhenFinished = true; x.timeScale = 0; x.play(); }
     }
-    this.fa = this.F.rest; this.fb = this.F.rest; this.w = 0; this.motion = null; this.state = 'rest';
+    this.fa = this.F.rest; this.fb = this.F.rest; this.w = 0; this.motion = null; this.state = 'rest'; this.seq = 0;
     this.root.traverse(o => {
       o.layers.set(ACTOR_LAYER);
       if (o.isMesh) { o.frustumCulled = false; if (o.material) o.material.envMapIntensity = 1; }
@@ -71,17 +71,26 @@ export class Actor {
     }
     this.apply();
   }
-  // high-level moves
+  // high-level moves. Each new move cancels the previous one (seq), so a sit-down that is still running
+  // can never be restarted or interleaved with another one.
   async standAndAim(speed = 1) {
-    const F = this.F;
+    const F = this.F, my = ++this.seq;
     if (this.state === 'rest') { this.state = 'up'; await this.play(F.standFrom, F.shoot, (F.shoot - F.standFrom) / this.fps / speed); }
-    else await this.blendTo(F.shoot, 0.7 / speed);
+    else { this.state = 'up'; await this.blendTo(F.shoot, 0.7 / speed); }
+    return my === this.seq;
   }
-  async sitDown(speed = 1) {
-    const F = this.F;
-    await this.blendTo(F.sitFrom, 0.55 / speed);
-    await this.play(F.sitFrom, F.sitTo, (F.sitTo - F.sitFrom) / this.fps / speed);
-    await this.blendTo(F.rest, 0.4 / speed);
-    this.state = 'rest';
+  sitDown(speed = 1) {
+    if (this.state === 'rest') return Promise.resolve();
+    if (this.state === 'sitting') return this.sitting;
+    const F = this.F, my = ++this.seq;
+    this.state = 'sitting';
+    this.sitting = (async () => {
+      await this.blendTo(F.sitFrom, 0.55 / speed); if (my !== this.seq) return;
+      await this.play(F.sitFrom, F.sitTo, (F.sitTo - F.sitFrom) / this.fps / speed); if (my !== this.seq) return;
+      await this.blendTo(F.rest, 0.4 / speed); if (my !== this.seq) return;
+      this.state = 'rest';
+    })();
+    return this.sitting;
   }
+  stayUp() { ++this.seq; this.state = 'up'; return this.blendTo(this.F.shoot, 1.2); }
 }

@@ -7,6 +7,7 @@ import { TopBoard, BottomBoard } from './boards.js';
 import { ClockScreen, SpeakerScreen, zonedParts } from './screens.js';
 import { QuoteFX } from './quotes.js';
 import { HeartBoard } from './heart.js';
+import { Actor, ACTOR_LAYER } from './actor.js';
 import { Print, drawPrint, sealCenter, PRINT_ASPECT, PRINT_W, PRINT_H as PRINT_H_PX } from './print.js';
 import { DEFAULTS, BUNDLED_FONTS, LED_FONTS, merge, fill, sealSetOf } from './defaults.js';
 
@@ -117,13 +118,30 @@ void main(){
 const GLOW_FS = `
 uniform vec2 pivot; uniform float radius; uniform float strength; uniform vec3 color; varying vec2 vPx;
 void main(){ float d = length(vPx - pivot) / radius; float a = exp(-d * d * 3.5) * strength; gl_FragColor = vec4(color * a, 1.0); }`;
-const PLATE_FS = `uniform sampler2D map; uniform float light; varying vec2 vUv; void main(){ gl_FragColor = vec4(texture2D(map, vUv).rgb * light, 1.0); }`;
+// background picture; around the robot it cross-fades to a render without the seated robot's shadow while it stands
+const PLATE_FS = `uniform sampler2D map; uniform sampler2D bare; uniform vec4 bareRect; uniform float bareMix; uniform float light; varying vec2 vUv;
+void main(){
+  vec3 c = texture2D(map, vUv).rgb;
+  if (bareMix > 0.001) {
+    vec2 q = (vec2(vUv.x, 1.0 - vUv.y) - bareRect.xy) / bareRect.zw;
+    if (q.x >= 0.0 && q.y >= 0.0 && q.x <= 1.0 && q.y <= 1.0) {
+      float e = smoothstep(0.0, 0.12, min(min(q.x, 1.0 - q.x), min(q.y, 1.0 - q.y)));
+      c = mix(c, texture2D(bare, vec2(q.x, 1.0 - q.y)).rgb, bareMix * e);
+    }
+  }
+  gl_FragColor = vec4(c * light, 1.0); }`;
+// small round avatar shown on the bottom LED board next to the greeting
+const AVATAR_FS = `uniform sampler2D map; uniform vec4 rect; uniform float bright; varying vec2 vUv;
+void main(){ vec2 q = (vUv - rect.xy) / (rect.zw - rect.xy);
+  if (q.x < 0.0 || q.y < 0.0 || q.x > 1.0 || q.y > 1.0) discard;
+  vec4 t = texture2D(map, q); if (t.a < 0.02) discard;
+  gl_FragColor = vec4(t.rgb * bright, t.a); }`;
 
 const sprites = [], glows = [], leds = {};
 window.__leds = leds; // debug/tests
 let plateMat = null;
 let flashSprite = null;
-let heroPivot = null, heroRest = null, heroLights = [], flashLight = null, heroEnvIntensity = 0.35;
+let actor = null, heroLights = [], flashLight = null, heroEnvIntensity = 0.35, avatarMesh = null;
 const gallery = { group: new THREE.Group(), items: [] };
 
 async function buildScene() {
@@ -141,7 +159,11 @@ async function buildScene() {
   // plate
   const plate = await loadTex('scene/plate.jpg');
   plate.colorSpace = THREE.SRGBColorSpace; plate.generateMipmaps = true; plate.minFilter = THREE.LinearMipmapLinearFilter; plate.anisotropy = 4;
-  plateMat = new THREE.ShaderMaterial({ uniforms: { map: { value: plate }, light: { value: 1 } }, vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+  let bare = null;
+  if (meta.plateBare) { try { bare = await loadTex('scene/' + meta.plateBare.file); bare.colorSpace = THREE.SRGBColorSpace; bare.generateMipmaps = false; bare.minFilter = THREE.LinearFilter; } catch (e) { console.warn('plate_bare', e); } }
+  const bb = meta.plateBare?.bbox || [0, 0, 1, 1];
+  plateMat = new THREE.ShaderMaterial({ uniforms: { map: { value: plate }, light: { value: 1 }, bare: { value: bare || plate }, bareMix: { value: 0 },
+    bareRect: { value: new THREE.Vector4(bb[0] / IW, bb[1] / IH, (bb[2] - bb[0]) / IW, (bb[3] - bb[1]) / IH) } }, vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
     fragmentShader: PLATE_FS, depthTest: false, depthWrite: false });
   const plateMesh = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), plateMat); plateMesh.frustumCulled = false; plateMesh.renderOrder = -100;
   bgScene.add(plateMesh);
@@ -163,6 +185,14 @@ async function buildScene() {
     const board = key === 'top' ? new TopBoard({ cols: 96, rows: 44 }) : new BottomBoard(L);
     mount(board, L.corners);
     leds[key] = board;
+    if (key === 'bottom') {
+      const g = board.led.mesh.geometry.clone();
+      avatarMesh = new THREE.Mesh(g, new THREE.ShaderMaterial({ uniforms: { map: { value: null }, rect: { value: new THREE.Vector4(0, 0, 0, 0) }, bright: { value: 0.95 } },
+        vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+        fragmentShader: AVATAR_FS, transparent: true, depthTest: false, depthWrite: false, side: THREE.DoubleSide }));
+      avatarMesh.renderOrder = -49; avatarMesh.frustumCulled = false; avatarMesh.visible = false;
+      bgScene.add(avatarMesh);
+    }
   }
   // screens built into the props: desk clock + wall speaker equalizer
   if (meta.screens?.clock) { leds.clock = new ClockScreen(); mount(leds.clock, meta.screens.clock.corners); }
@@ -213,30 +243,25 @@ async function buildScene() {
   flashLight = new THREE.PointLight(0xffffff, 0, 0, 2); heroScene.add(flashLight);
 
   console.log('sprites ok', sprites.length);
-  // hero model
-  const gltf = await new GLTFLoader().loadAsync('scene/' + meta.hero.file);
-  const hm = new THREE.Matrix4().fromArray(meta.hero.matrix);
-  const heroPos = new THREE.Vector3(), heroQuat = new THREE.Quaternion(); hm.decompose(heroPos, heroQuat, new THREE.Vector3());
-  heroPivot = new THREE.Group();
-  const model = gltf.scene;
-  // the glTF nodes carry world transforms; re-centre them on the hero origin
-  model.position.sub(heroPos);
-  heroPivot.add(model);
-  heroPivot.position.copy(heroPos);
-  heroPivot.quaternion.copy(heroQuat);
-  model.traverse(o => { if (o.isMesh) { o.frustumCulled = false; if (o.material) { o.material.envMapIntensity = 1; } } });
-  heroScene.add(heroPivot);
-  heroRest = { pos: heroPos.clone(), quat: heroQuat.clone() };
+  for (const L of heroLights) L.layers.enableAll();
+  key.layers.enableAll(); flashLight.layers.enableAll();
+  // the robot photographer (+ the polaroid camera in its hand)
+  const gltf = await new GLTFLoader().loadAsync('scene/' + meta.actor.file);
+  actor = new Actor(gltf, meta.actor);
+  heroScene.add(actor.root);
+  window.__actor = actor;
   // flash window glow (front, top-right of the camera)
   const gc = document.createElement('canvas'); gc.width = gc.height = 128;
   const gg = gc.getContext('2d'); const rg = gg.createRadialGradient(64, 64, 0, 64, 64, 64);
   rg.addColorStop(0, 'rgba(255,255,255,1)'); rg.addColorStop(0.25, 'rgba(255,245,225,0.8)'); rg.addColorStop(1, 'rgba(255,230,200,0)');
   gg.fillStyle = rg; gg.fillRect(0, 0, 128, 128);
   const gt = new THREE.CanvasTexture(gc); gt.colorSpace = THREE.SRGBColorSpace;
-  flashSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: gt, color: new THREE.Color(4, 4, 4), transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending }));
-  flashSprite.position.set(...(meta.hero.flash || [0.104, 0.64, 0.14]));
+  flashSprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: gt, color: new THREE.Color(4, 4, 4), transparent: true, opacity: 0, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending }));
+  flashSprite.position.set(...(meta.actor.flash || [0.104, 0.64, 0.14]));
   flashSprite.scale.setScalar(0.9);
-  heroPivot.add(flashSprite);
+  flashSprite.renderOrder = 5;
+  (actor.cam || actor.root).add(flashSprite);
+  flashSprite.layers.set(0);
 }
 
 // ---------------------------------------------------------------- gallery (photos on wall / table)
@@ -386,6 +411,7 @@ async function runQueue() {
     await sleep(350);
   }
   busy = false;
+  if (actor && actor.state !== 'rest') actor.sitDown();
   lastShotEnd = Date.now();
   if (pendingReload) location.reload();
 }
@@ -428,6 +454,7 @@ let quoteFocus = 0;
 const tmpQ = new THREE.Quaternion();
 const anim = { blur: 0, dim: 1, flash: 0, flashLight: 0 };
 let activePrint = null;
+let printFollow = null;   // { s, h }: the print sticks out of the camera's slot and moves with the robot's hand
 
 function heroClosePose() {
   const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
@@ -469,10 +496,10 @@ const T = (kind) => {
 };
 
 function slotWorld() {
-  heroPivot.updateMatrixWorld(true);
-  const hq = heroPivot.getWorldQuaternion(new THREE.Quaternion());
-  const p = new THREE.Vector3(...meta.hero.slot).applyMatrix4(heroPivot.matrixWorld);
-  const d = new THREE.Vector3(...meta.hero.slotDir).applyQuaternion(hq).normalize();
+  const node = actor.cam;
+  const hq = node.getWorldQuaternion(new THREE.Quaternion());
+  const p = new THREE.Vector3(...meta.actor.slot).applyMatrix4(node.matrixWorld);
+  const d = new THREE.Vector3(...meta.actor.slotDir).applyQuaternion(hq).normalize();
   const right = new THREE.Vector3(1, 0, 0).applyQuaternion(hq);
   return { p, d, right };
 }
@@ -486,7 +513,8 @@ function printEjectPose(s, h) {
 }
 function resetShow() {
   if (activePrint) { heroScene.remove(activePrint.mesh); activePrint = null; }
-  heroPivot.position.copy(heroRest.pos); heroPivot.quaternion.copy(heroRest.quat);
+  printFollow = null; pipe.actorInBg = false;
+  if (actor) { actor.hold(actor.F.rest); actor.state = 'rest'; }
   anim.blur = 0; anim.dim = 1; if (stampModel) stampModel.visible = false; musicDuck(false);
   caption('phrase', null); caption('wish', null);
 }
@@ -603,27 +631,21 @@ async function shoot(job) {
   report();
   musicDuck(true);
   const printP = makePrint(entry, false);
-  const close = heroClosePose();
-  const restPos = heroRest.pos.clone(), restQ = heroRest.quat.clone();
-  // 1. camera comes forward, background blurs
-  if (S.photo.sounds?.charge !== false) play('flash_charge', 0.6);
-  await tween(tm.approach, (k) => {
-    const e = ease(k);
-    heroPivot.position.lerpVectors(restPos, close.pos, e);
-    heroPivot.quaternion.slerpQuaternions(restQ, close.quat, e);
-    anim.blur = e; anim.dim = lerp(1, 0.82, e);
-  });
+  const F = actor.F;
+  // 1. the robot stands up and raises the camera toward the viewers
+  if (S.photo.sounds?.charge !== false) setTimeout(() => play('flash_charge', 0.6), actor.state === 'rest' ? 900 / speed() : 0);
+  await actor.standAndAim(speed());
   const print = await printP;
   activePrint = print;
-  const h = print.height;
+  const camScale = actor.cam.getWorldScale(new THREE.Vector3()).x;
+  print.mesh.scale.setScalar(camScale);
+  const h = print.height * camScale;
   // 2. shutter + flash
   await sleep(tm.shutter * 1000 / speed());
   playShutter();
   await sleep(40);
   if (S.photo.flash !== false) { anim.flash = 0.85; anim.flashLight = 1; }
   setTimeout(() => caption('phrase', null), 450);
-  const recoilQ = heroPivot.quaternion.clone();
-  tween(0.25, (k) => { const a = Math.sin(k * Math.PI) * 0.02; heroPivot.quaternion.copy(recoilQ).multiply(tmpQ.setFromEuler(new THREE.Euler(-a, 0, 0))); });
 
   // phase lengths: everything from the shutter until the photo lands = tm.total seconds
   const total = tm.total;
@@ -631,26 +653,33 @@ async function shoot(job) {
   const P = { print: 0.2, toScreen: 0.11, hold1: 0.12, stamp: hasSeal ? 0.24 : 0, hold2: hasSeal ? 0.13 : 0.37, fly: 0.2 };
   const sec = (k) => P[k] * total;
 
-  // 3. print slides out of the slot and develops (finishes just before the stamp arrives)
+  // 3. the print slides out of the slot under the camera and develops; the robot brings it down a little and
+  //    holds it out toward the viewers ("approach" timing = how long it holds the photo out)
   print.develop = 0;
   heroScene.add(print.mesh);
-  const devStart = performance.now(), devDur = (sec('print') + sec('toScreen') + sec('hold1') * 0.8) * 1000 / speed();
+  const holdOut = tm.approach;
+  const devStart = performance.now(), devDur = (sec('print') + holdOut + sec('toScreen') + sec('hold1') * 0.8) * 1000 / speed();
   const developTick = () => { if (activePrint !== print) return; print.develop = clamp01((performance.now() - devStart) / devDur); if (print.develop < 1) requestAnimationFrame(developTick); };
   developTick();
-  await tween(sec('print'), (k) => {
-    const pose = printEjectPose(easeOut(k) * h * 0.9, h);
-    print.mesh.position.copy(pose.pos); print.mesh.quaternion.copy(pose.quat);
-  });
-  // 4. print flies up to the screen, camera goes home
-  const heroFrom = { pos: heroPivot.position.clone(), quat: heroPivot.quaternion.clone() };
-  tween(1.4, (k) => { const e = ease(k); heroPivot.position.lerpVectors(heroFrom.pos, restPos, e); heroPivot.quaternion.slerpQuaternions(heroFrom.quat, restQ, e); });
-  const from = { pos: print.mesh.position.clone(), quat: print.mesh.quaternion.clone() };
+  printFollow = { s: 0, h };
+  const handMove = actor.play(F.shoot, F.hold, Math.max(0.5, (F.hold - F.shoot) / actor.fps / speed()));
+  await tween(sec('print'), (k) => { printFollow.s = easeOut(k) * h * 0.9; });
+  await handMove;
+  await sleep(holdOut * 1000 / speed());
+  // 4. the photo leaves the robot's hand and flies to the middle of the screen; the robot (now behind the
+  //    blurred background) sits down — or stays up when the next photo is waiting
+  printFollow = null;
+  pipe.actorInBg = true;
+  if (queue.length) actor.blendTo(F.shoot, 1.2); else actor.sitDown();
+  const from = { pos: print.mesh.position.clone(), quat: print.mesh.quaternion.clone(), scale: print.mesh.scale.x };
   const show = showPose();
   await tween(sec('toScreen'), (k) => {
     const e = ease(k);
     print.mesh.position.lerpVectors(from.pos, show.pos, e);
     print.mesh.position.y += Math.sin(e * Math.PI) * 0.18;
     print.mesh.quaternion.slerpQuaternions(from.quat, show.quat, e);
+    print.mesh.scale.setScalar(lerp(from.scale, 1, e));
+    anim.blur = e; anim.dim = lerp(1, 0.82, e);
   });
   // 5. hold on screen (with a compliment underneath), stamp the seal, hold again
   { let w = pick(lines('wishes')) || '';
@@ -681,7 +710,7 @@ async function shoot(job) {
     });
     heroScene.remove(print.mesh); print.dispose();
     activePrint = null;
-    anim.blur = 0; anim.dim = 1;
+    anim.blur = 0; anim.dim = 1; pipe.actorInBg = false;
     musicDuck(false);
     return;
   }
@@ -707,7 +736,7 @@ async function shoot(job) {
   delete entry._printArgs;
   placeInGallery(print, entry, pose);
   saveGallery();
-  anim.blur = 0; anim.dim = 1;
+  anim.blur = 0; anim.dim = 1; pipe.actorInBg = false;
   musicDuck(false);
 }
 
@@ -788,6 +817,32 @@ function reportMusic() {
   api.report?.({ music: { playing: music.playing && !music.el.paused, name: t?.name || '', idx: music.idx } });
 }
 
+// ---------------------------------------------------------------- greeting avatar on the bottom LED board
+const avatarTex = new Map();
+function avatarTexture(img) {
+  if (avatarTex.has(img)) return avatarTex.get(img);
+  const N = 128, c = document.createElement('canvas'); c.width = c.height = N;
+  const g = c.getContext('2d');
+  g.save(); g.beginPath(); g.arc(N / 2, N / 2, N / 2 - 7, 0, Math.PI * 2); g.clip();
+  const k = Math.max(N / img.naturalWidth, N / img.naturalHeight);
+  g.drawImage(img, (N - img.naturalWidth * k) / 2, (N - img.naturalHeight * k) / 2, img.naturalWidth * k, img.naturalHeight * k);
+  g.restore();
+  g.lineWidth = 6; g.strokeStyle = S.bottomBoard?.color || '#ffb347'; g.beginPath(); g.arc(N / 2, N / 2, N / 2 - 4, 0, Math.PI * 2); g.stroke();
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  if (avatarTex.size > 40) { for (const v of avatarTex.values()) v.dispose(); avatarTex.clear(); }
+  avatarTex.set(img, t);
+  return t;
+}
+function updateAvatar() {
+  if (!avatarMesh) return;
+  const a = leds.bottom?.avatarDraw;
+  if (!a || !a.img) { avatarMesh.visible = false; return; }
+  const C = leds.bottom.led.cols, R = leds.bottom.led.rows;
+  avatarMesh.material.uniforms.map.value = avatarTexture(a.img);
+  avatarMesh.material.uniforms.rect.value.set(a.x / C, 1 - (a.top + a.size) / R, (a.x + a.size) / C, 1 - a.top / R);
+  avatarMesh.visible = true;
+}
+
 // ---------------------------------------------------------------- live events
 // ---------------------------------------------------------------- likes (tim): shared counter on the heart board.
 // Every like adds to the board; when it reaches perPhoto (50) the viewer whose like completed it gets a photo
@@ -812,8 +867,9 @@ async function onLive(ev) {
     if (lastGreet.has(k) && now - lastGreet.get(k) < 120000) return;
     lastGreet.set(k, now);
     if (lastGreet.size > 3000) lastGreet.clear();
+    // people joining: greeting with their name + a small round avatar on the bottom board (no photo)
+    if (S.bottomBoard?.joinAvatar !== false && ev.avatar && !ev.avatarLocal && api.fetchImage) { try { ev.avatarLocal = await api.fetchImage(ev.avatar); } catch {} }
     leds.bottom?.push(ev);
-    maybeGuest(ev);
     return;
   }
   if (ev.type === 'follow') { leds.bottom?.push(ev); return; }
@@ -837,7 +893,7 @@ api.onCommand?.((cmd) => {
   if (cmd.type === 'quoteTest') { if (quoteFX && !busy && !queue.length) { quoteFX.state = 'idle'; quoteForced = true; showQuote(cmd.text || nextQuote()); } return; }
   if (cmd.type === 'test') {
     const name = cmd.name || 'Khách';
-    if (cmd.kind === 'join') onLive({ type: 'join', nickname: name, uniqueId: name + Math.random() });
+    if (cmd.kind === 'join') onLive({ type: 'join', nickname: name, uniqueId: name + Math.random(), avatarLocal: cmd.avatar || null });
     else if (cmd.kind === 'like10' || cmd.kind === 'like50') {
       const n = cmd.kind === 'like10' ? 10 : 50;
       for (let i = 0; i < n; i++) setTimeout(() => onLive({ type: 'like', nickname: name, uniqueId: name, count: 1 }), i * 90);
@@ -913,7 +969,7 @@ function frame() {
   acc += dt0;
   const minDt = 1 / fpsCap - 0.002;
   if (acc < minDt) return;
-  const dt = Math.min(acc, 0.1); acc = 0;
+  const dt = Math.min(acc, 0.1), dtReal = Math.min(acc, 0.5); acc = 0;
   const t = clock.elapsedTime;
   frames++; fpsT += dt; if (fpsT >= 1) { fps = Math.round(frames / fpsT); frames = 0; fpsT = 0; adaptRes(); if (S.display.showFps) $('fps').textContent = `${fps} fps · ${Math.round(resScale * 100)}%\nhàng chờ: ${queue.length}`; }
 
@@ -940,8 +996,14 @@ function frame() {
   // flash decay
   anim.flash = Math.max(0, anim.flash - dt * 3.2);
   anim.flashLight = Math.max(0, anim.flashLight - dt * 4);
-  if (flashLight && heroPivot) {
-    flashLight.position.copy(heroPivot.position).add(new THREE.Vector3(0.3, 0.4, 0.8));
+  if (actor) {
+    actor.update(dtReal);   // real time: the robot's moves are awaited by the photo timeline
+    if (printFollow && activePrint) { const pose = printEjectPose(printFollow.s, printFollow.h); activePrint.mesh.position.copy(pose.pos); activePrint.mesh.quaternion.copy(pose.quat); }
+    if (plateMat && plateMat.uniforms.bare.value !== plateMat.uniforms.map.value) plateMat.uniforms.bareMix.value = actor.standing;
+  }
+  updateAvatar();
+  if (flashLight && actor?.cam) {
+    actor.cam.getWorldPosition(flashLight.position).add(new THREE.Vector3(0.3, 0.4, 0.8));
     flashLight.intensity = anim.flashLight * 60;
   }
   if (flashSprite) { flashSprite.material.opacity = Math.min(1, anim.flashLight * 1.4); flashSprite.scale.setScalar(0.5 + anim.flashLight * 0.9); }

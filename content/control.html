@@ -104,14 +104,9 @@
     <div class="field"><label for="lkHang">Chụp xong thì</label><select id="lkHang"><option value="small">Treo vào khung nhỏ</option><option value="medium">Treo vào khung vừa</option><option value="random">Treo vào khung ngẫu nhiên</option><option value="none">Ảnh biến mất</option></select></div>
   </div>
   <div class="row wrap cfg"><label for="lkNum">Màu số</label><input id="lkNum" type="color"><label for="lkLab">Màu icon trái tim</label><input id="lkLab" type="color"></div>
-  <p class="muted">Bảng LED trái tim đếm số tim (về 0 khi đủ mốc); icon trái tim cạnh số đập mỗi lần có tim, viền bảng nảy theo nhịp. Ảnh thả tim chỉ treo vào khung còn trống hoặc thay ảnh thả tim cũ hơn — không bao giờ thay ảnh người tặng quà; người tặng quà luôn được chụp trước.</p>
-  <h2>Chụp người vào live</h2>
-  <div class="field row"><label class="check"><input id="guestOn" type="checkbox"> Chụp ảnh người vừa vào live (không đóng dấu, chụp xong ảnh tự biến mất)</label></div>
-  <div class="grid3">
-    <div class="field"><label for="guestCd">Cách nhau ít nhất (giây)</label><input id="guestCd" type="number" min="5" max="600"></div>
-    <div class="field"><label for="guestSame">Không chụp lại cùng người trong (phút)</label><input id="guestSame" type="number" min="1" max="1440"></div>
-  </div>
-  <p class="muted">Chỉ chụp khi đang không có ảnh của người tặng quà; có người tặng quà thì ảnh người vào live bị bỏ qua. Nền ảnh dùng nền của khung nhỏ.</p>
+  <p class="muted">Bảng LED trái tim đếm số tim (về 0 khi đủ mốc); icon trái tim cạnh số đập mỗi lần có tim. Ảnh thả tim chỉ treo vào khung còn trống hoặc thay ảnh thả tim cũ hơn — không bao giờ thay ảnh người tặng quà; người tặng quà luôn được chụp trước.</p>
+  <h2>Người vào live</h2>
+  <div class="field row"><label class="check"><input id="joinAvatar" type="checkbox"> Hiện avatar nhỏ cạnh lời chào trên bảng LED (không chụp ảnh người vào live)</label></div>
   <h2>Câu phát sáng khi rảnh</h2>
   <div class="field row"><label class="check"><input id="qOn" type="checkbox"> Khi không chụp ảnh, các câu quote / chúc / khen tiếng Anh phát sáng hiện giữa khung hình</label></div>
   <div class="grid3">
@@ -130,7 +125,7 @@
   <div class="row"><button id="btnCapReset">Khôi phục danh sách mặc định</button></div>
   <h2>Thời gian (giây)</h2>
   <table class="tmtable">
-    <thead><tr><th>(0,1 – 3 giây)</th><th>Máy tiến lại</th><th>Chờ trước khi chụp</th><th>Từ lúc chụp đến khi ảnh về chỗ / biến mất</th></tr></thead>
+    <thead><tr><th>(0,1 – 3 giây)</th><th>Robot cầm ảnh đưa ra</th><th>Chờ trước khi chụp</th><th>Từ lúc chụp đến khi ảnh về chỗ / biến mất</th></tr></thead>
     <tbody id="tmRows"></tbody>
   </table>
   <p class="muted">Trong khoảng cuối, ảnh được in ra, hiện lên giữa màn hình (kèm câu khen), đóng dấu rồi bay về chỗ — với người vào live thì ảnh biến mất. Các bước tự chia theo tỉ lệ.</p>

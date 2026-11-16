@@ -65,6 +65,7 @@ export const DEFAULTS = {
     followTemplate: 'Cảm ơn {name} đã follow!',
     idleText: 'Tặng quà để được chụp ảnh polaroid!',
     showJoins: true,
+    joinAvatar: true,      // small round avatar next to the greeting
     joinSeconds: 3,
     color: '#ffb347',
     giftColor: '#ffe08a',

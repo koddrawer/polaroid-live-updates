@@ -110,7 +110,11 @@ export class Pipeline {
     r.setRenderTarget(t.bg); r.setClearColor(0x000000, 1); r.clear(true, true, true);
     r.render(bgScene, camera);
     // hero inside the background layer → it gets blurred with the scene (used while a quote is in focus)
-    if (this.heroInBg) { r.clearDepth(); r.render(heroScene, heroCamera || camera); }
+    // (or only the robot layer: it stays behind the photo while the photo is in the middle of the screen)
+    const cam = heroCamera || camera, mask = cam.layers.mask;
+    if (this.heroInBg) { r.clearDepth(); cam.layers.mask = 0b11; r.render(heroScene, cam); }
+    else if (this.actorInBg) { r.clearDepth(); cam.layers.mask = 0b10; r.render(heroScene, cam); }
+    cam.layers.mask = mask;
     // 2. bloom (quarter res)
     let bloomTex = this.black;
     if (this.quality !== 'low' && this.hdr) {
@@ -132,7 +136,7 @@ export class Pipeline {
     r.setRenderTarget(t.comp); r.clear(true, true, true);
     r.render(this.compQ.scene, this.cam);
     r.clearDepth();
-    if (!this.heroInBg) r.render(heroScene, heroCamera || camera);
+    if (!this.heroInBg) { cam.layers.mask = this.actorInBg ? 0b01 : 0b11; r.render(heroScene, cam); cam.layers.mask = mask; }
     // 5. output
     const ou = this.outQ.mesh.material.uniforms;
     ou.tDiffuse.value = t.comp.texture; ou.flash.value = this.flash;

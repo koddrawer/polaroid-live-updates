@@ -65,7 +65,7 @@ export const DEFAULTS = {
     followTemplate: 'Cảm ơn {name} đã follow!',
     idleText: 'Tặng quà để được chụp ảnh polaroid!',
     showJoins: true,
-    joinAvatar: true,      // small round avatar next to the greeting
+    joinAvatar: false,     // small round avatar next to the greeting on the LED board
     joinSeconds: 3,
     color: '#ffb347',
     giftColor: '#ffe08a',
@@ -104,6 +104,7 @@ export const DEFAULTS = {
     paperAll: { url: null, caption: '#2a2420' },
     // photos of people joining the live (no seal, not hung on the wall)
     guest: { enabled: true, cooldown: 20, sameUserMinutes: 30 },
+    greet: { enabled: true, template: 'Chào mừng {name}!', hold: 3 },   // glowing greeting (name + avatar) for people joining
     captions: {
       enabled: true,
       phrases: [

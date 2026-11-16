@@ -47,7 +47,7 @@ export class QuoteFX {
 
   // lay the text out (wrapped, centred) and sample it into spark targets
   build(text, opts, keepPhase) {
-    const { font = 'Dancing Script', color = '#ffd78a', sizePct = 100, y = 0.5 } = opts || {};
+    const { font = 'Dancing Script', color = '#ffd78a', sizePct = 100, y = 0.5, avatar = null } = opts || {};
     this.lastArgs = [text, opts];
     this.color = color;
     this.sprite = this.makeSprite(color);
@@ -65,13 +65,26 @@ export class QuoteFX {
     };
     let lines = wrap(size);
     while (lines.length > 4 && size > 10) { size *= 0.9; lines = wrap(size); }
-    const lh = size * 1.25, blockH = lh * lines.length;
+    const lh = size * 1.25, textH = lh * lines.length;
+    // optional small round avatar above the words (greetings)
+    const avD = avatar ? Math.round(size * 1.7) : 0, avGap = avatar ? size * 0.45 : 0;
+    const blockH = textH + avD + avGap;
     // text image (with glow), drawn once
     const ti = document.createElement('canvas'); ti.width = W; ti.height = H;
     const tg = ti.getContext('2d');
     tg.font = `600 ${size}px ${fam}`; tg.textAlign = 'center'; tg.textBaseline = 'middle';
-    const cy = H * y - blockH / 2 + lh / 2;
+    const cy = H * y - blockH / 2 + avD + avGap + lh / 2;
     const [r, gg, b] = hexRgb(color);
+    const avC = { x: W / 2, y: H * y - blockH / 2 + avD / 2, r: avD / 2 };
+    if (avatar) {
+      tg.save();
+      tg.shadowColor = `rgba(${r},${gg},${b},1)`; tg.shadowBlur = size * 0.6;
+      tg.fillStyle = `rgba(${r},${gg},${b},0.9)`; tg.beginPath(); tg.arc(avC.x, avC.y, avC.r + size * 0.09, 0, Math.PI * 2); tg.fill();
+      tg.shadowBlur = 0; tg.beginPath(); tg.arc(avC.x, avC.y, avC.r, 0, Math.PI * 2); tg.clip();
+      const k = Math.max(avD / avatar.naturalWidth, avD / avatar.naturalHeight);
+      tg.drawImage(avatar, avC.x - avatar.naturalWidth * k / 2, avC.y - avatar.naturalHeight * k / 2, avatar.naturalWidth * k, avatar.naturalHeight * k);
+      tg.restore();
+    }
     // soft dark halo behind the letters so they stay readable on the light wall
     tg.shadowColor = 'rgba(20,8,0,0.55)'; tg.shadowBlur = size * 0.5; tg.fillStyle = 'rgba(30,14,4,0.35)';
     lines.forEach((ln, i) => tg.fillText(ln, W / 2, cy + i * lh));
@@ -85,11 +98,12 @@ export class QuoteFX {
     const sc = document.createElement('canvas'); sc.width = W; sc.height = H;
     const sg = sc.getContext('2d'); sg.font = tg.font; sg.textAlign = 'center'; sg.textBaseline = 'middle'; sg.fillStyle = '#fff';
     lines.forEach((ln, i) => sg.fillText(ln, W / 2, cy + i * lh));
-    const top = Math.max(0, Math.floor(cy - lh)), bot = Math.min(H, Math.ceil(cy + blockH));
+    const top = Math.max(0, Math.floor(cy - lh)), bot = Math.min(H, Math.ceil(cy + textH));
     const data = sg.getImageData(0, top, W, bot - top).data;
     const step = Math.max(2, Math.round(size / 14));
     const pts = [];
     for (let yy = 0; yy < bot - top; yy += step) for (let xx = 0; xx < W; xx += step) if (data[(yy * W + xx) * 4 + 3] > 120) pts.push([xx, yy + top]);
+    if (avatar) { const n = Math.round(avC.r * 2 * Math.PI / step); for (let i = 0; i < n; i++) { const a = i / n * Math.PI * 2; pts.push([avC.x + Math.cos(a) * (avC.r + 2), avC.y + Math.sin(a) * (avC.r + 2)]); } }
     // keep it light on slow machines
     const maxN = 1400;
     const keep = pts.length > maxN ? pts.filter((_, i) => i % Math.ceil(pts.length / maxN) === 0) : pts;
@@ -105,6 +119,7 @@ export class QuoteFX {
   }
 
   show(text, opts) {
+    this.isGreet = !!opts?.greet;
     this.build(text, opts);
     this.hold = Math.max(0.5, Number(opts?.hold) || 6);
     this.state = 'in'; this.t = 0;

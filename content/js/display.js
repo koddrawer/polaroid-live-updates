@@ -435,12 +435,36 @@ function showQuote(text) {
   quoteFX.show(text, { font: q.font || 'Dancing Script', color: q.color || '#ffd78a', sizePct: q.size || 100, hold: qShow(), y: 0.47 });
   quoteNextAt = performance.now() + (quoteFX.tIn + qShow() + quoteFX.tOut + qGap()) * 1000;
 }
+// people joining the live: a glowing greeting with their name and a small round avatar (before any quote)
+const greetQ = [];
+const greetCfg = () => ({ ...DEFAULTS.photo.greet, ...(S.photo.greet || {}) });
+async function queueGreet(ev) {
+  const g = greetCfg(); if (g.enabled === false) return;
+  let img = null;
+  const url = ev.avatarLocal || ev.avatar;
+  if (url) img = await new Promise((res) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => res(im); im.onerror = () => res(null); im.src = url; });
+  greetQ.push({ name: ev.nickname, img, t: performance.now() });
+  while (greetQ.length > 3) greetQ.shift();                     // a crowd joining: only the latest few
+}
+function showGreet(gr) {
+  const g = greetCfg(), q = S.photo.quotes || {};
+  const hold = Math.max(1, Number(g.hold) || 3);
+  quoteFX.show(fill(g.template || 'Chào mừng {name}!', { name: shortName(gr.name) }), { font: q.font || 'Dancing Script', color: g.color || q.color || '#ffd78a', sizePct: (q.size || 100) * 0.9, hold, y: 0.47, avatar: gr.img, greet: true });
+  quoteNextAt = performance.now() + (quoteFX.tIn + hold + quoteFX.tOut + qGap()) * 1000;
+}
 function quoteTick(dt) {
   if (!quoteFX) return;
   const now = performance.now();
   if (quoteForced && quoteFX.done()) quoteForced = false;
-  if (busy || queue.length || (!S.photo.quotes?.enabled && !quoteForced)) {
+  while (greetQ.length && now - greetQ[0].t > 30000) greetQ.shift();
+  if (busy || queue.length) {
     quoteFX.hide();                                                     // dissolve right away when a photo starts
+    quoteNextAt = Math.max(quoteNextAt, now + Math.max(1500, qGap() * 1000));
+  } else if (greetQ.length) {
+    if (quoteFX.done()) showGreet(greetQ.shift());
+    else if (!quoteFX.isGreet) quoteFX.hide();                          // a quote gives way to the greeting
+  } else if (!S.photo.quotes?.enabled && !quoteForced) {
+    if (!quoteFX.isGreet) quoteFX.hide();
     quoteNextAt = Math.max(quoteNextAt, now + Math.max(1500, qGap() * 1000));
   } else if (quoteFX.done() && now >= quoteNextAt) showQuote(nextQuote());
   quoteFX.update(dt);
@@ -514,7 +538,7 @@ function printEjectPose(s, h) {
 function resetShow() {
   if (activePrint) { heroScene.remove(activePrint.mesh); activePrint = null; }
   printFollow = null; pipe.actorInBg = false;
-  if (actor) { actor.hold(actor.F.rest); actor.state = 'rest'; }
+  if (actor) { actor.seq++; actor.hold(actor.F.rest); actor.state = 'rest'; }
   anim.blur = 0; anim.dim = 1; if (stampModel) stampModel.visible = false; musicDuck(false);
   caption('phrase', null); caption('wish', null);
 }
@@ -670,7 +694,7 @@ async function shoot(job) {
   //    blurred background) sits down — or stays up when the next photo is waiting
   printFollow = null;
   pipe.actorInBg = true;
-  if (queue.length) actor.blendTo(F.shoot, 1.2); else actor.sitDown();
+  if (queue.length) actor.stayUp(); else actor.sitDown();
   const from = { pos: print.mesh.position.clone(), quat: print.mesh.quaternion.clone(), scale: print.mesh.scale.x };
   const show = showPose();
   await tween(sec('toScreen'), (k) => {
@@ -867,9 +891,10 @@ async function onLive(ev) {
     if (lastGreet.has(k) && now - lastGreet.get(k) < 120000) return;
     lastGreet.set(k, now);
     if (lastGreet.size > 3000) lastGreet.clear();
-    // people joining: greeting with their name + a small round avatar on the bottom board (no photo)
-    if (S.bottomBoard?.joinAvatar !== false && ev.avatar && !ev.avatarLocal && api.fetchImage) { try { ev.avatarLocal = await api.fetchImage(ev.avatar); } catch {} }
+    // people joining: a glowing greeting with their name + a small round avatar (no photo); the LED board greets too
+    if (ev.avatar && !ev.avatarLocal && api.fetchImage) { try { ev.avatarLocal = await api.fetchImage(ev.avatar); } catch {} }
     leds.bottom?.push(ev);
+    queueGreet(ev);
     return;
   }
   if (ev.type === 'follow') { leds.bottom?.push(ev); return; }

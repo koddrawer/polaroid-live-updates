@@ -106,7 +106,12 @@
   <div class="row wrap cfg"><label for="lkNum">Màu số</label><input id="lkNum" type="color"><label for="lkLab">Màu icon trái tim</label><input id="lkLab" type="color"></div>
   <p class="muted">Bảng LED trái tim đếm số tim (về 0 khi đủ mốc); icon trái tim cạnh số đập mỗi lần có tim. Ảnh thả tim chỉ treo vào khung còn trống hoặc thay ảnh thả tim cũ hơn — không bao giờ thay ảnh người tặng quà; người tặng quà luôn được chụp trước.</p>
   <h2>Người vào live</h2>
-  <div class="field row"><label class="check"><input id="joinAvatar" type="checkbox"> Hiện avatar nhỏ cạnh lời chào trên bảng LED (không chụp ảnh người vào live)</label></div>
+  <div class="field row"><label class="check"><input id="greetOn" type="checkbox"> Lời chào phát sáng giữa màn hình (tên + avatar nhỏ) — không chụp ảnh người vào live</label></div>
+  <div class="grid3">
+    <div class="field"><label for="greetTpl">Câu chào ({name} = tên)</label><input id="greetTpl" type="text"></div>
+    <div class="field"><label for="greetHold">Thời gian hiện (giây)</label><input id="greetHold" type="number" min="1" max="30" step="0.5"></div>
+  </div>
+  <p class="muted">Lời chào dùng phông và màu của câu phát sáng, hiện khi đang không chụp ảnh. Nhiều người vào cùng lúc thì chỉ chào vài người mới nhất.</p>
   <h2>Câu phát sáng khi rảnh</h2>
   <div class="field row"><label class="check"><input id="qOn" type="checkbox"> Khi không chụp ảnh, các câu quote / chúc / khen tiếng Anh phát sáng hiện giữa khung hình</label></div>
   <div class="grid3">

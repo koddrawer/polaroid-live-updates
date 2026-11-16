@@ -1,13 +1,13 @@
 {
- "version": "1.5.2",
- "notes": "Bỏ cài đặt LED trên; thêm tab Mức donate chỉnh mức xu; chữ phát sáng tan biến ngay khi có donate hoặc đủ tim",
+ "version": "1.5.3",
+ "notes": "Sửa danh sách nhạc: tên bài dài tự rút gọn, luôn thấy nút xoá",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
  "files": {
   "control.css": {
-   "sha256": "180a3bd0a6ef11632fa08476095570ca6e4db6ef069880dd2b51816799d1146b",
-   "size": 7309
+   "sha256": "518cabfaedd72fd7469827cf4c8184be3277b58cdea9cb2fb6027c8443c0b149",
+   "size": 7510
   },
   "control.html": {
    "sha256": "6c18eeab75194b3b75fa6bb07bc5d2e4586831ea4fea727da49cb44aab50ab59",
@@ -94,8 +94,8 @@
    "size": 10997
   },
   "js/control.js": {
-   "sha256": "5fcdd2f356240f07a4db32806f8bc2099ba8b316551293b9140417351fe52d4c",
-   "size": 33692
+   "sha256": "92c35b0fffc19e273143ac3e6fb1fe71ad2f963cfdf50906fb7e3e17f2d8c2a1",
+   "size": 33739
   },
   "js/cutout.js": {
    "sha256": "2aec5541a446f219f568751271ec49e03e6b156dd2021d4b55327217744d66ee",

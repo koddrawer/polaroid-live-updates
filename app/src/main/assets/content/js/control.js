@@ -304,7 +304,7 @@ function renderMusic() {
     const li = document.createElement('li'); if (musicNow && musicNow.idx === i && musicNow.playing) li.className = 'now';
     const play = Object.assign(document.createElement('button'), { textContent: '▶', title: 'Phát bài này' });
     play.onclick = () => api.command({ type: 'music', action: 'track', index: i });
-    const name = document.createElement('span'); name.textContent = t.name;
+    const name = document.createElement('span'); name.className = 'tname'; name.textContent = t.name; name.title = t.name;
     const ctl = document.createElement('div'); ctl.className = 'ctl';
     const del = Object.assign(document.createElement('button'), { textContent: '✕', title: 'Xoá' });
     del.onclick = () => { const tr = [...S.music.tracks]; tr.splice(i, 1); save({ music: { tracks: tr } }).then(renderMusic); };

@@ -1,6 +1,6 @@
 {
- "version": "1.5.3",
- "notes": "Sửa danh sách nhạc: tên bài dài tự rút gọn, luôn thấy nút xoá",
+ "version": "1.5.4",
+ "notes": "Lời chào luôn có avatar: nút thử dùng avatar mẫu, người không có/không tải được avatar thì hiện chữ cái đầu",
  "repo": "koddrawer/polaroid-live-updates",
  "branch": "main",
  "minShell": "1.0.0",
@@ -81,6 +81,10 @@
    "sha256": "ebc3e4f16b57860265d23985fb0432ac82589d99aa93d4b4b5a7fbdefd97dbde",
    "size": 6655
   },
+  "icons/sample_avatar.png": {
+   "sha256": "b5477bc89a467915eac3b6d6613b87f26ca8934cd6724e2553a932bc6ad2bc7a",
+   "size": 1484
+  },
   "icons/star.png": {
    "sha256": "afbfa226ad272d79f1721aa14511079e52cd620e4ae7597fd8450ae37a648145",
    "size": 3838
@@ -106,8 +110,8 @@
    "size": 11069
   },
   "js/display.js": {
-   "sha256": "9f3533cf6458c8528402443ced5591e4d5380240a2f8dfce5e3fbb241ba25a00",
-   "size": 60744
+   "sha256": "53fe4e2286d8502f2cee816069328f79e016e5ccf4fb4ea70a5a1efc352aa4d4",
+   "size": 61420
   },
   "js/heart.js": {
    "sha256": "c839dd0d31d5bef8bc2bef32145ff66037fc5c03476847c3be4833add3356496",
@@ -126,8 +130,8 @@
    "size": 7469
   },
   "js/quotes.js": {
-   "sha256": "99ebb77dcccdde7967f169a188082c54547031df17b9f74dd151e1708a7e27cc",
-   "size": 11069
+   "sha256": "c380b3e17754b810dbd99ea0d58956b5cf2f217acd080612355ec288849e49ce",
+   "size": 11062
   },
   "js/screens.js": {
    "sha256": "19a01e157535bbfa4ffb80449016b1175e240ef9ead259f169f9217c3297a1c8",

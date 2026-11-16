@@ -444,8 +444,18 @@ async function queueGreet(ev) {
   let img = null;
   const url = ev.avatarLocal || ev.avatar;
   if (url) img = await new Promise((res) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => res(im); im.onerror = () => res(null); im.src = url; });
+  if (!img) img = letterAvatar(ev.nickname);       // no avatar (or it could not be downloaded): initial letter
   greetQ.push({ name: ev.nickname, img, t: performance.now() });
   while (greetQ.length > 3) greetQ.shift();                     // a crowd joining: only the latest few
+}
+function letterAvatar(name) {
+  const c = document.createElement('canvas'); c.width = c.height = 128;
+  const g = c.getContext('2d');
+  const n = String(name || '?').trim(); let h = 0; for (const ch of n) h = (h * 31 + ch.codePointAt(0)) >>> 0;
+  g.fillStyle = `hsl(${h % 360}, 55%, 42%)`; g.fillRect(0, 0, 128, 128);
+  g.fillStyle = '#fff'; g.font = '700 70px "Barlow Condensed", Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText((Array.from(n)[0] || '?').toUpperCase(), 64, 68);
+  return c;
 }
 function showGreet(gr) {
   const g = greetCfg(), q = S.photo.quotes || {};
@@ -923,7 +933,7 @@ api.onCommand?.((cmd) => {
   if (cmd.type === 'quoteTest') { if (quoteFX && !busy && !queue.length) { quoteFX.state = 'idle'; quoteForced = true; showQuote(cmd.text || nextQuote()); } return; }
   if (cmd.type === 'test') {
     const name = cmd.name || 'Khách';
-    if (cmd.kind === 'join') onLive({ type: 'join', nickname: name, uniqueId: name + Math.random(), avatarLocal: cmd.avatar || null });
+    if (cmd.kind === 'join') onLive({ type: 'join', nickname: name, uniqueId: name + Math.random(), avatarLocal: cmd.avatar || 'app://content/icons/sample_avatar.png' });
     else if (cmd.kind === 'like10' || cmd.kind === 'like50') {
       const n = cmd.kind === 'like10' ? 10 : 50;
       for (let i = 0; i < n; i++) setTimeout(() => onLive({ type: 'like', nickname: name, uniqueId: name, count: 1 }), i * 90);

@@ -43,7 +43,7 @@ details summary{cursor:pointer;color:var(--muted)}
 .log .t{color:var(--muted);font-variant-numeric:tabular-nums}
 .log .gift{color:var(--brass)}
 .items{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
-.items li{display:grid;grid-template-columns:44px 1fr auto;gap:6px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:6px}
+.items li{display:grid;grid-template-columns:44px minmax(0,1fr) auto;min-width:0;gap:6px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:6px}
 .items .icon{width:44px;height:44px;border:1px dashed var(--line);border-radius:4px;display:grid;place-items:center;cursor:pointer;background:#0f0c09;padding:0}
 .items .icon img{max-width:36px;max-height:36px;image-rendering:auto}
 .items .ctl{display:flex;gap:4px}
@@ -94,3 +94,6 @@ textarea{width:100%;box-sizing:border-box;background:#0f0c09;border:1px solid va
 .idleitem img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px;border:1px solid var(--line)}
 .idleitem input{font-size:12px!important;padding:4px 6px!important}
 .idleitem .del{position:absolute;top:4px;right:4px;width:24px;height:24px;padding:0;border-radius:50%;background:#000a;color:#fff;border:none;line-height:24px}
+
+.items .tname{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+#musNow{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1 1 100%;min-width:0}

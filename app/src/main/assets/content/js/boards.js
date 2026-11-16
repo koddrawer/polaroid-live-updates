@@ -153,10 +153,10 @@ export class BottomBoard {
     const d = { name: ev.nickname, gift: ev.giftName, count: ev.repeat, coins: ev.coins };
     if (ev.type === 'gift') { text = fill(c.giftTemplate, d); color = c.giftColor; icon = ev.giftImageLocal || null; prio = 2; }
     else if (ev.type === 'follow') { text = fill(c.followTemplate, d); color = c.giftColor; prio = 1; }
-    else if (ev.type === 'join') { if (!c.showJoins) return; text = fill(c.joinTemplate, d); color = c.color; prio = 0; }
+    else if (ev.type === 'join') { if (!c.showJoins) return; text = fill(c.joinTemplate, d); color = c.color; prio = 0; if (c.joinAvatar !== false) icon = ev.avatarLocal || ev.avatar || null; }
     else return;
     if (!text) return;
-    const msg = { text, color, icon, prio, t: 0 };
+    const msg = { text, color, icon, prio, t: 0, avatar: ev.type === 'join' && !!icon };
     if (icon && !this.icons.has(icon)) { this.icons.set(icon, null); loadImage(icon).then(im => this.icons.set(icon, im)); }
     if (prio === 0) {
       const joins = this.queue.filter(m => m.prio === 0);
@@ -176,6 +176,7 @@ export class BottomBoard {
     this.idleScroll += dt * this.speed;
     const top = 1, areaH = R - 2;
     this.led.draw((g) => {
+      this.avatarDraw = null;
       if (!this.cur) {
         const text = c.idleText || '';
         g.fillStyle = c.color || '#ffb347';
@@ -201,7 +202,8 @@ export class BottomBoard {
         x = C - Math.floor(m.scroll);
         if (x + iw + L.width < 0) { this.cur = null; return; }
       }
-      if (icon) {
+      if (icon && m.avatar) this.avatarDraw = { img: icon, x: Math.round(x), top, size: areaH };   // drawn in full colour on top of the LEDs
+      else if (icon) {
         const s = areaH / Math.max(icon.naturalWidth, icon.naturalHeight);
         g.drawImage(icon, Math.round(x), top + (areaH - icon.naturalHeight * s) / 2, icon.naturalWidth * s, icon.naturalHeight * s);
       }
